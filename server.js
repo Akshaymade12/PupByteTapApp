@@ -29,6 +29,19 @@ app.post("/save", async (req, res) => {
   res.json({ success: true });
 });
 
+// Load API
+app.get("/load/:id", async (req, res) => {
+  const user = await User.findOne({
+    telegramId: req.params.id
+  });
+
+  if (user) {
+    res.json({ coins: user.coins });
+  } else {
+    res.json({ coins: 0 });
+  }
+});
+
 // Home Test
 app.get("/", (req, res) => {
   res.send("PupByte Backend Running 🚀");
