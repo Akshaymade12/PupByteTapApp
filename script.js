@@ -1,8 +1,5 @@
 let coins = 0;
 
-const API = "https://pupbytetapapp.onrender.com";
-
-// Tap
 function tap() {
   coins += 1;
   document.getElementById("coins").innerText = coins;
@@ -10,11 +7,10 @@ function tap() {
   saveCoins();
 }
 
-// Save
 async function saveCoins() {
   let telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
 
-  await fetch(API + "/save", {
+  await fetch("https://pupbytebot.onrender.com/save", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -26,11 +22,12 @@ async function saveCoins() {
   });
 }
 
-// Load
 async function loadCoins() {
   let telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
 
-  let res = await fetch(API + "/load/" + telegramId);
+  let res = await fetch(
+    "https://pupbytebot.onrender.com/load/" + telegramId
+  );
 
   let data = await res.json();
 
@@ -38,5 +35,4 @@ async function loadCoins() {
   document.getElementById("coins").innerText = coins;
 }
 
-// On Start
 window.onload = loadCoins;
