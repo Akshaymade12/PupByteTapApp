@@ -10,7 +10,6 @@ function getTelegramId() {
 function tap() {
   coins += 1;
   document.getElementById("coins").innerText = coins;
-
   saveCoins();
 }
 
@@ -21,16 +20,11 @@ async function saveCoins() {
 
     await fetch("/save", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        telegramId: telegramId,
-        coins: coins
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, coins })
     });
   } catch (err) {
-    console.log("Save error:", err);
+    console.log(err);
   }
 }
 
@@ -45,7 +39,7 @@ async function loadCoins() {
     coins = data.coins || 0;
     document.getElementById("coins").innerText = coins;
   } catch (err) {
-    console.log("Load error:", err);
+    console.log(err);
   }
 }
 
