@@ -26,8 +26,9 @@ body {
 }
 
 .character-section img {
-  width: 240px;
-  border-radius: 50%;
+  width: 280px;
+  height: auto;
+  border-radius: 20px;
   box-shadow: 0 0 40px gold;
   cursor: pointer;
   transition: transform 0.1s;
