@@ -37,6 +37,7 @@ async function loadCoins() {
         const data = await res.json();
         coins = data.coins || 0;
         document.getElementById("coins").innerText = coins;
+        document.getElementById("profit").innerText = data.profitPerHour;
     } catch (err) {
         console.log("Load error:", err);
     }
