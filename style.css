@@ -25,17 +25,21 @@ body {
   margin-top: 20px;
 }
 
-.character-section img {
+..character {
   width: 280px;
-  height: auto;
-  border-radius: 20px;
-  box-shadow: 0 0 40px gold;
+  height: 280px;
+  margin: 0 auto;
+  background-image: url('/logo.jpeg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
   cursor: pointer;
   transition: transform 0.1s;
 }
 
-.character-section img:active {
+.character:active {
   transform: scale(0.9);
+}
 }
 
 .bottom-menu {
