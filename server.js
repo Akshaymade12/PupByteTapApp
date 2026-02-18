@@ -54,9 +54,6 @@ app.get("/load/:id", async (req, res) => {
 });
 
 // Home Test
-app.get("/", (req, res) => {
-  res.send("PupByte Backend Running 🚀");
-});
 
 // Port
 const PORT = process.env.PORT || 3000;
