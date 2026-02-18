@@ -75,6 +75,7 @@ setInterval(() => {
 }, 1000);
 
 window.onload = () => {
+
   const lastTime = localStorage.getItem("lastTime");
 
   if (lastTime) {
@@ -89,6 +90,7 @@ window.onload = () => {
     }
   }
 
+  saveData();   // 🔥 important
   updateUI();
 };
 window.onbeforeunload = () => {
