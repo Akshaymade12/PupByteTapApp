@@ -18,7 +18,14 @@ const User = mongoose.model("User", {
 
 // Save API
 app.post("/save", async (req, res) => {
+
+  console.log("SAVE HIT 👉", req.body); // 👈 IMPORTANT
+
   const { telegramId, coins } = req.body;
+
+  if (!telegramId) {
+    return res.json({ success: false, error: "No Telegram ID" });
+  }
 
   await User.findOneAndUpdate(
     { telegramId },
