@@ -37,3 +37,24 @@ async function loadCoins() {
 }
 
 window.onload = loadCoins;
+
+async function upgrade() {
+    const res = await fetch("/upgrade", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ userId })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        coins = data.coins;
+        document.getElementById("coins").innerText = coins;
+        document.getElementById("profit").innerText = data.profitPerHour;
+        alert("Upgrade Successful 🚀");
+    } else {
+        alert("Not enough coins 💸");
+    }
+}
