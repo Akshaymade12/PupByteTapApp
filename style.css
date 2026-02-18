@@ -29,7 +29,7 @@ body {
   width: 280px;
   height: 280px;
   margin: 0 auto;
-  background-image: url('/logo.jpeg');
+  background-image: url('https://pupbytetapapp.onrender.com/Logo.jpeg');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
