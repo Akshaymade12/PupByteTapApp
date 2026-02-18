@@ -1,44 +1,42 @@
 let coins = 0;
 
-// Simple Tap
+function getTelegramId() {
+  if (window.Telegram && window.Telegram.WebApp) {
+    return window.Telegram.WebApp.initDataUnsafe?.user?.id;
+  }
+  return null;
+}
+
 function tap() {
   coins += 1;
   document.getElementById("coins").innerText = coins;
 
-  // Telegram me ho to save karo
-  if (window.Telegram && window.Telegram.WebApp) {
-    saveCoins();
-  }
+  saveCoins();
 }
 
-// Save to backend
 async function saveCoins() {
   try {
-    let telegramId = window.Telegram.WebApp.initDataUnsafe?.user?.id;
-
+    let telegramId = getTelegramId();
     if (!telegramId) return;
 
     await fetch("/save", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         telegramId: telegramId,
-        coins: coins,
-      }),
+        coins: coins
+      })
     });
   } catch (err) {
     console.log("Save error:", err);
   }
 }
 
-// Load saved coins
 async function loadCoins() {
   try {
-    if (!(window.Telegram && window.Telegram.WebApp)) return;
-
-    let telegramId = window.Telegram.WebApp.initDataUnsafe?.user?.id;
+    let telegramId = getTelegramId();
     if (!telegramId) return;
 
     let res = await fetch("/load/" + telegramId);
