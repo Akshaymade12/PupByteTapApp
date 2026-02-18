@@ -25,7 +25,7 @@ body {
   margin-top: 20px;
 }
 
-..character {
+.character {
   width: 280px;
   height: 280px;
   margin: 0 auto;
@@ -39,6 +39,7 @@ body {
 
 .character:active {
   transform: scale(0.9);
+}
 }
 }
 
