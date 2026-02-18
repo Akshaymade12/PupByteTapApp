@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(to bottom, #0f172a, #1e293b);
+  background: radial-gradient(circle at center, #1e293b, #0f172a);
   color: white;
   text-align: center;
 }
@@ -15,8 +15,10 @@ body {
 }
 
 .coin-section h1 {
-  font-size: 48px;
+  font-size: 50px;
   margin: 20px 0;
+  color: gold;
+  text-shadow: 0 0 20px rgba(255,215,0,0.7);
 }
 
 .character-section {
@@ -24,7 +26,9 @@ body {
 }
 
 .character-section img {
-  width: 250px;
+  width: 240px;
+  border-radius: 50%;
+  box-shadow: 0 0 40px gold;
   cursor: pointer;
   transition: transform 0.1s;
 }
