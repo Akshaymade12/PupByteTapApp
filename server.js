@@ -9,79 +9,97 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// MongoDB Connect
+/* =========================
+   MongoDB Connection
+========================= */
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected ✅"))
 .catch(err => console.log("Mongo Error ❌", err));
 
-// User Schema
+/* =========================
+   User Schema
+========================= */
 const User = mongoose.model("User", {
-  telegramId: String,
-  coins: { type: Number, default: 0 },
-  profitPerHour: { type: Number, default: 0 },
-  level: { type: Number, default: 1 }
+    telegramId: String,
+    coins: { type: Number, default: 0 },
+    profitPerHour: { type: Number, default: 0 },
+    level: { type: Number, default: 1 }
 });
 
-// SAVE
+/* =========================
+   SAVE COINS
+========================= */
 app.post("/save", async (req, res) => {
-  const { telegramId, coins } = req.body;
-  if (!telegramId) return res.json({ success: false });
+    const { telegramId, coins } = req.body;
 
-  let user = await User.findOne({ telegramId });
+    if (!telegramId) {
+        return res.json({ success: false });
+    }
 
-  if (!user) {
-  user = new User({ telegramId, coins });
-} else {
-  user.coins = coins;
-  }
+    let user = await User.findOne({ telegramId });
 
-  // 🔥 LEVEL LOGIC
-  if (user.coins >= 1000) user.level = 2;
-  if (user.coins >= 5000) user.level = 3;
-  if (user.coins >= 10000) user.level = 4;
-  if (user.coins >= 25000) user.level = 5;
-  if (user.coins >= 50000) user.level = 6;
-  if (user.coins >= 100000) user.level = 7;
-  if (user.coins >= 250000) user.level = 8;
-  if (user.coins >= 500000) user.level = 9;
-  if (user.coins >= 1000000) user.level = 10;
+    if (!user) {
+        user = new User({ telegramId, coins });
+    } else {
+        user.coins = coins;
+    }
 
-  await user.save();
+    /* LEVEL LOGIC */
+    if (user.coins >= 1000) user.level = 2;
+    if (user.coins >= 5000) user.level = 3;
+    if (user.coins >= 10000) user.level = 4;
+    if (user.coins >= 25000) user.level = 5;
+    if (user.coins >= 50000) user.level = 6;
+    if (user.coins >= 100000) user.level = 7;
+    if (user.coins >= 250000) user.level = 8;
+    if (user.coins >= 500000) user.level = 9;
+    if (user.coins >= 1000000) user.level = 10;
 
-  res.json({
-    success: true,
-    level: user.level
-  });
+    await user.save();
+
+    res.json({
+        success: true,
+        level: user.level
+    });
 });
 
-// LOAD + AUTO MINING
+/* =========================
+   LOAD USER DATA
+========================= */
 app.get("/load/:id", async (req, res) => {
-  const user = await User.findOne({ telegramId: req.params.id });
+    const user = await User.findOne({ telegramId: req.params.id });
 
-  res.json({
-    coins: user ? user.coins : 0,
-    profitPerHour: user ? user.profitPerHour : 0,
-    level: user ? user.level : 1
-  });
+    res.json({
+        coins: user ? user.coins : 0,
+        profitPerHour: user ? user.profitPerHour : 0,
+        level: user ? user.level : 1
+    });
 });
-    
-    // UPGRADE MINING
+
+/* =========================
+   UPGRADE MINING
+========================= */
 app.post("/upgrade", async (req, res) => {
     const { userId } = req.body;
 
     let user = await User.findOne({ telegramId: userId });
 
-    if (!user) return res.json({ success: false });
+    if (!user) {
+        return res.json({ success: false });
+    }
 
     const upgradeCost = user.level * 1000;
 
     if (user.coins < upgradeCost) {
-        return res.json({ success: false, message: "Not enough coins" });
+        return res.json({
+            success: false,
+            message: "Not enough coins"
+        });
     }
 
     user.coins -= upgradeCost;
     user.level += 1;
-    user.profitPerHour += 1000; // increase mining speed
+    user.profitPerHour += 1000;
 
     await user.save();
 
@@ -93,15 +111,21 @@ app.post("/upgrade", async (req, res) => {
     });
 });
 
-    let user = await User.findOne({ userId: req.params.id });
+/* =========================
+   Default Route
+========================= */
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
 
-    if (!user) {
-        user = await User.create({ userId: req.params.id });
-    }
+/* =========================
+   Server Start
+========================= */
+const PORT = process.env.PORT || 3000;
 
-    const now = new Date();
-    const secondsPassed = (now - user.lastUpdated) / 1000;
-
+app.listen(PORT, () => {
+    console.log("Server running on port", PORT);
+});
     const earned = (user.profitPerHour / 3600) * secondsPassed;
 
     user.coins += earned;
