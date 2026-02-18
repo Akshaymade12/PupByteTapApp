@@ -1,12 +1,6 @@
 let coins = 0;
 
-if (window.Telegram && window.Telegram.WebApp) {
-    window.Telegram.WebApp.ready();
-    window.Telegram.WebApp.expand();
-    console.log("Telegram WebApp Loaded");
-    console.log("User Data:", window.Telegram.WebApp.initDataUnsafe);
-}
-// Unique user id (browser based)
+// Unique user ID (browser based)
 let userId = localStorage.getItem("pupbyte_user");
 
 if (!userId) {
@@ -21,43 +15,25 @@ function tap() {
 }
 
 async function saveCoins() {
-    try {
-        await fetch("/save", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                telegramId: userId,
-                coins: coins
-            })
-        });
-    } catch (err) {
-        console.log("Save error:", err);
-    }
+    await fetch("/save", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            userId: userId,
+            coins: coins
+        })
+    });
 }
 
 async function loadCoins() {
-  try {
-    if (!window.Telegram || !window.Telegram.WebApp) return;
-
-    const user = window.Telegram.WebApp.initDataUnsafe.user;
-    if (!user) return;
-
-    const res = await fetch("/load/" + user.id);
+    const res = await fetch("/load/" + userId);
     const data = await res.json();
 
     coins = data.coins || 0;
     document.getElementById("coins").innerText = coins;
-
-    // 🔥 PROFIT DISPLAY FIX
-    if (document.getElementById("profit")) {
-      document.getElementById("profit").innerText = data.profitPerHour || 0;
-    }
-
-  } catch (err) {
-    console.log("Load error:", err);
-  }
+    document.getElementById("profit").innerText = data.profitPerHour || 0;
 }
 
 window.onload = loadCoins;
