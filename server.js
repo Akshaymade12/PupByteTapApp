@@ -17,9 +17,8 @@ const User = mongoose.model("User", {
   userId: String,
   coins: { type: Number, default: 0 },
   profitPerHour: { type: Number, default: 0 },
-  level: { type: Number, default: 1 }
+  level: { type: Number, default: 1 },
   lastActive: { type: Date, default: Date.now }
-});
 });
 
 // SAVE COINS
