@@ -9,7 +9,7 @@ if (!userId) {
   localStorage.setItem("pupbyte_user", userId);
 }
 
-function checkLevelUp() {
+{
   const levelTargets = {
     1: 1000,
     2: 5000,
@@ -33,7 +33,6 @@ function checkLevelUp() {
 function tap() {
   coins++;
   document.getElementById("coins").innerText = coins;
-  checkLevelUp();   // 👈 yaha add karo
 }
 
 async function loadCoins() {
@@ -54,7 +53,7 @@ setInterval(() => {
   if (profitPerHour > 0) {
     coins += profitPerHour / 3600;
     document.getElementById("coins").innerText = Math.floor(coins);
-    checkLevelUp();   // 👈 yaha bhi add karo
+    
   }
 }, 1000);
 
@@ -63,7 +62,7 @@ async function upgrade() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId })
-  });
+  }
 
   const data = await res.json();
 
