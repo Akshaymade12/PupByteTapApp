@@ -75,5 +75,22 @@ setInterval(() => {
 }, 1000);
 
 window.onload = () => {
+  const lastTime = localStorage.getItem("lastTime");
+
+  if (lastTime) {
+    const now = Date.now();
+    const diffSeconds = Math.floor((now - lastTime) / 1000);
+
+    if (profitPerHour > 0 && diffSeconds > 0) {
+      const offlineCoins = (profitPerHour / 3600) * diffSeconds;
+      coins += offlineCoins;
+
+      alert("💰 You earned " + Math.floor(offlineCoins) + " coins while offline!");
+    }
+  }
+
   updateUI();
+};
+window.onbeforeunload = () => {
+  localStorage.setItem("lastTime", Date.now());
 };
