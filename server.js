@@ -1,17 +1,21 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 
-const app = express();   // ✅ app pehle banao
+const app = express();
 
-app.use(cors());         // ✅ phir use karo
+// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+
+// Static files serve (VERY IMPORTANT)
+app.use(express.static(path.join(__dirname)));
 
 // MongoDB Connect
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB Connected ✅"))
-.catch(err => console.log("Mongo Error ❌", err));
+  .then(() => console.log("MongoDB Connected ✅"))
+  .catch(err => console.log("Mongo Error ❌", err));
 
 // Schema
 const User = mongoose.model("User", {
@@ -19,11 +23,8 @@ const User = mongoose.model("User", {
   coins: Number
 });
 
-// Save API
+// Save Coins API
 app.post("/save", async (req, res) => {
-
-  console.log("SAVE HIT 👉", req.body);
-
   const { telegramId, coins } = req.body;
 
   if (!telegramId) {
@@ -39,9 +40,8 @@ app.post("/save", async (req, res) => {
   res.json({ success: true });
 });
 
-// Load API
+// Load Coins API
 app.get("/load/:id", async (req, res) => {
-
   const user = await User.findOne({
     telegramId: req.params.id
   });
@@ -53,7 +53,10 @@ app.get("/load/:id", async (req, res) => {
   }
 });
 
-// Home Test
+// Force index.html load
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
 // Port
 const PORT = process.env.PORT || 3000;
