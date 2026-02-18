@@ -9,30 +9,7 @@ if (!userId) {
   localStorage.setItem("pupbyte_user", userId);
 }
 
-function tap() {
-  coins++;
-  document.getElementById("coins").innerText = coins;
-  saveCoins();
-}
-
-async function saveCoins() {
-  await fetch("/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId: userId,
-      coins: coins
-    })
-  });
-}
-
-async function loadCoins() {
-  const res = await fetch("/load/" + userId);
-  const data = await res.json();
-
-  coins = data.coins || 0;
-  profitPerHour = data.profitPerHour || 0;
-
+function updateLevelInfo(level) {
   const levelTargets = {
     1: 1000,
     2: 5000,
@@ -45,31 +22,64 @@ async function loadCoins() {
     9: 1000000
   };
 
-  let currentLevel = data.level || 1;
-  let nextTarget = levelTargets[currentLevel];
+  let nextTarget = levelTargets[level];
 
-  document.getElementById("coins").innerText = coins;
-  document.getElementById("profit").innerText = profitPerHour;
-  document.getElementById("level").innerText = "Legendary " + currentLevel;
+  const levelEl = document.getElementById("level");
+  const nextLevelEl = document.getElementById("nextLevelInfo");
 
-  if (nextTarget) {
-    let remaining = nextTarget - coins;
-    if (remaining < 0) remaining = 0;
-
-    document.getElementById("nextLevelInfo").innerText =
-      "Next Level at: " + nextTarget + " coins | Remaining: " + remaining;
-  } else {
-    document.getElementById("nextLevelInfo").innerText = "Max Level Reached 🚀";
+  if (levelEl) {
+    levelEl.innerText = "Legendary " + level;
   }
+
+  if (nextLevelEl) {
+    if (nextTarget) {
+      let remaining = nextTarget - coins;
+      if (remaining < 0) remaining = 0;
+
+      nextLevelEl.innerText =
+        "Next Level at: " + nextTarget + " coins | Remaining: " + Math.floor(remaining);
+    } else {
+      nextLevelEl.innerText = "Max Level Reached 🚀";
+    }
+  }
+}
+
+function tap() {
+  coins++;
+  document.getElementById("coins").innerText = Math.floor(coins);
+  saveCoins();
+}
+
+async function saveCoins() {
+  await fetch("/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: userId,
+      coins: Math.floor(coins)
+    })
+  });
+}
+
+async function loadCoins() {
+  const res = await fetch("/load/" + userId);
+  const data = await res.json();
+
+  coins = data.coins || 0;
+  profitPerHour = data.profitPerHour || 0;
+
+  document.getElementById("coins").innerText = Math.floor(coins);
+  document.getElementById("profit").innerText = profitPerHour;
+
+  updateLevelInfo(data.level || 1);
 }
 
 // AUTO MINING
 setInterval(() => {
-    if (profitPerHour > 0) {
-        coins += profitPerHour / 3600;
-        document.getElementById("coins").innerText = Math.floor(coins);
-        saveCoins();
-    }
+  if (profitPerHour > 0) {
+    coins += profitPerHour / 3600;
+    document.getElementById("coins").innerText = Math.floor(coins);
+  }
 }, 1000);
 
 async function upgrade() {
@@ -83,9 +93,13 @@ async function upgrade() {
 
   if (data.success) {
     coins = data.coins;
-    document.getElementById("coins").innerText = coins;
-    document.getElementById("profit").innerText = data.profitPerHour;
-    document.getElementById("level").innerText = "Legendary " + data.level;
+    profitPerHour = data.profitPerHour;
+
+    document.getElementById("coins").innerText = Math.floor(coins);
+    document.getElementById("profit").innerText = profitPerHour;
+
+    updateLevelInfo(data.level);
+
     alert("Upgrade Successful 🚀");
   } else {
     alert("Not enough coins ❌");
