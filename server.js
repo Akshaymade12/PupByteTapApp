@@ -16,34 +16,54 @@ mongoose.connect(process.env.MONGO_URI)
 
 // User Schema
 const User = mongoose.model("User", {
-    userId: String,
-    coins: { type: Number, default: 0 },
-    profitPerHour: { type: Number, default: 3600 },
-    level: { type: Number, default: 1 },
-    lastUpdated: { type: Date, default: Date.now }
+  telegramId: String,
+  coins: { type: Number, default: 0 },
+  profitPerHour: { type: Number, default: 0 },
+  level: { type: Number, default: 1 }
 });
 
 // SAVE
 app.post("/save", async (req, res) => {
-    const { userId, coins } = req.body;
+  const { telegramId, coins } = req.body;
+  if (!telegramId) return res.json({ success: false });
 
-    if (!userId) return res.json({ success: false });
+  let user = await User.findOne({ telegramId });
 
-    let user = await User.findOne({ userId });
-
-    if (!user) {
-        user = await User.create({ userId });
-    }
-
+  if (!user) {
+    user = new User({ telegramId, coins });
+  } else {
     user.coins = coins;
-    user.lastUpdated = new Date();
-    await user.save();
+  }
 
-    res.json({ success: true });
+  // 🔥 LEVEL LOGIC
+  if (user.coins >= 1000) user.level = 2;
+  if (user.coins >= 5000) user.level = 3;
+  if (user.coins >= 10000) user.level = 4;
+  if (user.coins >= 25000) user.level = 5;
+  if (user.coins >= 50000) user.level = 6;
+  if (user.coins >= 100000) user.level = 7;
+  if (user.coins >= 250000) user.level = 8;
+  if (user.coins >= 500000) user.level = 9;
+  if (user.coins >= 1000000) user.level = 10;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    level: user.level
+  });
 });
 
 // LOAD + AUTO MINING
 app.get("/load/:id", async (req, res) => {
+  const user = await User.findOne({ telegramId: req.params.id });
+
+  res.json({
+    coins: user ? user.coins : 0,
+    profitPerHour: user ? user.profitPerHour : 0,
+    level: user ? user.level : 1
+  });
+});
     
     // UPGRADE MINING
 app.post("/upgrade", async (req, res) => {
