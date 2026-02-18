@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: Arial;
-  background: linear-gradient(to bottom, #0f172a, #1e293b);
+  background: radial-gradient(circle at center, #1e293b, #0f172a);
   color: white;
   text-align: center;
 }
@@ -13,14 +13,14 @@ body {
   background: rgba(255,255,255,0.05);
 }
 
-h1 {
-  font-size: 50px;
+#coins {
+  font-size: 60px;
   color: gold;
-  text-shadow: 0 0 20px gold;
+  margin: 20px 0;
 }
 
 .character {
-  width: 260px;
+  width: 250px;
   margin-top: 20px;
   cursor: pointer;
   transition: transform 0.1s;
