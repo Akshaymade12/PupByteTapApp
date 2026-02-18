@@ -27,11 +27,7 @@ body {
   margin-top: 20px;
   cursor: pointer;
   transition: transform 0.1s;
-
-  box-shadow: 
-    0 0 20px gold,
-    0 0 40px orange,
-    0 0 60px rgba(255, 215, 0, 0.7);
+  box-shadow: 0 0 40px gold;
 }
 
 .character:active {
