@@ -1,5 +1,10 @@
 let coins = 0;
 
+// Telegram WebApp ready
+if (window.Telegram && window.Telegram.WebApp) {
+  window.Telegram.WebApp.ready();
+}
+
 function tap() {
   coins++;
   document.getElementById("coins").innerText = coins;
@@ -8,15 +13,18 @@ function tap() {
 
 async function saveCoins() {
   try {
-    let telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+    if (!window.Telegram || !window.Telegram.WebApp) return;
 
-    await fetch("https://pupbytetapapp.onrender.com/save", {
+    const user = window.Telegram.WebApp.initDataUnsafe.user;
+    if (!user) return;
+
+    await fetch("/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        telegramId: telegramId,
+        telegramId: user.id,
         coins: coins
       })
     });
@@ -28,13 +36,13 @@ async function saveCoins() {
 
 async function loadCoins() {
   try {
-    let telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+    if (!window.Telegram || !window.Telegram.WebApp) return;
 
-    let res = await fetch(
-      "https://pupbytetapapp.onrender.com/load/" + telegramId
-    );
+    const user = window.Telegram.WebApp.initDataUnsafe.user;
+    if (!user) return;
 
-    let data = await res.json();
+    const res = await fetch("/load/" + user.id);
+    const data = await res.json();
 
     coins = data.coins || 0;
     document.getElementById("coins").innerText = coins;
