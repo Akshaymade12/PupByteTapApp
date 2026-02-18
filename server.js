@@ -14,61 +14,62 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected ✅"))
 .catch(err => console.log("Mongo Error ❌", err));
 
-// Schema
+// User Schema
 const User = mongoose.model("User", {
-  telegramId: String,
-  coins: { type: Number, default: 0 },
-  profitPerHour: { type: Number, default: 0 },
-  lastUpdated: { type: Date, default: Date.now }
+    userId: String,
+    coins: { type: Number, default: 0 },
+    profitPerHour: { type: Number, default: 3600 }, // 1 coin per second
+    lastUpdated: { type: Date, default: Date.now }
 });
 
-// Save Coins
+// SAVE
 app.post("/save", async (req, res) => {
-    const { telegramId, coins } = req.body;
+    const { userId, coins } = req.body;
 
-    if (!telegramId) {
-        return res.json({ success: false });
+    if (!userId) return res.json({ success: false });
+
+    let user = await User.findOne({ userId });
+
+    if (!user) {
+        user = await User.create({ userId });
     }
 
-    await User.findOneAndUpdate(
-        { telegramId },
-        { coins },
-        { upsert: true }
-    );
+    user.coins = coins;
+    user.lastUpdated = new Date();
+    await user.save();
 
     res.json({ success: true });
 });
 
-// Load Coins
+// LOAD + AUTO MINING
 app.get("/load/:id", async (req, res) => {
-  let user = await User.findOne({ telegramId: req.params.id });
 
-  if (!user) {
-    user = await User.create({ telegramId: req.params.id });
-  }
+    let user = await User.findOne({ userId: req.params.id });
 
-  const now = new Date();
-  const secondsPassed = (now - user.lastUpdated) / 1000;
+    if (!user) {
+        user = await User.create({ userId: req.params.id });
+    }
 
-  const earned = (user.profitPerHour / 3600) * secondsPassed;
+    const now = new Date();
+    const secondsPassed = (now - user.lastUpdated) / 1000;
 
-  user.coins += earned;
-  user.lastUpdated = now;
+    const earned = (user.profitPerHour / 3600) * secondsPassed;
 
-  await user.save();
+    user.coins += earned;
+    user.lastUpdated = now;
 
-  res.json({
-    coins: Math.floor(user.coins),
-    profitPerHour: user.profitPerHour
-  });
+    await user.save();
+
+    res.json({
+        coins: Math.floor(user.coins),
+        profitPerHour: user.profitPerHour
+    });
 });
 
-// Home
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Port
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
