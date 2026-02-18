@@ -1,7 +1,6 @@
 let profitPerHour = 0;
 let coins = 0;
 
-// Unique browser user
 let userId = localStorage.getItem("pupbyte_user");
 
 if (!userId) {
@@ -9,7 +8,7 @@ if (!userId) {
   localStorage.setItem("pupbyte_user", userId);
 }
 
-function updateLevelInfo(level) {
+function updateLevel(level) {
   const levelTargets = {
     1: 1000,
     2: 5000,
@@ -23,42 +22,22 @@ function updateLevelInfo(level) {
   };
 
   let nextTarget = levelTargets[level];
+  let remaining = nextTarget ? nextTarget - coins : 0;
+  if (remaining < 0) remaining = 0;
 
-  const levelEl = document.getElementById("level");
-  const nextLevelEl = document.getElementById("nextLevelInfo");
+  document.getElementById("level").innerText = "Legendary " + level;
 
-  if (levelEl) {
-    levelEl.innerText = "Legendary " + level;
-  }
-
-  if (nextLevelEl) {
-    if (nextTarget) {
-      let remaining = nextTarget - coins;
-      if (remaining < 0) remaining = 0;
-
-      nextLevelEl.innerText =
-        "Next Level at: " + nextTarget + " coins | Remaining: " + Math.floor(remaining);
-    } else {
-      nextLevelEl.innerText = "Max Level Reached 🚀";
-    }
+  if (nextTarget) {
+    document.getElementById("nextLevelInfo").innerText =
+      "Next Level: " + nextTarget + " | Left: " + Math.floor(remaining);
+  } else {
+    document.getElementById("nextLevelInfo").innerText = "Max Level 🚀";
   }
 }
 
 function tap() {
   coins++;
-  document.getElementById("coins").innerText = Math.floor(coins);
-  saveCoins();
-}
-
-async function saveCoins() {
-  await fetch("/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId: userId,
-      coins: Math.floor(coins)
-    })
-  });
+  document.getElementById("coins").innerText = coins;
 }
 
 async function loadCoins() {
@@ -68,13 +47,12 @@ async function loadCoins() {
   coins = data.coins || 0;
   profitPerHour = data.profitPerHour || 0;
 
-  document.getElementById("coins").innerText = Math.floor(coins);
+  document.getElementById("coins").innerText = coins;
   document.getElementById("profit").innerText = profitPerHour;
 
-  updateLevelInfo(data.level || 1);
+  updateLevel(data.level || 1);
 }
 
-// AUTO MINING
 setInterval(() => {
   if (profitPerHour > 0) {
     coins += profitPerHour / 3600;
@@ -95,10 +73,10 @@ async function upgrade() {
     coins = data.coins;
     profitPerHour = data.profitPerHour;
 
-    document.getElementById("coins").innerText = Math.floor(coins);
+    document.getElementById("coins").innerText = coins;
     document.getElementById("profit").innerText = profitPerHour;
 
-    updateLevelInfo(data.level);
+    updateLevel(data.level);
 
     alert("Upgrade Successful 🚀");
   } else {
