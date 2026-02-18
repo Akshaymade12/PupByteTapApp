@@ -43,3 +43,16 @@ body {
   padding: 15px 0;
   background: #111827;
 }
+.upgrade-btn {
+  padding: 12px 25px;
+  font-size: 16px;
+  background: gold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.upgrade-btn:hover {
+  background: orange;
+}
