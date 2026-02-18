@@ -1,3 +1,4 @@
+let profitPerHour = 0;
 let coins = 0;
 
 // Unique browser user
@@ -30,11 +31,20 @@ async function loadCoins() {
   const data = await res.json();
 
   coins = data.coins || 0;
-
+profitPerHour = data.profitPerHour || 0;
   document.getElementById("coins").innerText = coins;
   document.getElementById("profit").innerText = data.profitPerHour || 0;
   document.getElementById("level").innerText = "Legendary " + (data.level || 1);
 }
+
+// AUTO MINING
+setInterval(() => {
+    if (profitPerHour > 0) {
+        coins += profitPerHour / 3600;
+        document.getElementById("coins").innerText = Math.floor(coins);
+        saveCoins();
+    }
+}, 1000);
 
 async function upgrade() {
   const res = await fetch("/upgrade", {
