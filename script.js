@@ -36,6 +36,11 @@ async function loadCoins() {
     document.getElementById("profit").innerText = data.profitPerHour || 0;
 }
 
+// Level display update
+if (document.getElementById("level")) {
+  document.getElementById("level").innerText = "Legendary " + (data.level || 1);
+}
+
 window.onload = loadCoins;
 
 async function upgrade() {
