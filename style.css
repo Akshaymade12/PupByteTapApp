@@ -47,6 +47,37 @@ body {
   padding: 15px 0;
   background: #111827;
 }
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+}
+
+.level-box, .profit-box {
+  background: rgba(255,255,255,0.08);
+  padding: 10px 15px;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 120px;
+}
+
+.level-title, .profit-title {
+  font-size: 11px;
+  opacity: 0.7;
+  letter-spacing: 1px;
+}
+
+.level-number {
+  font-size: 22px;
+  font-weight: bold;
+  color: gold;
+}
+
+.profit-number {
+  font-size: 18px;
+  font-weight: bold;
+  color: #00ff99;
+}
 .upgrade-btn {
   padding: 12px 25px;
   font-size: 16px;
