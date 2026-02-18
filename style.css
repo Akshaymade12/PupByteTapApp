@@ -4,70 +4,20 @@ body {
   background: radial-gradient(circle at center, #1e293b, #0f172a);
   color: white;
   text-align: center;
+  overflow-x: hidden;
 }
 
-.top-bar {
-  padding: 20px;
-  text-align: center;
+/* Top Section */
+.top-section {
+  padding: 25px 15px;
   background: linear-gradient(145deg, #0f172a, #1e293b);
   border-bottom-left-radius: 25px;
   border-bottom-right-radius: 25px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-#coins {
-  font-size: 70px;
-  margin: 25px 0;
-  background: linear-gradient(to right, gold, orange);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
-}
-
-.character {
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-top: 20px;
-  cursor: pointer;
-  transition: transform 0.1s ease;
-  
-  /* 🔥 Glow Effect */
-  box-shadow: 0 0 25px gold,
-              0 0 50px orange,
-              0 0 80px rgba(255, 215, 0, 0.7);
-}
-
-.character:active {
-  transform: scale(0.9);
-}
-
-.bottom-menu {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  padding: 15px 0;
-  backdrop-filter: blur(15px);
-  background: rgba(17, 24, 39, 0.8);
-  border-top: 1px solid rgba(255,255,255,0.1);
-}
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  padding: 15px;
-}
-
-.level-box, .profit-box {
-  .level-box, .profit-box {
-  width: 100%;
-  box-sizing: border-box;
-  }
-
-.level-title, .profit-title {
-  font-size: 11px;
+.level-title,
+.profit-title {
+  font-size: 12px;
   opacity: 0.7;
   letter-spacing: 1px;
 }
@@ -75,52 +25,69 @@ body {
 .level-number {
   font-size: 28px;
   font-weight: bold;
-  background: linear-gradient(to right, gold, orange);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: gold;
+  margin-bottom: 5px;
+}
+
+.next-info {
+  font-size: 12px;
+  margin-bottom: 15px;
+  word-wrap: break-word;
 }
 
 .profit-number {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: bold;
   color: #00ff99;
-  
-}.upgrade-btn {
-  padding: 14px 30px;
+}
+
+/* Coins */
+#coins {
+  font-size: 70px;
+  margin: 30px 0;
+  color: gold;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+/* Upgrade Button */
+.upgrade-btn {
+  width: 85%;
+  max-width: 400px;
+  padding: 14px;
   font-size: 16px;
   background: linear-gradient(45deg, gold, orange);
   border: none;
   border-radius: 30px;
   cursor: pointer;
-  margin-top: 20px;
   font-weight: bold;
   color: #111;
   box-shadow: 0 5px 20px rgba(255,165,0,0.5);
-  transition: all 0.2s ease;
+  margin: 10px auto 20px auto;
+  display: block;
 }
 
-.upgrade-btn:active {
+/* Character */
+.character {
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  box-shadow: 0 0 30px gold;
+  transition: transform 0.1s ease;
+}
+
+.character:active {
   transform: scale(0.95);
 }
 
-@keyframes pulseGlow {
-  0% {
-    box-shadow: 0 0 20px gold;
-  }
-  50% {
-    box-shadow: 0 0 50px orange;
-  }
-  100% {
-    box-shadow: 0 0 20px gold;
-  }
-}
-
-.character {
-  animation: pulseGlow 2s infinite;
-}
-#nextLevelInfo {
-  font-size: 11px;
-  margin-top: 5px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+/* Bottom Menu */
+.bottom-menu {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 15px 0;
+  background: #111827;
 }
