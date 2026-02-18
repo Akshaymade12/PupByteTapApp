@@ -69,7 +69,7 @@ app.get("/load/:id", async (req, res) => {
 app.post("/upgrade", async (req, res) => {
     const { userId } = req.body;
 
-    let user = await User.findOne({ userId });
+    let user = await User.findOne({ telegramId: userId });
 
     if (!user) return res.json({ success: false });
 
