@@ -1,18 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PupByte Tap Game</title>
+  <title>PupByte Tap</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1 id="coins">0</h1>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="level">
+      Legendary 1 / 10
+    </div>
+    <div class="profit">
+      Profit per hour: <span id="profit">+0</span>
+    </div>
+  </div>
 
-<div class="character" onclick="tap()">
-  <img src="PupByte-Logo.jpeg" width="200">
-</div>
+  <!-- Coin Counter -->
+  <div class="coin-section">
+    <h1 id="coins">0</h1>
+  </div>
+
+  <!-- Character -->
+  <div class="character-section">
+    <img src="/PupByte-Logo.jpeg" id="character" onclick="tap()">
+  </div>
+
+  <!-- Bottom Menu -->
+  <div class="bottom-menu">
+    <div>Exchange</div>
+    <div>Mine</div>
+    <div>Friends</div>
+    <div>Earn</div>
+    <div>Airdrop</div>
+  </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
