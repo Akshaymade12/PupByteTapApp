@@ -1,65 +1,59 @@
 let coins = 0;
 
-// Unique user ID (browser based)
+// Unique browser user
 let userId = localStorage.getItem("pupbyte_user");
 
 if (!userId) {
-    userId = "user_" + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem("pupbyte_user", userId);
+  userId = "user_" + Math.random().toString(36).substr(2, 9);
+  localStorage.setItem("pupbyte_user", userId);
 }
 
 function tap() {
-    coins++;
-    document.getElementById("coins").innerText = coins;
-    saveCoins();
+  coins++;
+  document.getElementById("coins").innerText = coins;
+  saveCoins();
 }
 
 async function saveCoins() {
-    await fetch("/save", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            userId: userId,
-            coins: coins
-        })
-    });
+  await fetch("/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: userId,
+      coins: coins
+    })
+  });
 }
 
 async function loadCoins() {
-    const res = await fetch("/load/" + userId);
-    const data = await res.json();
+  const res = await fetch("/load/" + userId);
+  const data = await res.json();
 
-    coins = data.coins || 0;
-    document.getElementById("coins").innerText = coins;
-    document.getElementById("profit").innerText = data.profitPerHour || 0;
-}
+  coins = data.coins || 0;
 
-// Level display update
-if (document.getElementById("level")) {
+  document.getElementById("coins").innerText = coins;
+  document.getElementById("profit").innerText = data.profitPerHour || 0;
   document.getElementById("level").innerText = "Legendary " + (data.level || 1);
 }
 
-window.onload = loadCoins;
-
 async function upgrade() {
-    const res = await fetch("/upgrade", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ userId })
-    });
+  const res = await fetch("/upgrade", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if (data.success) {
-        coins = data.coins;
-        document.getElementById("coins").innerText = coins;
-        document.getElementById("profit").innerText = data.profitPerHour;
-        alert("Upgrade Successful 🚀");
-    } else {
-        alert("Not enough coins 💸");
-    }
+  if (data.success) {
+    coins = data.coins;
+    document.getElementById("coins").innerText = coins;
+    document.getElementById("profit").innerText = data.profitPerHour;
+    document.getElementById("level").innerText = "Legendary " + data.level;
+    alert("Upgrade Successful 🚀");
+  } else {
+    alert("Not enough coins ❌");
+  }
 }
+
+window.onload = loadCoins;
