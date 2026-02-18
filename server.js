@@ -6,6 +6,7 @@ const app = express();   // ✅ app pehle banao
 
 app.use(cors());         // ✅ phir use karo
 app.use(express.json());
+app.use(express.static(__dirname));
 
 // MongoDB Connect
 mongoose.connect(process.env.MONGO_URI)
