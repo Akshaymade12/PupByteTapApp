@@ -19,17 +19,25 @@ const User = mongoose.model("User", {
 });
 
 app.post("/save", async (req, res) => {
-  const { telegramId, coins } = req.body;
 
-  if (!telegramId) return res.json({ success: false });
+    console.log("🔥 SAVE HIT:", req.body);
 
-  await User.findOneAndUpdate(
-    { telegramId },
-    { coins },
-    { upsert: true }
-  );
+    const { telegramId, coins } = req.body;
 
-  res.json({ success: true });
+    if (!telegramId) {
+        console.log("❌ Telegram ID missing");
+        return res.json({ success: false });
+    }
+
+    await User.findOneAndUpdate(
+        { telegramId },
+        { coins },
+        { upsert: true }
+    );
+
+    console.log("✅ Coins Saved:", coins);
+
+    res.json({ success: true });
 });
 
 app.get("/load/:id", async (req, res) => {
