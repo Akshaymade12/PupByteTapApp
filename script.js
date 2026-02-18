@@ -1,3 +1,4 @@
+let currentLevel = 1;
 let profitPerHour = 0;
 let coins = 0;
 
@@ -8,7 +9,7 @@ if (!userId) {
   localStorage.setItem("pupbyte_user", userId);
 }
 
-function updateLevel(level) {
+function checkLevelUp() {
   const levelTargets = {
     1: 1000,
     2: 5000,
@@ -21,23 +22,18 @@ function updateLevel(level) {
     9: 1000000
   };
 
-  let nextTarget = levelTargets[level];
-  let remaining = nextTarget ? nextTarget - coins : 0;
-  if (remaining < 0) remaining = 0;
+  let nextTarget = levelTargets[currentLevel];
 
-  document.getElementById("level").innerText = "Legendary " + level;
-
-  if (nextTarget) {
-    document.getElementById("nextLevelInfo").innerText =
-      "Next Level: " + nextTarget + " | Left: " + Math.floor(remaining);
-  } else {
-    document.getElementById("nextLevelInfo").innerText = "Max Level 🚀";
+  if (nextTarget && coins >= nextTarget) {
+    currentLevel++;
+    updateLevel(currentLevel);
   }
 }
 
 function tap() {
   coins++;
   document.getElementById("coins").innerText = coins;
+  checkLevelUp();   // 👈 yaha add karo
 }
 
 async function loadCoins() {
@@ -50,13 +46,15 @@ async function loadCoins() {
   document.getElementById("coins").innerText = coins;
   document.getElementById("profit").innerText = profitPerHour;
 
-  updateLevel(data.level || 1);
+  currentLevel = data.level || 1;
+updateLevel(currentLevel);
 }
 
 setInterval(() => {
   if (profitPerHour > 0) {
     coins += profitPerHour / 3600;
     document.getElementById("coins").innerText = Math.floor(coins);
+    checkLevelUp();   // 👈 yaha bhi add karo
   }
 }, 1000);
 
