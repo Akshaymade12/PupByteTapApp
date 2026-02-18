@@ -18,6 +18,8 @@ const User = mongoose.model("User", {
   coins: { type: Number, default: 0 },
   profitPerHour: { type: Number, default: 0 },
   level: { type: Number, default: 1 }
+  lastActive: { type: Date, default: Date.now }
+});
 });
 
 // SAVE COINS
@@ -40,8 +42,8 @@ app.post("/save", async (req, res) => {
 
 // LOAD DATA
 app.get("/load/:id", async (req, res) => {
-  const userId = req.params.id;
 
+  const userId = req.params.id;
   let user = await User.findOne({ userId });
 
   if (!user) {
@@ -49,8 +51,18 @@ app.get("/load/:id", async (req, res) => {
     await user.save();
   }
 
+  const now = new Date();
+  const secondsOffline = (now - user.lastActive) / 1000;
+
+  const offlineEarn = (user.profitPerHour / 3600) * secondsOffline;
+
+  user.coins += offlineEarn;
+  user.lastActive = now;
+
+  await user.save();
+
   res.json({
-    coins: user.coins,
+    coins: Math.floor(user.coins),
     profitPerHour: user.profitPerHour,
     level: user.level
   });
