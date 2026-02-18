@@ -30,9 +30,9 @@ app.post("/save", async (req, res) => {
   let user = await User.findOne({ telegramId });
 
   if (!user) {
-    user = new User({ telegramId, coins });
-  } else {
-    user.coins = coins;
+  user = new User({ telegramId, coins });
+} else {
+  user.coins = coins;
   }
 
   // 🔥 LEVEL LOGIC
