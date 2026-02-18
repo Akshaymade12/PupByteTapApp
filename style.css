@@ -1,7 +1,7 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: radial-gradient(circle at center, #1e293b, #0f172a);
+  font-family: Arial;
+  background: linear-gradient(to bottom, #0f172a, #1e293b);
   color: white;
   text-align: center;
 }
@@ -10,37 +10,24 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 15px;
-  font-size: 14px;
   background: rgba(255,255,255,0.05);
 }
 
-.coin-section h1 {
+h1 {
   font-size: 50px;
-  margin: 20px 0;
   color: gold;
-  text-shadow: 0 0 20px rgba(255,215,0,0.7);
-}
-
-.character-section {
-  margin-top: 20px;
+  text-shadow: 0 0 20px gold;
 }
 
 .character {
-  width: 280px;
-  height: 280px;
-  margin: 0 auto;
-  background-image: url('https://pupbytetapapp.onrender.com/Logo.jpeg');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+  width: 260px;
+  margin-top: 20px;
   cursor: pointer;
   transition: transform 0.1s;
 }
 
 .character:active {
   transform: scale(0.9);
-}
-}
 }
 
 .bottom-menu {
@@ -51,5 +38,4 @@ body {
   justify-content: space-around;
   padding: 15px 0;
   background: #111827;
-  font-size: 14px;
 }
