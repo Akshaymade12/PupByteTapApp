@@ -18,7 +18,8 @@ mongoose.connect(process.env.MONGO_URI)
 const User = mongoose.model("User", {
     userId: String,
     coins: { type: Number, default: 0 },
-    profitPerHour: { type: Number, default: 3600 }, // 1 coin per second
+    profitPerHour: { type: Number, default: 3600 },
+    level: { type: Number, default: 1 },
     lastUpdated: { type: Date, default: Date.now }
 });
 
@@ -43,6 +44,34 @@ app.post("/save", async (req, res) => {
 
 // LOAD + AUTO MINING
 app.get("/load/:id", async (req, res) => {
+    
+    // UPGRADE MINING
+app.post("/upgrade", async (req, res) => {
+    const { userId } = req.body;
+
+    let user = await User.findOne({ userId });
+
+    if (!user) return res.json({ success: false });
+
+    const upgradeCost = user.level * 1000;
+
+    if (user.coins < upgradeCost) {
+        return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= upgradeCost;
+    user.level += 1;
+    user.profitPerHour += 1000; // increase mining speed
+
+    await user.save();
+
+    res.json({
+        success: true,
+        coins: user.coins,
+        profitPerHour: user.profitPerHour,
+        level: user.level
+    });
+});
 
     let user = await User.findOne({ userId: req.params.id });
 
