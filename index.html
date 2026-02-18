@@ -6,35 +6,31 @@
 </head>
 <body>
 
-<div class="top-bar">
-  <div class="level-box">
+  <div class="top-section">
     <div class="level-title">LEVEL</div>
-    <div id="level">Legendary 1</div>
-<div id="nextLevelInfo"></div>
-    
-  <div class="profit-box">
+    <div id="level" class="level-number">Legendary 1</div>
+    <div id="nextLevelInfo" class="next-info"></div>
+
     <div class="profit-title">PROFIT / HOUR</div>
-    <div class="profit-number">+<span id="profit">0</span></div>
+    <div id="profit" class="profit-number">0</div>
   </div>
-</div>
 
-<h1 id="coins">0</h1>
-  
-<button onclick="upgrade()" class="upgrade-btn">
-  Upgrade Mining 🚀
-</button>
-  
-<img src="/logo.jpeg" class="character" onclick="tap()">
+  <div id="coins">0</div>
 
-<div class="bottom-menu">
-  <div>Exchange</div>
-  <div>Mine</div>
-  <div>Friends</div>
-  <div>Earn</div>
-  <div>Airdrop</div>
-</div>
+  <button onclick="upgrade()" class="upgrade-btn">
+    Upgrade Mining 🚀
+  </button>
 
-<script src="script.js"></script>
+  <img src="logo.jpeg" class="character" onclick="tap()">
 
+  <div class="bottom-menu">
+    <div>Exchange</div>
+    <div>Mine</div>
+    <div>Friends</div>
+    <div>Earn</div>
+    <div>Airdrop</div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
