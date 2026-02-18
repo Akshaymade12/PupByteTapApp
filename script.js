@@ -4,8 +4,10 @@ let coins = 0;
 if (window.Telegram && window.Telegram.WebApp) {
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
-}
 
+    console.log("Telegram Loaded ✅");
+    console.log("User Data:", window.Telegram.WebApp.initDataUnsafe);
+}
 function tap() {
     coins++;
     document.getElementById("coins").innerText = coins;
