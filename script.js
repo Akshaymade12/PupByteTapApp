@@ -1,5 +1,11 @@
 let coins = 0;
 
+if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+    console.log("Telegram WebApp Loaded");
+    console.log("User Data:", window.Telegram.WebApp.initDataUnsafe);
+}
 // Unique user id (browser based)
 let userId = localStorage.getItem("pupbyte_user");
 
