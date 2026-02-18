@@ -1,12 +1,10 @@
-const cors = require("cors");
-
-app.use(cors());
-
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 
-const app = express();
+const app = express();   // ✅ app pehle banao
 
+app.use(cors());         // ✅ phir use karo
 app.use(express.json());
 
 // MongoDB Connect
@@ -23,12 +21,12 @@ const User = mongoose.model("User", {
 // Save API
 app.post("/save", async (req, res) => {
 
-  console.log("SAVE HIT 👉", req.body); // 👈 IMPORTANT
+  console.log("SAVE HIT 👉", req.body);
 
   const { telegramId, coins } = req.body;
 
   if (!telegramId) {
-    return res.json({ success: false, error: "No Telegram ID" });
+    return res.json({ success: false });
   }
 
   await User.findOneAndUpdate(
@@ -42,6 +40,7 @@ app.post("/save", async (req, res) => {
 
 // Load API
 app.get("/load/:id", async (req, res) => {
+
   const user = await User.findOne({
     telegramId: req.params.id
   });
