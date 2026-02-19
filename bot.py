@@ -1,4 +1,5 @@
 import os
+import asyncio
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
@@ -34,8 +35,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
 
-print("Bot Running...")
-app.run_polling()
+async def main():
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+
+    print("Bot Running...")
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling()
+    await app.updater.idle()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
