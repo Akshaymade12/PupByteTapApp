@@ -67,9 +67,16 @@ function upgrade() {
 /* AUTO MINING */
 setInterval(() => {
   if (profitPerHour > 0) {
-    coins += profitPerHour / 3600;
+
+    // Real per second calculation
+    let perSecond = profitPerHour / 3600;
+
+    // 🔥 Speed multiplier (game feel ke liye)
+    let speedBoost = 8;   // 👈 isko 5–15 ke beech rakh sakte ho
+
+    coins += perSecond * speedBoost;
+
     checkLevelUp();
-    saveData();
     updateUI();
   }
 }, 1000);
