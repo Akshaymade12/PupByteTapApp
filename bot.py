@@ -1,10 +1,10 @@
 import os
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Updater, CommandHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 TOKEN = os.getenv("TOKEN")
 
-def start(update, context):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
         [
@@ -29,18 +29,13 @@ def start(update, context):
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    update.message.reply_text(
+    await update.message.reply_text(
         "🚀 Welcome to PupByte Official Network!",
         reply_markup=reply_markup
     )
 
-def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("start", start))
+app = ApplicationBuilder().token(TOKEN).build()
+app.add_handler(CommandHandler("start", start))
 
-    updater.start_polling()
-    updater.idle()
-
-if __name__ == "__main__":
-    main()
+print("Bot Running...")
+app.run_polling()
