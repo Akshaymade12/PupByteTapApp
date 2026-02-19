@@ -17,7 +17,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Buttons layout
     keyboard = [
-        [InlineKeyboardButton("🚀 Play & Mine", web_app=WebAppInfo(url="https://pupbytetapapp.onrender.com"))],
+        [InlineKeyboardButton("🚀 Play & Mine", web_app=WebAppInfo(url="https://akshaymade12.github.io/PupByteTapApp/")],
         [
             InlineKeyboardButton("💰 Earn Rewards"),
             InlineKeyboardButton("👥 Invite Friends")
