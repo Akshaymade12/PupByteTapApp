@@ -1,10 +1,10 @@
 import os
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import Updater, CommandHandler
 
 TOKEN = os.getenv("TOKEN")
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def start(update, context):
 
     keyboard = [
         [
@@ -20,7 +20,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton("👥 Invite Friends")
         ],
         [
-            InlineKeyboardButton("📊 Dashboard"),
             InlineKeyboardButton(
                 "📢 Join Community",
                 url="https://t.me/PupByteOfficial"
@@ -30,28 +29,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    text = """
-🚀 *PupByte Official Network is Back!*
-
-We're back — bigger and better than ever.
-
-Welcome to *PupByte Player* 🎮
-
-🎯 Interactive Games  
-🎁 Exclusive Airdrops  
-💎 Daily Rewards  
-
-Start mining and grow your $PBYTE today!
-"""
-
-    await update.message.reply_text(
-        text,
-        parse_mode="Markdown",
+    update.message.reply_text(
+        "🚀 Welcome to PupByte Official Network!",
         reply_markup=reply_markup
     )
 
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
+def main():
+    updater = Updater(TOKEN, use_context=True)
+    dp = updater.dispatcher
+    dp.add_handler(CommandHandler("start", start))
 
-print("Bot Running...")
-app.run_polling()
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == "__main__":
+    main()
