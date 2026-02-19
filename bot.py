@@ -1,15 +1,6 @@
-from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    WebAppInfo
-)
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    ContextTypes
-)
 import os
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 TOKEN = os.getenv("TOKEN")
 
@@ -39,7 +30,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    message = """
+    text = """
 🚀 *PupByte Official Network is Back!*
 
 We're back — bigger and better than ever.
@@ -53,13 +44,11 @@ Welcome to *PupByte Player* 🎮
 Start mining and grow your $PBYTE today!
 """
 
-    await update.message.reply_photo(
-        photo="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/PupByteOfficial.jpg",
-        caption=message,
+    await update.message.reply_text(
+        text,
         parse_mode="Markdown",
         reply_markup=reply_markup
     )
-
 
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
