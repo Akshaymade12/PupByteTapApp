@@ -1,4 +1,4 @@
-let coins = 0;
+let coins = null;
 let profitPerHour = 0;
 let tapPower = 1;
 let currentLevelName = "Bronze";
