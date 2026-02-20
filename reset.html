@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html>
-<body>
-<h2>Reset User</h2>
+<head>
+    <title>PupByte Reset</title>
+</head>
+<body style="background:#111; color:white; text-align:center; margin-top:100px; font-family:sans-serif;">
 
-<button onclick="resetUser()">Clear Local Storage</button>
+    <h1>PupByte User Reset</h1>
+    <p>Click button to clear local storage</p>
 
-<script>
-function resetUser(){
-    localStorage.clear();
-    alert("Local storage cleared ✅");
-}
-</script>
+    <button onclick="resetUser()" style="padding:15px 30px; font-size:18px; background:gold; border:none; border-radius:10px;">
+        Reset User
+    </button>
+
+    <script>
+        function resetUser() {
+            localStorage.clear();
+            alert("Local storage cleared ✅");
+        }
+    </script>
 
 </body>
 </html>
