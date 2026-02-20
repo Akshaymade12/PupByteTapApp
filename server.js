@@ -1,3 +1,5 @@
+app.use(express.static(__dirname));
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
