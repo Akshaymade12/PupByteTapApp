@@ -1,105 +1,114 @@
-let coins = parseInt(localStorage.getItem("coins")) || 0;
-let profitPerHour = parseInt(localStorage.getItem("profit")) || 0;
-let currentLevel = parseInt(localStorage.getItem("level")) || 1;
+let coins = 0;
+let profitPerHour = 0;
+let tapPower = 1;
+let currentLevelName = "Bronze";
 
-const levelTargets = {
-  1: 1000,
-  2: 5000,
-  3: 10000,
-  4: 25000,
-  5: 50000,
-  6: 100000,
-  7: 250000,
-  8: 500000,
-  9: 1000000
-};
+let userId = localStorage.getItem("pupbyte_user");
 
-function saveData() {
-  localStorage.setItem("coins", Math.floor(coins));
-  localStorage.setItem("profit", profitPerHour);
-  localStorage.setItem("level", currentLevel);
-}
-
-function updateUI() {
-  document.getElementById("coins").innerText = Math.floor(coins);
-  document.getElementById("profit").innerText = profitPerHour;
-  document.getElementById("level").innerText = "Legendary " + currentLevel;
-
-  let nextTarget = levelTargets[currentLevel];
-  let remaining = nextTarget ? nextTarget - coins : 0;
-  if (remaining < 0) remaining = 0;
-
-  if (nextTarget) {
-    document.getElementById("nextLevelInfo").innerText =
-      "Next Level: " + nextTarget + " | Left: " + Math.floor(remaining);
-  } else {
-    document.getElementById("nextLevelInfo").innerText = "Max Level 🚀";
-  }
-}
-
-function checkLevelUp() {
-  let nextTarget = levelTargets[currentLevel];
-
-  if (nextTarget && coins >= nextTarget) {
-    currentLevel++;
-    saveData();
-  }
+if (!userId) {
+  userId = "user_" + Math.random().toString(36).substr(2, 9);
+  localStorage.setItem("pupbyte_user", userId);
 }
 
 function tap() {
-  coins++;
-  checkLevelUp();
-  saveData();
-  updateUI();
+  coins += tapPower;
+  document.getElementById("coins").innerText = coins;
+  saveCoins();
+
+  const plus = document.createElement("div");
+  plus.innerText = "+" + tapPower;
+  plus.className = "tap-effect";
+  document.body.appendChild(plus);
+
+  setTimeout(() => plus.remove(), 1000);
 }
 
-function upgrade() {
-  if (coins >= 1000) {
-    coins -= 1000;
-    profitPerHour += 100;
-    saveData();
-    updateUI();
-  } else {
-    alert("Not enough coins ❌");
-  }
+async function saveCoins() {
+  await fetch("/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: userId,
+      coins: coins
+    })
+  });
 }
 
-/* AUTO MINING */
+async function loadCoins() {
+  const res = await fetch("/load/" + userId);
+  const data = await res.json();
+
+  coins = data.coins || 0;
+  profitPerHour = data.profitPerHour || 0;
+  tapPower = data.tapPower || 1;
+
+  document.getElementById("coins").innerText = coins;
+  document.getElementById("profit").innerText = profitPerHour;
+  document.getElementById("level").innerText = if (data.level !== currentLevelName) {
+  showLevelUp(data.level);
+  currentLevelName = data.level;
+}
+
+document.getElementById("level").innerText = data.level;
+applyLevelGlow(data.level);;
+}
+
+// REAL TIME AUTO MINING
 setInterval(() => {
   if (profitPerHour > 0) {
-
-    // Real per second calculation
-    let perSecond = profitPerHour / 3600;
-
-    // 🔥 Speed multiplier (game feel ke liye)
-    let speedBoost = 8;   // 👈 isko 5–15 ke beech rakh sakte ho
-
-    coins += perSecond * speedBoost;
-
-    checkLevelUp();
-    updateUI();
+    coins += profitPerHour / 3600;
+    document.getElementById("coins").innerText = Math.floor(coins);
+    saveCoins();
   }
 }, 1000);
 
-window.onload = () => {
+async function upgrade() {
+  const res = await fetch("/upgrade", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
 
-  const lastTime = localStorage.getItem("lastTime");
+  const data = await res.json();
 
-  if (lastTime) {
-    const now = Date.now();
-    const diffSeconds = Math.floor((now - lastTime) / 1000);
+  if (data.success) {
+    coins = data.coins;
+    profitPerHour = data.profitPerHour;
 
-    if (profitPerHour > 0 && diffSeconds > 0) {
-      const offlineCoins = (profitPerHour / 3600) * diffSeconds;
-      coins += offlineCoins;
-
-      alert("💰 You earned " + Math.floor(offlineCoins) + " coins while offline!");
-    }
+    document.getElementById("coins").innerText = coins;
+    document.getElementById("profit").innerText = profitPerHour;
   }
+}
 
-  saveData();   // 🔥 important
-  updateUI();
+window.onload = loadCoins;  localStorage.setItem("lastTime", Date.now());
 };
-window.onbeforeunload = () => {
-  localStorage.setItem("lastTime", Date.now());
-};
+
+function showLevelUp(level) {
+  const popup = document.createElement("div");
+  popup.innerText = "LEVEL UP! 🚀 " + level;
+  popup.className = "level-popup";
+  document.body.appendChild(popup);
+
+  setTimeout(() => {
+    popup.remove();
+  }, 2000);
+}
+
+function applyLevelGlow(level) {
+  const character = document.querySelector(".character");
+
+  const glowColors = {
+    Bronze: "gray",
+    Silver: "silver",
+    Gold: "gold",
+    Platinum: "lightblue",
+    Diamond: "aqua",
+    Epic: "purple",
+    Legendary: "orange",
+    Master: "red",
+    Grandmaster: "magenta",
+    Lord: "white"
+  };
+
+  character.style.boxShadow = `0 0 40px ${glowColors[level] || "gold"}`;
+}
