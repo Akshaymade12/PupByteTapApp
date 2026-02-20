@@ -20,6 +20,7 @@ if (window.Telegram && window.Telegram.WebApp) {
   if (telegramUser) {
     userId = telegramUser.id.toString();
     username = telegramUser.username || telegramUser.first_name;
+     alert("Telegram ID: " + userId);
   }
 }
 
