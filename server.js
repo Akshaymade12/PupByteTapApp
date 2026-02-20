@@ -60,11 +60,6 @@ app.post("/save", async (req, res) => {
     user.coins = coins;
   }
 
-  await user.save();
-
-  res.json({ success: true });
-});
-
   // LEVEL CALCULATION
   let currentLevel = levels[0];
 
@@ -84,6 +79,7 @@ app.post("/save", async (req, res) => {
     level: user.level,
     tapPower: user.tapPower
   });
+
 });
 
 /* =========================
