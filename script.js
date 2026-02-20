@@ -45,19 +45,22 @@ function tap() {
 =================================*/
 
 async function saveCoins() {
-  if (!userId) {
-  console.log("Telegram ID not found");
-  return;
-  }
-await fetch("/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      telegramId: userId,
-      username: username,
-      coins: coins
-    })
-  });
+   if (!userId) {
+      console.log("No userId");
+      return;
+   }
+
+   console.log("Saving coins:", coins);
+
+   await fetch("/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+         telegramId: userId,
+         username: username,
+         coins: coins
+      })
+   });
 }
 
 /* ===============================
@@ -126,5 +129,7 @@ async function upgrade() {
 =================================*/
 
 setTimeout(() => {
-  loadCoins();
+  window.addEventListener("load", function () {
+   loadCoins();
+});;
 }, 500);
