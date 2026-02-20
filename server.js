@@ -35,7 +35,8 @@ const levels = [
 ========================= */
 
 const User = mongoose.model("User", {
-  userId: String,
+  telegramId: String,
+  username: String,
   coins: { type: Number, default: 0 },
   profitPerHour: { type: Number, default: 0 },
   level: { type: String, default: "Bronze" },
@@ -48,24 +49,27 @@ const User = mongoose.model("User", {
 ========================= */
 
 app.post("/save", async (req, res) => {
-    const { userId, coins } = req.body;
-    if (!userId) return res.json({ success: false });
+  const { telegramId, username, coins } = req.body;
+  if (!telegramId) return res.json({ success: false });
 
-    let user = await User.findOne({ userId });
+  let user = await User.findOne({ telegramId });
 
-    if (!user) {
-        user = new User({
-            userId,
-            coins: 0,
-            profitPerHour: 0,
-            level: "Bronze",
-            tapPower: 1,
-            lastActive: new Date()
-        });
-    }
+  if (!user) {
+    user = new User({
+      telegramId,
+      username,
+      coins: 0
+    });
+  }
 
-    user.coins = coins;
-    user.lastActive = new Date();
+  user.username = username;
+  user.coins = coins;
+  user.lastActive = new Date();
+
+  await user.save();
+
+  res.json({ success: true });
+});
 
     // LEVEL CALCULATION
     let currentLevel = levels[0];
@@ -93,23 +97,23 @@ app.post("/save", async (req, res) => {
 ========================= */
 
 app.get("/load/:id", async (req, res) => {
-    const user = await User.findOne({ userId: req.params.id });
+  const user = await User.findOne({ telegramId: req.params.id });
 
-    if (!user) {
-        return res.json({
-            coins: 0,
-            profitPerHour: 0,
-            level: "Bronze",
-            tapPower: 1
-        });
-    }
-
-    res.json({
-        coins: user.coins,
-        profitPerHour: user.profitPerHour,
-        level: user.level,
-        tapPower: user.tapPower
+  if (!user) {
+    return res.json({
+      coins: 0,
+      profitPerHour: 0,
+      level: "Bronze",
+      tapPower: 1
     });
+  }
+
+  res.json({
+    coins: user.coins,
+    profitPerHour: user.profitPerHour,
+    level: user.level,
+    tapPower: user.tapPower
+  });
 });
 
 /* =========================
