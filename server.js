@@ -49,6 +49,7 @@ const User = mongoose.model("User", {
 ========================= */
 
 app.post("/save", async (req, res) => {
+
   const { telegramId, username, coins } = req.body;
   if (!telegramId) return res.json({ success: false });
 
@@ -66,30 +67,26 @@ app.post("/save", async (req, res) => {
   user.coins = coins;
   user.lastActive = new Date();
 
+  // LEVEL CALCULATION (IMPORTANT: YAHI ANDAR RAHEGA)
+  let currentLevel = levels[0];
+  for (let lvl of levels) {
+    if (user.coins >= lvl.min) {
+      currentLevel = lvl;
+    }
+  }
+
+  user.level = currentLevel.name;
+  user.tapPower = currentLevel.tap;
+  user.profitPerHour = user.tapPower * 100;
+
   await user.save();
 
-  res.json({ success: true });
-});
+  res.json({
+    success: true,
+    level: user.level,
+    tapPower: user.tapPower
+  });
 
-    // LEVEL CALCULATION
-    let currentLevel = levels[0];
-    for (let lvl of levels) {
-        if (user.coins >= lvl.min) {
-            currentLevel = lvl;
-        }
-    }
-
-    user.level = currentLevel.name;
-    user.tapPower = currentLevel.tap;
-    user.profitPerHour = user.tapPower * 100;
-
-    await user.save();
-
-    res.json({
-        success: true,
-        level: user.level,
-        tapPower: user.tapPower
-    });
 });
 
 /* =========================
@@ -122,9 +119,9 @@ app.get("/load/:id", async (req, res) => {
 
 app.post("/upgrade", async (req, res) => {
 
-  const { userId } = req.body;
-
-  let user = await User.findOne({ userId });
+  const { telegramId } = req.body;
+   
+let user = await User.findOne({ telegramId });
   if (!user) return res.json({ success: false });
 
   const cost = 1000;
