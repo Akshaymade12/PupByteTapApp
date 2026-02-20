@@ -16,6 +16,22 @@ body {
   border-bottom-right-radius: 25px;
 }
 
+.tap-effect {
+  position: fixed;
+  bottom: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: gold;
+  font-size: 22px;
+  font-weight: bold;
+  animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -80px); }
+}
+
 .level-title,
 .profit-title {
   font-size: 12px;
@@ -94,4 +110,24 @@ body {
   padding: 15px 0;
   background: #111827;
   z-index: 1000;   /* 🔥 ADD THIS */
+}
+
+.level-popup {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: gold;
+  color: black;
+  padding: 20px 30px;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: bold;
+  animation: fadeOut 2s forwards;
+  z-index: 999;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
 }
