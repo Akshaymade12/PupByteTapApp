@@ -130,7 +130,7 @@ async function upgrade() {
 =================================*/
 
 setTimeout(() => {
-  window.addEventListener("load", function () {
-   loadCoins();
-});;
-}, 500);
+   if (userId) {
+      loadCoins();
+   }
+}, 1000);
