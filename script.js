@@ -53,7 +53,7 @@ async function saveCoins() {
 
    console.log("Saving coins:", coins);
 
-   await fetch("/save", {
+   await fetch("https://pupbytetapapp.onrender.com/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -71,7 +71,7 @@ async function saveCoins() {
 async function loadCoins() {
   if (!userId) return;
 
-  const res = await fetch("/load/" + userId);
+  const res = await fetch("https://pupbytetapapp.onrender.com/load/" + userId)
   const data = await res.json();
 
   coins = data.coins || 0;
@@ -108,7 +108,7 @@ async function upgrade() {
 
    loadCoins();
     if (!userId) return;
-  const res = await fetch("/upgrade", {
+  const res = await fetch("https://pupbytetapapp.onrender.com/upgrade", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ telegramId: userId })
