@@ -13,16 +13,42 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected ✅"))
 .catch(err => console.log("Mongo Error ❌", err));
 
+/* =========================
+   LEVEL CONFIG
+========================= */
+
+const levels = [
+  { name: "Bronze", min: 0, tap: 1 },
+  { name: "Silver", min: 5000, tap: 2 },
+  { name: "Gold", min: 25000, tap: 3 },
+  { name: "Platinum", min: 100000, tap: 5 },
+  { name: "Diamond", min: 1000000, tap: 10 },
+  { name: "Epic", min: 2000000, tap: 20 },
+  { name: "Legendary", min: 10000000, tap: 50 },
+  { name: "Master", min: 50000000, tap: 100 },
+  { name: "Grandmaster", min: 100000000, tap: 200 },
+  { name: "Lord", min: 1000000000, tap: 500 }
+];
+
+/* =========================
+   USER SCHEMA
+========================= */
+
 const User = mongoose.model("User", {
   userId: String,
   coins: { type: Number, default: 0 },
   profitPerHour: { type: Number, default: 0 },
-  level: { type: Number, default: 1 },
+  level: { type: String, default: "Bronze" },
+  tapPower: { type: Number, default: 1 },
   lastActive: { type: Date, default: Date.now }
 });
 
-// SAVE COINS
+/* =========================
+   SAVE COINS + LEVEL UPDATE
+========================= */
+
 app.post("/save", async (req, res) => {
+
   const { userId, coins } = req.body;
   if (!userId) return res.json({ success: false });
 
@@ -34,25 +60,42 @@ app.post("/save", async (req, res) => {
     user.coins = coins;
   }
 
+  // LEVEL CALCULATION
+  let currentLevel = levels[0];
+
+  for (let lvl of levels) {
+    if (user.coins >= lvl.min) {
+      currentLevel = lvl;
+    }
+  }
+
+  user.level = currentLevel.name;
+  user.tapPower = currentLevel.tap;
+
   await user.save();
 
-  res.json({ success: true });
+  res.json({
+    success: true,
+    level: user.level,
+    tapPower: user.tapPower
+  });
 });
 
-// LOAD DATA
+/* =========================
+   LOAD DATA + OFFLINE EARN
+========================= */
+
 app.get("/load/:id", async (req, res) => {
 
-  const userId = req.params.id;
-  let user = await User.findOne({ userId });
+  let user = await User.findOne({ userId: req.params.id });
 
   if (!user) {
-    user = new User({ userId });
+    user = new User({ userId: req.params.id });
     await user.save();
   }
 
   const now = new Date();
   const secondsOffline = (now - user.lastActive) / 1000;
-
   const offlineEarn = (user.profitPerHour / 3600) * secondsOffline;
 
   user.coins += offlineEarn;
@@ -63,25 +106,29 @@ app.get("/load/:id", async (req, res) => {
   res.json({
     coins: Math.floor(user.coins),
     profitPerHour: user.profitPerHour,
-    level: user.level
+    level: user.level,
+    tapPower: user.tapPower
   });
 });
 
-// UPGRADE
+/* =========================
+   UPGRADE MINING
+========================= */
+
 app.post("/upgrade", async (req, res) => {
+
   const { userId } = req.body;
 
   let user = await User.findOne({ userId });
   if (!user) return res.json({ success: false });
 
-  const upgradeCost = user.level * 1000;
+  const cost = 1000;
 
-  if (user.coins < upgradeCost) {
-    return res.json({ success: false, message: "Not enough coins" });
+  if (user.coins < cost) {
+    return res.json({ success: false });
   }
 
-  user.coins -= upgradeCost;
-  user.level += 1;
+  user.coins -= cost;
   user.profitPerHour += 1000;
 
   await user.save();
@@ -89,8 +136,7 @@ app.post("/upgrade", async (req, res) => {
   res.json({
     success: true,
     coins: user.coins,
-    profitPerHour: user.profitPerHour,
-    level: user.level
+    profitPerHour: user.profitPerHour
   });
 });
 
@@ -99,4 +145,5 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => console.log("Server running 🚀"));
