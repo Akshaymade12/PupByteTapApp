@@ -45,8 +45,10 @@ function tap() {
 =================================*/
 
 async function saveCoins() {
-  if (!userId) return;
-
+  if (!userId) {
+  console.log("Telegram ID not found");
+  return;
+  }
 await fetch("/save", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
