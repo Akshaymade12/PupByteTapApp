@@ -49,7 +49,6 @@ const User = mongoose.model("User", {
 
 app.post("/save", async (req, res) => {
     const { userId, coins } = req.body;
-
     if (!userId) return res.json({ success: false });
 
     let user = await User.findOne({ userId });
@@ -68,33 +67,25 @@ app.post("/save", async (req, res) => {
     user.coins = coins;
     user.lastActive = new Date();
 
+    // LEVEL CALCULATION
+    let currentLevel = levels[0];
+    for (let lvl of levels) {
+        if (user.coins >= lvl.min) {
+            currentLevel = lvl;
+        }
+    }
+
+    user.level = currentLevel.name;
+    user.tapPower = currentLevel.tap;
+    user.profitPerHour = user.tapPower * 100;
+
     await user.save();
 
-    res.json({ success: true });
-});
-
-  // LEVEL CALCULATION
-  let currentLevel = levels[0];
-
-  for (let lvl of levels) {
-    if (user.coins >= lvl.min) {
-      currentLevel = lvl;
-    }
-  }
-
-  user.level = currentLevel.name;
-  user.tapPower = currentLevel.tap;
-
-   user.profitPerHour = user.tapPower * 100;
-   
-  await user.save();
-
-  res.json({
-    success: true,
-    level: user.level,
-    tapPower: user.tapPower
-  });
-
+    res.json({
+        success: true,
+        level: user.level,
+        tapPower: user.tapPower
+    });
 });
 
 /* =========================
