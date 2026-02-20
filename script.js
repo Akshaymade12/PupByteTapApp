@@ -3,13 +3,21 @@ let profitPerHour = 0;
 let tapPower = 1;
 let currentLevelName = "Bronze";
 
-let userId = localStorage.getItem("pupbyte_user");
+let telegramUser = null;
+let userId = null;
+let username = null;
 
-if (!userId) {
-  userId = "user_" + Math.random().toString(36).substr(2, 9);
-  localStorage.setItem("pupbyte_user", userId);
+if (window.Telegram && window.Telegram.WebApp) {
+  window.Telegram.WebApp.ready();
+  window.Telegram.WebApp.expand();
+
+  telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
+
+  if (telegramUser) {
+    userId = telegramUser.id.toString();
+    username = telegramUser.username || telegramUser.first_name;
+  }
 }
-
 function tap() {
   coins += tapPower;
   document.getElementById("coins").innerText = coins;
@@ -25,17 +33,22 @@ function tap() {
 }
 
 async function saveCoins() {
+  if (!userId) return;
+
   await fetch("/save", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      userId: userId,
+      telegramId: userId,
+      username: username,
       coins: coins
     })
   });
 }
 
 async function loadCoins() {
+  if (!userId) return;
+
   const res = await fetch("/load/" + userId);
   const data = await res.json();
 
@@ -45,6 +58,8 @@ async function loadCoins() {
 
   document.getElementById("coins").innerText = coins;
   document.getElementById("profit").innerText = profitPerHour;
+  document.getElementById("level").innerText = data.level || "Bronze";
+}
 
   // Level update + popup
   if (data.level !== currentLevelName) {
