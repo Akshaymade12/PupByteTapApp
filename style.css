@@ -16,22 +16,6 @@ body {
   border-bottom-right-radius: 25px;
 }
 
-.tap-effect {
-  position: fixed;
-  bottom: 40%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: gold;
-  font-size: 22px;
-  font-weight: bold;
-  animation: floatUp 1s ease-out forwards;
-}
-
-@keyframes floatUp {
-  0% { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, -80px); }
-}
-
 .level-title,
 .profit-title {
   font-size: 12px;
@@ -100,6 +84,7 @@ body {
 }
 
 /* Bottom Menu */
+
 .bottom-menu {
   position: fixed;
   bottom: 0;
@@ -130,4 +115,20 @@ body {
 @keyframes fadeOut {
   0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+.tap-effect {
+  position: fixed;
+  bottom: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: gold;
+  font-size: 22px;
+  font-weight: bold;
+  animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -80px); }
 }
