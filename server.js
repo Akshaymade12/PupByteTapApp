@@ -48,17 +48,30 @@ const User = mongoose.model("User", {
 ========================= */
 
 app.post("/save", async (req, res) => {
+    const { userId, coins } = req.body;
 
-  const { userId, coins } = req.body;
-  if (!userId) return res.json({ success: false });
+    if (!userId) return res.json({ success: false });
 
-  let user = await User.findOne({ userId });
+    let user = await User.findOne({ userId });
 
-  if (!user) {
-    user = new User({ userId, coins });
-  } else {
+    if (!user) {
+        user = new User({
+            userId,
+            coins: 0,
+            profitPerHour: 0,
+            level: "Bronze",
+            tapPower: 1,
+            lastActive: new Date()
+        });
+    }
+
     user.coins = coins;
-  }
+    user.lastActive = new Date();
+
+    await user.save();
+
+    res.json({ success: true });
+});
 
   // LEVEL CALCULATION
   let currentLevel = levels[0];
@@ -89,29 +102,23 @@ app.post("/save", async (req, res) => {
 ========================= */
 
 app.get("/load/:id", async (req, res) => {
+    const user = await User.findOne({ userId: req.params.id });
 
-  let user = await User.findOne({ userId: req.params.id });
+    if (!user) {
+        return res.json({
+            coins: 0,
+            profitPerHour: 0,
+            level: "Bronze",
+            tapPower: 1
+        });
+    }
 
-  if (!user) {
-    user = new User({ userId: req.params.id });
-    await user.save();
-  }
-
-  const now = new Date();
-  const secondsOffline = (now - user.lastActive) / 1000;
-  const offlineEarn = (user.profitPerHour / 3600) * secondsOffline;
-
-  user.coins += offlineEarn;
-  user.lastActive = now;
-
-  await user.save();
-
-  res.json({
-    coins: Math.floor(user.coins),
-    profitPerHour: user.profitPerHour,
-    level: user.level,
-    tapPower: user.tapPower
-  });
+    res.json({
+        coins: user.coins,
+        profitPerHour: user.profitPerHour,
+        level: user.level,
+        tapPower: user.tapPower
+    });
 });
 
 /* =========================
