@@ -72,6 +72,8 @@ app.post("/save", async (req, res) => {
   user.level = currentLevel.name;
   user.tapPower = currentLevel.tap;
 
+   user.profitPerHour = user.tapPower * 100;
+   
   await user.save();
 
   res.json({
