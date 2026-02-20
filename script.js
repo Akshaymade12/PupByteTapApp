@@ -15,6 +15,7 @@ function tap() {
   document.getElementById("coins").innerText = coins;
   saveCoins();
 
+  // Tap animation
   const plus = document.createElement("div");
   plus.innerText = "+" + tapPower;
   plus.className = "tap-effect";
@@ -44,16 +45,18 @@ async function loadCoins() {
 
   document.getElementById("coins").innerText = coins;
   document.getElementById("profit").innerText = profitPerHour;
-  document.getElementById("level").innerText = if (data.level !== currentLevelName) {
-  showLevelUp(data.level);
-  currentLevelName = data.level;
+
+  // Level update + popup
+  if (data.level !== currentLevelName) {
+    showLevelUp(data.level);
+    currentLevelName = data.level;
+  }
+
+  document.getElementById("level").innerText = data.level;
+  applyLevelGlow(data.level);
 }
 
-document.getElementById("level").innerText = data.level;
-applyLevelGlow(data.level);;
-}
-
-// REAL TIME AUTO MINING
+// Real time auto mining
 setInterval(() => {
   if (profitPerHour > 0) {
     coins += profitPerHour / 3600;
@@ -80,9 +83,7 @@ async function upgrade() {
   }
 }
 
-window.onload = loadCoins;  localStorage.setItem("lastTime", Date.now());
-};
-
+// Level up popup
 function showLevelUp(level) {
   const popup = document.createElement("div");
   popup.innerText = "LEVEL UP! 🚀 " + level;
@@ -94,6 +95,7 @@ function showLevelUp(level) {
   }, 2000);
 }
 
+// Glow change based on level
 function applyLevelGlow(level) {
   const character = document.querySelector(".character");
 
@@ -112,3 +114,5 @@ function applyLevelGlow(level) {
 
   character.style.boxShadow = `0 0 40px ${glowColors[level] || "gold"}`;
 }
+
+window.onload = loadCoins;
