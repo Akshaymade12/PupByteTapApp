@@ -101,8 +101,9 @@ setInterval(() => {
 =================================*/
 
 async function upgrade() {
-  if (!userId) return;
 
+   loadCoins();
+    if (!userId) return;
   const res = await fetch("/upgrade", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
