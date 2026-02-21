@@ -1,36 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PupByte Tap</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+
+<body>
+
 <div class="top-section">
+
   <div class="level-box">
-
-    <div class="level-header">
       <div class="level-label">LEVEL</div>
-      <div id="level" class="level-name">Bronze</div>
-    </div>
+      <div id="level">Bronze</div>
 
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
+      <div class="progress-bar">
+          <div id="progressFill"></div>
+      </div>
 
-    <div id="nextLevelInfo"></div>
+      <div id="nextLevelInfo">Next Level: Silver (1000 coins)</div>
 
-    <button id="leaderboardBtn">Leaderboard</button>
-
+      <button id="leaderboardBtn">Leaderboard</button>
   </div>
 
   <div class="profit-title">PROFIT / HOUR</div>
-  <div id="profit" class="profit-number">0</div>
+  <div id="profit">0</div>
+
 </div>
 
 <div id="coins">Loading...</div>
 
-<div id="leaderboardModal" style="
-position:fixed;
-top:20%;
-left:50%;
-transform:translateX(-50%);
-background:#111;
-color:white;
-padding:20px;
-display:none;
-border-radius:10px;
-z-index:9999;">
-</div>
+<button onclick="upgrade()">Upgrade Mining 🚀</button>
+
+<img src="logo.jpeg" onclick="tap()" style="width:200px;margin-top:20px;">
+
+<div id="leaderboardModal" style="display:none;"></div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
