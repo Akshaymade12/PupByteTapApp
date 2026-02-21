@@ -2,6 +2,8 @@ let coins = 0;
 let tapPower = 1;
 let profitPerHour = 0;
 
+tg.expand();
+document.body.style.overflow = "hidden";
 const tg = window.Telegram.WebApp;
 const userId = tg.initDataUnsafe?.user?.id;
 
@@ -67,10 +69,17 @@ function upgrade() {
 setInterval(() => {
   if (profitPerHour > 0) {
     coins += profitPerHour / 3600;
+
     document.getElementById("coins").innerText = Math.floor(coins);
     updateLevel();
+
+    fetch("/tap", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId: userId, coins })
+    });
   }
-}, 1000);
+}, 5000);
 
 async function loadData() {
   if (!userId) return;
