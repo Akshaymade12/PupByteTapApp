@@ -10,39 +10,33 @@ mongoose.connect(process.env.MONGO_URI);
 
 const User = mongoose.model("User", {
   telegramId: String,
-  coins: { type: Number, default: 0 },
-  profitPerHour: { type: Number, default: 0 },
-  lastActive: { type: Date, default: Date.now }
+  coins: { type: Number, default: 0 }
 });
 
-app.get("/load/:id", async (req,res)=>{
-  let user = await User.findOne({ telegramId:req.params.id });
-  if(!user){
-    user = await User.create({ telegramId:req.params.id });
+app.get("/load/:id", async (req, res) => {
+  let user = await User.findOne({ telegramId: req.params.id });
+
+  if (!user) {
+    user = await User.create({ telegramId: req.params.id });
   }
-  res.json(user);
+
+  res.json({ coins: user.coins });
 });
 
-app.post("/tap", async (req,res)=>{
-  const { telegramId, coins } = req.body;
-  await User.updateOne({ telegramId }, { coins, lastActive:new Date() });
-  res.json({ success:true });
-});
-
-app.post("/upgrade", async (req,res)=>{
+app.post("/tap", async (req, res) => {
   const { telegramId } = req.body;
-  await User.updateOne({ telegramId }, { $inc:{ profitPerHour:100 } });
-  res.json({ success:true });
+
+  let user = await User.findOne({ telegramId });
+  if (!user) return res.json({ success: false });
+
+  user.coins += 1;
+  await user.save();
+
+  res.json({ coins: user.coins });
 });
 
-app.get("/leaderboard", async (req,res)=>{
-  const users = await User.find().sort({ coins:-1 }).limit(10);
-  res.json(users);
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.get("/", (req,res)=>{
-  res.sendFile(path.join(__dirname,"index.html"));
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, ()=> console.log("Server running"));
+app.listen(process.env.PORT || 3000);
