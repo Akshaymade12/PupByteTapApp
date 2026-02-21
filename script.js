@@ -7,6 +7,16 @@ const userId = tg.initDataUnsafe?.user?.id;
 let coins = 0;
 let profitPerHour = 0;
 
+let currentLevel = "Bronze";
+
+const levels = [
+  { name: "Bronze", min: 0 },
+  { name: "Silver", min: 500 },
+  { name: "Gold", min: 2000 },
+  { name: "Platinum", min: 5000 },
+  { name: "Diamond", min: 15000 }
+];
+
 /* ================= LOAD ================= */
 
 async function loadCoins() {
