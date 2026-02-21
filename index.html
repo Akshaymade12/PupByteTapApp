@@ -25,17 +25,47 @@ h2 {
   margin-top: 20px;
 }
 
+/* LEVEL BOX */
+.level-box {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.progress-wrapper {
+  background: #333;
+  height: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+#progressBar {
+  height: 10px;
+  background: gold;
+  width: 0%;
+}
+
+#nextLevelInfo {
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+/* COINS */
 #coins {
   font-size: 36px;
   margin-top: 30px;
 }
 
+/* PROFIT */
 #profit {
   font-size: 18px;
   margin-top: 10px;
   color: gold;
 }
 
+/* BUTTONS */
 button {
   padding: 15px 30px;
   margin-top: 20px;
@@ -59,19 +89,35 @@ button {
 
   <h2>PupByte Tap</h2>
 
+  <!-- LEVEL SECTION -->
+  <div class="level-box">
+    <h3>Level: <span id="level">Bronze</span></h3>
+
+    <div class="progress-wrapper">
+      <div id="progressBar"></div>
+    </div>
+
+    <div id="nextLevelInfo"></div>
+  </div>
+
+  <!-- COINS -->
   <div id="coins">0</div>
 
+  <!-- PROFIT -->
   <div id="profit">Profit/hour: 0</div>
 
+  <!-- TAP BUTTON -->
   <button class="tap-btn" onclick="tap()">TAP</button>
 
+  <!-- UPGRADE BUTTON -->
   <br>
-
   <button onclick="upgrade()">Upgrade (+10 profit)</button>
 
 </div>
 
 <script src="script.js"></script>
 
+</body>
+</html>
 </body>
 </html>
