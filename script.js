@@ -2,9 +2,8 @@ let coins = 0;
 let tapPower = 1;
 let profitPerHour = 0;
 
-tg.expand();
-document.body.style.overflow = "hidden";
 const tg = window.Telegram.WebApp;
+tg.expand();
 const userId = tg.initDataUnsafe?.user?.id;
 
 const levels = [
@@ -40,14 +39,16 @@ function tap() {
   if (!userId) return;
 
   coins += tapPower;
+
   document.getElementById("coins").innerText = Math.floor(coins);
+
   updateLevel();
 
   fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ telegramId: userId, coins })
-  });
+  }).catch(() => {});
 }
 
 function upgrade() {
@@ -66,20 +67,6 @@ function upgrade() {
   });
 }
 
-setInterval(() => {
-  if (profitPerHour > 0) {
-    coins += profitPerHour / 3600;
-
-    document.getElementById("coins").innerText = Math.floor(coins);
-    updateLevel();
-
-    fetch("/tap", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId: userId, coins })
-    });
-  }
-}, 5000);
 
 async function loadData() {
   if (!userId) return;
@@ -87,8 +74,8 @@ async function loadData() {
   const res = await fetch("/load/" + userId);
   const data = await res.json();
 
-  coins = data.coins;
-  profitPerHour = data.profitPerHour;
+  coins = data.coins || 0;
+  profitPerHour = data.profitPerHour || 0;
 
   document.getElementById("coins").innerText = Math.floor(coins);
   document.getElementById("profit").innerText = profitPerHour;
