@@ -132,3 +132,16 @@ setTimeout(() => {
       loadCoins();
    }
 }, 1000);
+
+async function showLeaderboard() {
+   const res = await fetch("/leaderboard");
+   const data = await res.json();
+
+   let message = "🏆 Top Players:\n\n";
+
+   data.forEach((user, index) => {
+      message += `${index + 1}. ${user.username || "User"} - ${Math.floor(user.coins)} coins\n`;
+   });
+
+   alert(message);
+}
