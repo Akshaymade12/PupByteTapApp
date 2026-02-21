@@ -107,9 +107,11 @@ app.get("/load/:id", async (req, res) => {
   }
 
   // 🔥 TIME BASED MINING
+   
   const now = new Date();
-  const secondsPassed = (now - user.lastActive) / 1000;
-
+  const maxOfflineSeconds = 6 * 3600; // 6 hours max
+const rawSeconds = (now - user.lastActive) / 1000;
+const secondsPassed = Math.min(rawSeconds, maxOfflineSeconds);
   const earned = (user.profitPerHour / 3600) * secondsPassed;
 
   user.coins += earned;
@@ -130,7 +132,6 @@ app.get("/load/:id", async (req, res) => {
 ========================= */
 
 app.post("/upgrade", async (req, res) => {
-
   const { telegramId } = req.body;
    
 let user = await User.findOne({ telegramId });
@@ -152,6 +153,14 @@ let user = await User.findOne({ telegramId });
     coins: user.coins,
     profitPerHour: user.profitPerHour
   });
+});
+
+app.get("/leaderboard", async (req, res) => {
+   const topUsers = await User.find({})
+      .sort({ coins: -1 })
+      .limit(10);
+
+   res.json(topUsers);
 });
 
 app.get("/", (req, res) => {
