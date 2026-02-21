@@ -1,7 +1,9 @@
 let coins = 0;
-let profitPerHour = 100;
-let currentLevel = "Bronze";
-let userId = null;
+let tapPower = 1;
+let profitPerHour = 0;
+
+const tg = window.Telegram.WebApp;
+const userId = tg.initDataUnsafe?.user?.id;
 
 const levels = [
   { name: "Bronze", min: 0 },
@@ -10,157 +12,99 @@ const levels = [
   { name: "Diamond", min: 20000 }
 ];
 
-function updateLevelColor(level) {
-  const el = document.getElementById("level");
-  if (level === "Bronze") el.style.color = "#cd7f32";
-  if (level === "Silver") el.style.color = "#c0c0c0";
-  if (level === "Gold") el.style.color = "#ffd700";
-  if (level === "Diamond") el.style.color = "#00e5ff";
-}
+function updateLevel() {
+  let currentLevel = levels[0];
 
-function updateProgress() {
-  let next = null;
-
-  for (let i = levels.length - 1; i >= 0; i--) {
-    if (coins >= levels[i].min) {
-      currentLevel = levels[i].name;
-      break;
-    }
+  for (let lvl of levels) {
+    if (coins >= lvl.min) currentLevel = lvl;
   }
 
-  for (let i = 0; i < levels.length; i++) {
-    if (levels[i].name === currentLevel && i < levels.length - 1) {
-      next = levels[i + 1];
-    }
-  }
+  document.getElementById("level").innerText = currentLevel.name;
 
-  document.getElementById("level").innerText = currentLevel;
+  let next = levels.find(l => l.min > coins);
 
   if (next) {
-    const percent =
-      ((coins - levels.find(l => l.name === currentLevel).min) /
-        (next.min - levels.find(l => l.name === currentLevel).min)) *
-      100;
-
-    document.getElementById("progressFill").style.width =
-      percent + "%";
-
+    let progress = (coins / next.min) * 100;
+    document.getElementById("progressFill").style.width = progress + "%";
     document.getElementById("nextLevelInfo").innerText =
       "Next Level: " + next.name + " (" + next.min + " coins)";
   } else {
     document.getElementById("progressFill").style.width = "100%";
-    document.getElementById("nextLevelInfo").innerText =
-      "Max Level Reached";
+    document.getElementById("nextLevelInfo").innerText = "Max Level Reached";
   }
-
-  updateLevelColor(currentLevel);
 }
 
+function tap() {
+  if (!userId) return;
+
+  coins += tapPower;
+  document.getElementById("coins").innerText = Math.floor(coins);
+  updateLevel();
+
+  fetch("/tap", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: userId, coins })
+  });
+}
+
+function upgrade() {
+  if (coins < 1000) return alert("Need 1000 coins");
+
+  coins -= 1000;
+  profitPerHour += 100;
+
+  document.getElementById("profit").innerText = profitPerHour;
+  document.getElementById("coins").innerText = Math.floor(coins);
+
+  fetch("/upgrade", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: userId })
+  });
+}
+
+setInterval(() => {
+  if (profitPerHour > 0) {
+    coins += profitPerHour / 3600;
+    document.getElementById("coins").innerText = Math.floor(coins);
+    updateLevel();
+  }
+}, 1000);
+
 async function loadData() {
+  if (!userId) return;
+
   const res = await fetch("/load/" + userId);
   const data = await res.json();
 
   coins = data.coins;
   profitPerHour = data.profitPerHour;
 
-  document.getElementById("coins").innerText =
-    Math.floor(coins);
-  document.getElementById("profit").innerText =
-    profitPerHour;
+  document.getElementById("coins").innerText = Math.floor(coins);
+  document.getElementById("profit").innerText = profitPerHour;
 
-  updateProgress();
+  updateLevel();
 }
 
-async function tap() {
-  const res = await fetch("/tap", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: userId })
-  });
-
+document.getElementById("leaderboardBtn").addEventListener("click", async () => {
+  const res = await fetch("/leaderboard");
   const data = await res.json();
 
-  coins = data.coins;
+  let html = "<h3>🏆 Leaderboard</h3>";
 
-  document.getElementById("coins").innerText =
-    Math.floor(coins);
-
-  updateProgress();
-}
-
-async function upgrade() {
-  const res = await fetch("/upgrade", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: userId })
+  data.forEach((u, i) => {
+    html += `${i+1}. ${u.telegramId} - ${Math.floor(u.coins)} coins<br>`;
   });
 
-  const data = await res.json();
+  html += "<br><button onclick='closeBoard()'>Close</button>";
 
-  if (data.success) {
-    coins = data.coins;
-    profitPerHour = data.profitPerHour;
-
-    document.getElementById("coins").innerText =
-      Math.floor(coins);
-    document.getElementById("profit").innerText =
-      profitPerHour;
-
-    updateProgress();
-  }
-}
-
-setInterval(() => {
-  coins += profitPerHour / 3600;
-  document.getElementById("coins").innerText =
-    Math.floor(coins);
-  updateProgress();
-}, 1000);
-
-async function showLeaderboard() {
-  const res = await fetch("/leaderboard/" + currentLevel);
-  const data = await res.json();
-
-  let html = "<h3>🏆 " + currentLevel + " Top 10</h3>";
-
-  data.forEach((user, i) => {
-    html +=
-      "<div>" +
-      (i + 1) +
-      ". " +
-      (user.username || "User") +
-      " - " +
-      Math.floor(user.coins) +
-      "</div>";
-  });
-
-  const modal = document.getElementById("leaderboardModal");
-  modal.innerHTML =
-    html + "<br><button onclick='closeLB()'>Close</button>";
-  modal.style.display = "block";
-}
-
-function closeLB() {
-  document.getElementById("leaderboardModal").style.display =
-    "none";
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-
-  userId = tg.initDataUnsafe?.user?.id;
-  const username = tg.initDataUnsafe?.user?.username;
-
-  fetch("/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: userId, username })
-  });
-
-  loadData();
-
-  document
-    .getElementById("leaderboardBtn")
-    .addEventListener("click", showLeaderboard);
+  document.getElementById("leaderboardModal").innerHTML = html;
+  document.getElementById("leaderboardModal").style.display = "block";
 });
+
+function closeBoard(){
+  document.getElementById("leaderboardModal").style.display = "none";
+}
+
+loadData();
