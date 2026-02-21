@@ -1,162 +1,121 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
 const path = require("path");
+const bodyParser = require("body-parser");
 
 const app = express();
-
+app.use(bodyParser.json());
 app.use(express.static(__dirname));
-app.use(cors());
-app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB Connected ✅"))
-.catch(err => console.log("Mongo Error ❌", err));
+mongoose.connect(process.env.MONGO_URI);
 
-/* =========================
-   LEVEL CONFIG
-========================= */
+const userSchema = new mongoose.Schema({
+   telegramId: String,
+   username: String,
+   coins: { type: Number, default: 0 },
+   profitPerHour: { type: Number, default: 100 },
+   level: { type: String, default: "Bronze" },
+   tapPower: { type: Number, default: 1 },
+   lastActive: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model("User", userSchema);
 
 const levels = [
-  { name: "Bronze", min: 0, tap: 1 },
-  { name: "Silver", min: 5000, tap: 2 },
-  { name: "Gold", min: 25000, tap: 3 },
-  { name: "Platinum", min: 100000, tap: 5 },
-  { name: "Diamond", min: 1000000, tap: 10 },
-  { name: "Epic", min: 2000000, tap: 20 },
-  { name: "Legendary", min: 10000000, tap: 50 },
-  { name: "Master", min: 50000000, tap: 100 },
-  { name: "Grandmaster", min: 100000000, tap: 200 },
-  { name: "Lord", min: 1000000000, tap: 500 }
+   { name: "Bronze", min: 0 },
+   { name: "Silver", min: 1000 },
+   { name: "Gold", min: 5000 },
+   { name: "Diamond", min: 20000 }
 ];
 
-/* =========================
-   USER SCHEMA
-========================= */
+function calculateLevel(coins) {
+   let current = "Bronze";
+   for (let i = 0; i < levels.length; i++) {
+      if (coins >= levels[i].min) {
+         current = levels[i].name;
+      }
+   }
+   return current;
+}
 
-const User = mongoose.model("User", {
-  telegramId: String,
-  username: String,
-  coins: { type: Number, default: 0 },
-  profitPerHour: { type: Number, default: 0 },
-  level: { type: String, default: "Bronze" },
-  tapPower: { type: Number, default: 1 },
-  lastActive: { type: Date, default: Date.now }
+app.post("/register", async (req, res) => {
+   const { telegramId, username } = req.body;
+
+   let user = await User.findOne({ telegramId });
+
+   if (!user) {
+      user = new User({
+         telegramId,
+         username
+      });
+      await user.save();
+   }
+
+   res.json({ success: true });
 });
-
-/* =========================
-   SAVE COINS + LEVEL UPDATE
-========================= */
-
-app.post("/save", async (req, res) => {
-
-  const { telegramId, username, coins } = req.body;
-  if (!telegramId) return res.json({ success: false });
-
-  let user = await User.findOne({ telegramId });
-
-  if (!user) {
-    user = new User({
-      telegramId,
-      username,
-      coins: 0
-    });
-  }
-
-  user.username = username;
-  user.coins = coins;
-  user.lastActive = new Date();
-
-  // LEVEL CALCULATION (IMPORTANT: YAHI ANDAR RAHEGA)
-  let currentLevel = levels[0];
-  for (let lvl of levels) {
-    if (user.coins >= lvl.min) {
-      currentLevel = lvl;
-    }
-  }
-
-  user.level = currentLevel.name;
-  user.tapPower = currentLevel.tap;
-  user.profitPerHour = user.tapPower * 100;
-
-  await user.save();
-
-  res.json({
-    success: true,
-    level: user.level,
-    tapPower: user.tapPower
-  });
-
-});
-
-/* =========================
-   LOAD DATA + OFFLINE EARN
-========================= */
 
 app.get("/load/:id", async (req, res) => {
+   let user = await User.findOne({ telegramId: req.params.id });
 
-  const user = await User.findOne({ telegramId: req.params.id });
+   if (!user) {
+      return res.json({
+         coins: 0,
+         profitPerHour: 100,
+         level: "Bronze",
+         tapPower: 1
+      });
+   }
 
-  if (!user) {
-    return res.json({
-      coins: 0,
-      profitPerHour: 0,
-      level: "Bronze",
-      tapPower: 1
-    });
-  }
+        const now = new Date();
+   const maxOffline = 6 * 3600;
+   const seconds = Math.min((now - user.lastActive) / 1000, maxOffline);
 
-  // 🔥 TIME BASED MINING
-   
-  const now = new Date();
-  const maxOfflineSeconds = 6 * 3600; // 6 hours max
-const rawSeconds = (now - user.lastActive) / 1000;
-const secondsPassed = Math.min(rawSeconds, maxOfflineSeconds);
-  const earned = (user.profitPerHour / 3600) * secondsPassed;
+   const earned = (user.profitPerHour / 3600) * seconds;
 
-  user.coins += earned;
-  user.lastActive = now;
+   user.coins += earned;
+   user.level = calculateLevel(user.coins);
+   user.lastActive = now;
 
-  await user.save();
+   await user.save();
 
-  res.json({
-    coins: user.coins,
-    profitPerHour: user.profitPerHour,
-    level: user.level,
-    tapPower: user.tapPower
-  });
+   res.json({
+      coins: user.coins,
+      profitPerHour: user.profitPerHour,
+      level: user.level,
+      tapPower: user.tapPower
+   });
 });
-
-/* =========================
-   UPGRADE MINING
-========================= */
 
 app.post("/upgrade", async (req, res) => {
-  const { telegramId } = req.body;
-   
-let user = await User.findOne({ telegramId });
-  if (!user) return res.json({ success: false });
+   const { telegramId } = req.body;
 
-  const cost = 1000;
+   let user = await User.findOne({ telegramId });
+   if (!user) return res.json({ success: false });
 
-  if (user.coins < cost) {
-    return res.json({ success: false });
-  }
+   const cost = 1000;
 
-  user.coins -= cost;
-  user.profitPerHour += 1000;
+   if (user.coins < cost) {
+      return res.json({ success: false });
+   }
 
-  await user.save();
+   user.coins -= cost;
+   user.profitPerHour += 100;
+   user.level = calculateLevel(user.coins);
 
-  res.json({
-    success: true,
-    coins: user.coins,
-    profitPerHour: user.profitPerHour
-  });
+   await user.save();
+
+   res.json({
+      success: true,
+      coins: user.coins,
+      profitPerHour: user.profitPerHour,
+      level: user.level
+   });
 });
 
-app.get("/leaderboard", async (req, res) => {
-   const topUsers = await User.find({})
+app.get("/leaderboard/:level", async (req, res) => {
+   const level = req.params.level;
+
+   const topUsers = await User.find({ level })
       .sort({ coins: -1 })
       .limit(10);
 
@@ -164,9 +123,8 @@ app.get("/leaderboard", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+   res.sendFile(path.join(__dirname, "index.html"));
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => console.log("Server running 🚀"));
