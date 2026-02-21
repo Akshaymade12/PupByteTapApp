@@ -7,8 +7,6 @@ const userId = tg.initDataUnsafe?.user?.id;
 let coins = 0;
 let profitPerHour = 0;
 
-let currentLevel = "Bronze";
-
 const levels = [
   { name: "Bronze", min: 0 },
   { name: "Silver", min: 500 },
@@ -17,13 +15,39 @@ const levels = [
   { name: "Diamond", min: 15000 }
 ];
 
+/* ================= LEVEL UPDATE ================= */
+
+function updateLevel() {
+  let currentLevel = levels[0];
+
+  for (let lvl of levels) {
+    if (coins >= lvl.min) {
+      currentLevel = lvl;
+    }
+  }
+
+  document.getElementById("level").innerText = currentLevel.name;
+
+  let next = levels.find(l => l.min > coins);
+
+  if (next) {
+    let progress = (coins / next.min) * 100;
+    if (progress > 100) progress = 100;
+
+    document.getElementById("progressBar").style.width = progress + "%";
+    document.getElementById("nextLevelInfo").innerText =
+      "Next Level: " + next.name + " (" + next.min + " coins)";
+  } else {
+    document.getElementById("progressBar").style.width = "100%";
+    document.getElementById("nextLevelInfo").innerText =
+      "Max Level Reached";
+  }
+}
+
 /* ================= LOAD ================= */
 
 async function loadCoins() {
-  if (!userId) {
-    console.log("User ID not found");
-    return;
-  }
+  if (!userId) return;
 
   try {
     const res = await fetch("/load/" + userId);
@@ -35,6 +59,8 @@ async function loadCoins() {
     document.getElementById("coins").innerText = Math.floor(coins);
     document.getElementById("profit").innerText = profitPerHour;
 
+    updateLevel();
+
   } catch (err) {
     console.log("Load error:", err);
   }
@@ -42,12 +68,14 @@ async function loadCoins() {
 
 /* ================= TAP ================= */
 
-async function tap() {
+function tap() {
   if (!userId) return;
 
   // Instant UI update
   coins += 1;
   document.getElementById("coins").innerText = Math.floor(coins);
+
+  updateLevel();
 
   // Background save
   fetch("/tap", {
@@ -77,6 +105,8 @@ async function upgrade() {
 
       document.getElementById("coins").innerText = Math.floor(coins);
       document.getElementById("profit").innerText = profitPerHour;
+
+      updateLevel();
     } else {
       alert("Not enough coins!");
     }
@@ -92,6 +122,8 @@ setInterval(() => {
   if (profitPerHour > 0) {
     coins += profitPerHour / 3600;
     document.getElementById("coins").innerText = Math.floor(coins);
+
+    updateLevel();
   }
 }, 1000);
 
