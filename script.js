@@ -5,8 +5,9 @@ tg.disableVerticalSwipes();
 const userId = tg.initDataUnsafe?.user?.id;
 
 let coins = 0;
+let profitPerHour = 0;
 
-/* ================= LOAD COINS ================= */
+/* ================= LOAD ================= */
 
 async function loadCoins() {
   if (!userId) {
@@ -19,7 +20,10 @@ async function loadCoins() {
     const data = await res.json();
 
     coins = data.coins || 0;
-    document.getElementById("coins").innerText = coins;
+    profitPerHour = data.profitPerHour || 0;
+
+    document.getElementById("coins").innerText = Math.floor(coins);
+    document.getElementById("profit").innerText = profitPerHour;
 
   } catch (err) {
     console.log("Load error:", err);
@@ -33,19 +37,53 @@ async function tap() {
 
   // Instant UI update
   coins += 1;
-  document.getElementById("coins").innerText = coins;
+  document.getElementById("coins").innerText = Math.floor(coins);
 
   // Background save
+  fetch("/tap", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: userId })
+  }).catch(() => {});
+}
+
+/* ================= UPGRADE ================= */
+
+async function upgrade() {
+  if (!userId) return;
+
   try {
-    await fetch("/tap", {
+    const res = await fetch("/upgrade", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ telegramId: userId })
     });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coins = data.coins;
+      profitPerHour = data.profitPerHour;
+
+      document.getElementById("coins").innerText = Math.floor(coins);
+      document.getElementById("profit").innerText = profitPerHour;
+    } else {
+      alert("Not enough coins!");
+    }
+
   } catch (err) {
-    console.log("Tap save error:", err);
+    console.log("Upgrade error:", err);
   }
 }
+
+/* ================= LIVE AUTO MINING ================= */
+
+setInterval(() => {
+  if (profitPerHour > 0) {
+    coins += profitPerHour / 3600;
+    document.getElementById("coins").innerText = Math.floor(coins);
+  }
+}, 1000);
 
 /* ================= START ================= */
 
