@@ -145,3 +145,10 @@ async function showLeaderboard() {
 
    alert(message);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+   const btn = document.getElementById("leaderboardBtn");
+   if (btn) {
+      btn.addEventListener("click", showLeaderboard);
+   }
+});
