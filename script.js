@@ -3,6 +3,18 @@ let profitPerHour = 0;
 let tapPower = 1;
 let currentLevelName = "Bronze";
 
+// ===============================
+// LEVEL SYSTEM
+// ===============================
+
+const levels = [
+   { name: "Bronze", min: 0 },
+   { name: "Silver", min: 1000 },
+   { name: "Gold", min: 5000 },
+   { name: "Platinum", min: 20000 },
+   { name: "Diamond", min: 50000 }
+];
+
 let userId = null;
 let username = "Guest";
 
@@ -30,6 +42,7 @@ if (window.Telegram && window.Telegram.WebApp) {
 function tap() {
   coins += tapPower;
   document.getElementById("coins").innerText = Math.floor(coins);
+   updateProgress();
   saveCoins();
 
   // Tap animation
@@ -87,6 +100,8 @@ async function loadCoins() {
   document.getElementById("level").innerText = data.level || "Bronze";
 }
 
+updateProgress();
+
 /* ===============================
    AUTO MINING
 =================================*/
@@ -95,6 +110,8 @@ setInterval(() => {
    if (profitPerHour > 0) {
       coins += profitPerHour / 3600;
       document.getElementById("coins").innerText = Math.floor(coins);
+  
+       updateProgress();
    }
 }, 1000);
 
@@ -117,7 +134,8 @@ async function upgrade() {
   if (data.success) {
     coins = data.coins;
     profitPerHour = data.profitPerHour;
-
+    updateProgress();
+     
     document.getElementById("coins").innerText = Math.floor(coins);
     document.getElementById("profit").innerText = profitPerHour;
   }
@@ -152,3 +170,44 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.addEventListener("click", showLeaderboard);
    }
 });
+
+// ===============================
+// UPDATE PROGRESS BAR
+// ===============================
+
+function updateProgress() {
+
+   if (!currentLevelName) return;
+
+   let currentIndex = levels.findIndex(l => l.name === currentLevelName);
+
+   if (currentIndex === -1) return;
+
+   if (currentIndex < levels.length - 1) {
+
+      let currentMin = levels[currentIndex].min;
+      let nextMin = levels[currentIndex + 1].min;
+
+      let percent = ((coins - currentMin) / (nextMin - currentMin)) * 100;
+      percent = Math.max(0, Math.min(percent, 100));
+
+      const bar = document.getElementById("progressBar");
+      if (bar) bar.style.width = percent + "%";
+
+      const nextInfo = document.getElementById("nextLevelInfo");
+      if (nextInfo) {
+         nextInfo.innerText =
+            `Next Level: ${levels[currentIndex + 1].name} (${nextMin} coins)`;
+      }
+
+   } else {
+
+      const bar = document.getElementById("progressBar");
+      if (bar) bar.style.width = "100%";
+
+      const nextInfo = document.getElementById("nextLevelInfo");
+      if (nextInfo) {
+         nextInfo.innerText = "Max Level Reached 🚀";
+      }
+   }
+}
