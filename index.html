@@ -8,117 +8,144 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-  html, body {
-  height:100%;
-  margin:0;
-  padding:0;
-  overflow-x:hidden;
-  }
-  
-body{
-background:linear-gradient(to bottom,#0f172a,#0b1120);
-color:white;
-text-align:center;
-font-family:sans-serif;
-margin:0;
-padding:20px;
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* Screen jump band */
 }
 
-.level-box{
-background:#1e293b;
-padding:20px;
-border-radius:15px;
-margin-bottom:20px;
+body {
+  background: linear-gradient(to bottom, #0f172a, #0b1120);
+  color: white;
+  text-align: center;
+  font-family: sans-serif;
 }
 
-.progress-bar{
-height:10px;
-background:#334155;
-border-radius:10px;
-overflow:hidden;
-margin:10px 0;
+/* Main App Container */
+.app-container {
+  height: 100vh;
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: 80px; /* bottom menu space */
+  box-sizing: border-box;
 }
 
-.progress-fill{
-height:100%;
-background:gold;
-width:0%;
+/* Level Box */
+.level-box {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
 }
 
-button{
-padding:10px 20px;
-border:none;
-border-radius:10px;
-background:gold;
-font-weight:bold;
-margin-top:10px;
+/* Progress */
+.progress-bar {
+  height: 10px;
+  background: #334155;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 10px 0;
 }
 
-#coins{
-font-size:28px;
-margin:15px 0;
+.progress-fill {
+  height: 100%;
+  background: gold;
+  width: 0%;
 }
 
-#leaderboardModal{
-position:fixed;
-top:20%;
-left:50%;
-transform:translateX(-50%);
-background:#111;
-padding:20px;
-border-radius:15px;
-display:none;
-z-index:999;
+  /* Buttons */
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: gold;
+  font-weight: bold;
+  margin-top: 10px;
 }
-  .bottom-menu{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#111;
-display:flex;
-justify-content:space-around;
-padding:10px 0;
-font-size:14px;
-  }
-  
+
+/* Coins */
+#coins {
+  font-size: 28px;
+  margin: 15px 0;
+}
+
+/* Leaderboard Modal */
+#leaderboardModal {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  padding: 20px;
+  border-radius: 15px;
+  display: none;
+  z-index: 999;
+  width: 80%;
+  max-width: 300px;
+}
+
+/* Bottom Menu */
+.bottom-menu {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #111;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  font-size: 14px;
+  z-index: 1000;
+}
+
+/* Character */
+.character {
+  width: 200px;
+  margin-top: 20px;
+}
+
 </style>
-
 </head>
 
 <body>
 
-<div class="level-box">
-<h3>LEVEL</h3>
-<h2 id="level">Bronze</h2>
+<div class="app-container">
 
-<div class="progress-bar">
-<div class="progress-fill" id="progressFill"></div>
+  <div class="level-box">
+    <h3>LEVEL</h3>
+    <h2 id="level">Bronze</h2>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div id="nextLevelInfo"></div>
+
+    <button id="leaderboardBtn">Leaderboard</button>
+  </div>
+
+  <h3>PROFIT / HOUR</h3>
+  <div id="profit">0</div>
+
+  <div id="coins">0</div>
+
+  <button onclick="upgrade()">Upgrade Mining 🚀</button>
+
+  <img src="logo.jpeg" class="character" onclick="tap()">
+
 </div>
 
-<div id="nextLevelInfo"></div>
-<button id="leaderboardBtn">Leaderboard</button>
-</div>
-
-<h3>PROFIT / HOUR</h3>
-<div id="profit">0</div>
-
-<div id="coins">0</div>
-
-<button onclick="upgrade()">Upgrade Mining 🚀</button>
-
-<br><br>
-
-<img src="logo.jpeg" width="200" onclick="tap()">
-
-  <div class="bottom-menu">
+<!-- Bottom Menu -->
+<div class="bottom-menu">
   <div>Exchange</div>
   <div>Mine</div>
   <div>Friends</div>
   <div>Earn</div>
   <div>Airdrop</div>
-  </div>
-  
+</div>
+
 <div id="leaderboardModal"></div>
 
 <script src="script.js"></script>
