@@ -3,8 +3,16 @@ let tapPower = 1;
 let profitPerHour = 0;
 
 const tg = window.Telegram.WebApp;
+
 tg.expand();
 tg.disableVerticalSwipes();
+tg.disableVerticalSwipes();
+
+// Viewport stable fix
+tg.onEvent('viewportChanged', function() {
+  document.body.style.height = window.innerHeight + "px";
+});
+
 const userId = tg.initDataUnsafe?.user?.id;
 
 const levels = [
@@ -105,3 +113,4 @@ function closeBoard(){
 }
 
 loadData();
+window.scrollTo(0, 0);
