@@ -4,39 +4,95 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PupByte Tap</title>
-<link rel="stylesheet" href="style.css">
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+body{
+background:linear-gradient(to bottom,#0f172a,#0b1120);
+color:white;
+text-align:center;
+font-family:sans-serif;
+margin:0;
+padding:20px;
+}
+
+.level-box{
+background:#1e293b;
+padding:20px;
+border-radius:15px;
+margin-bottom:20px;
+}
+
+.progress-bar{
+height:10px;
+background:#334155;
+border-radius:10px;
+overflow:hidden;
+margin:10px 0;
+}
+
+.progress-fill{
+height:100%;
+background:gold;
+width:0%;
+}
+
+button{
+padding:10px 20px;
+border:none;
+border-radius:10px;
+background:gold;
+font-weight:bold;
+margin-top:10px;
+}
+
+#coins{
+font-size:28px;
+margin:15px 0;
+}
+
+#leaderboardModal{
+position:fixed;
+top:20%;
+left:50%;
+transform:translateX(-50%);
+background:#111;
+padding:20px;
+border-radius:15px;
+display:none;
+z-index:999;
+}
+</style>
+
 </head>
 
 <body>
 
-<div class="top-section">
+<div class="level-box">
+<h3>LEVEL</h3>
+<h2 id="level">Bronze</h2>
 
-  <div class="level-box">
-      <div class="level-label">LEVEL</div>
-      <div id="level">Bronze</div>
-
-      <div class="progress-bar">
-          <div id="progressFill"></div>
-      </div>
-
-      <div id="nextLevelInfo">Next Level: Silver (1000 coins)</div>
-
-      <button id="leaderboardBtn">Leaderboard</button>
-  </div>
-
-  <div class="profit-title">PROFIT / HOUR</div>
-  <div id="profit">0</div>
-
+<div class="progress-bar">
+<div class="progress-fill" id="progressFill"></div>
 </div>
 
-<div id="coins">Loading...</div>
+<div id="nextLevelInfo"></div>
+<button id="leaderboardBtn">Leaderboard</button>
+</div>
+
+<h3>PROFIT / HOUR</h3>
+<div id="profit">0</div>
+
+<div id="coins">0</div>
 
 <button onclick="upgrade()">Upgrade Mining 🚀</button>
 
-<img src="logo.jpeg" onclick="tap()" style="width:200px;margin-top:20px;">
+<br><br>
 
-<div id="leaderboardModal" style="display:none;"></div>
+<img src="logo.jpeg" width="200" onclick="tap()">
+
+<div id="leaderboardModal"></div>
 
 <script src="script.js"></script>
 
