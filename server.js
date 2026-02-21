@@ -94,6 +94,7 @@ app.post("/save", async (req, res) => {
 ========================= */
 
 app.get("/load/:id", async (req, res) => {
+
   const user = await User.findOne({ telegramId: req.params.id });
 
   if (!user) {
@@ -104,6 +105,17 @@ app.get("/load/:id", async (req, res) => {
       tapPower: 1
     });
   }
+
+  // 🔥 TIME BASED MINING
+  const now = new Date();
+  const secondsPassed = (now - user.lastActive) / 1000;
+
+  const earned = (user.profitPerHour / 3600) * secondsPassed;
+
+  user.coins += earned;
+  user.lastActive = now;
+
+  await user.save();
 
   res.json({
     coins: user.coins,
