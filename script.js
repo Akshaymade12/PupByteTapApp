@@ -4,6 +4,7 @@ let profitPerHour = 0;
 
 const tg = window.Telegram.WebApp;
 tg.expand();
+tg.disableVerticalSwipes();
 const userId = tg.initDataUnsafe?.user?.id;
 
 const levels = [
