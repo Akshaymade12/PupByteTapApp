@@ -17,26 +17,59 @@ body {
   font-family: sans-serif;
 }
 
+.container {
+  padding: 20px;
+}
+
+h2 {
+  margin-top: 20px;
+}
+
 #coins {
-  font-size: 30px;
-  margin-top: 40px;
+  font-size: 36px;
+  margin-top: 30px;
+}
+
+#profit {
+  font-size: 18px;
+  margin-top: 10px;
+  color: gold;
 }
 
 button {
   padding: 15px 30px;
-  margin-top: 30px;
+  margin-top: 20px;
   font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  background: gold;
+  font-weight: bold;
+}
+
+.tap-btn {
+  margin-top: 30px;
+  font-size: 22px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>PupByte Tap</h2>
+<div class="container">
 
-<div id="coins">0</div>
+  <h2>PupByte Tap</h2>
 
-<button onclick="tap()">TAP</button>
+  <div id="coins">0</div>
+
+  <div id="profit">Profit/hour: 0</div>
+
+  <button class="tap-btn" onclick="tap()">TAP</button>
+
+  <br>
+
+  <button onclick="upgrade()">Upgrade (+10 profit)</button>
+
+</div>
 
 <script src="script.js"></script>
 
