@@ -92,11 +92,10 @@ async function loadCoins() {
 =================================*/
 
 setInterval(() => {
-  if (profitPerHour > 0) {
-    coins += profitPerHour / 3600;
-    document.getElementById("coins").innerText = Math.floor(coins);
-    saveCoins();
-  }
+   if (profitPerHour > 0) {
+      coins += profitPerHour / 3600;
+      document.getElementById("coins").innerText = Math.floor(coins);
+   }
 }, 1000);
 
 /* ===============================
