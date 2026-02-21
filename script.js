@@ -6,10 +6,10 @@ const tg = window.Telegram.WebApp;
 
 tg.expand();
 tg.disableVerticalSwipes();
-tg.disableVerticalSwipes();
+tg.enableClosingConfirmation();
 
-// Viewport stable fix
-tg.onEvent('viewportChanged', function() {
+// Viewport lock
+tg.onEvent("viewportChanged", function() {
   document.body.style.height = window.innerHeight + "px";
 });
 
