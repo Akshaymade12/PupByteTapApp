@@ -11,6 +11,10 @@ let profitPerHour = 0;
 let energy = 0;
 let maxEnergy = 100;
 
+// 🔥 UPGRADE VARIABLES
+let upgradeLevel = 0;
+let nextUpgradeCost = 100;
+
 const levels = [
   { name: "Bronze", min: 0 },
   { name: "Silver", min: 500 },
@@ -48,13 +52,12 @@ function updateLevel() {
   }
 }
 
-/* ================= ENERGY UI ================= */
+/* ================= UPGRADE BUTTON UI ================= */
 
-function updateEnergyUI() {
-  const energyDiv = document.getElementById("energy");
-  if (energyDiv) {
-    energyDiv.innerText =
-      "Energy: " + Math.floor(energy) + " / " + maxEnergy;
+function updateUpgradeButton() {
+  const btn = document.getElementById("upgradeBtn");
+  if (btn) {
+    btn.innerText = "Upgrade (" + nextUpgradeCost + " coins)";
   }
 }
 
@@ -73,12 +76,16 @@ async function loadCoins() {
     energy = data.energy || 0;
     maxEnergy = data.maxEnergy || 100;
 
+    upgradeLevel = data.upgradeLevel || 0;
+    nextUpgradeCost = data.nextCost || 100;
+
     document.getElementById("coins").innerText = Math.floor(coins);
     document.getElementById("profit").innerText =
       "Profit/hour: " + profitPerHour;
 
     updateEnergyUI();
     updateLevel();
+    updateUpgradeButton();
 
   } catch (err) {
     console.log("Load error:", err);
@@ -136,6 +143,8 @@ async function upgrade() {
       profitPerHour = data.profitPerHour;
       energy = data.energy;
       maxEnergy = data.maxEnergy;
+      upgradeLevel = data.upgradeLevel;
+      nextUpgradeCost = data.nextCost;
 
       document.getElementById("coins").innerText = Math.floor(coins);
       document.getElementById("profit").innerText =
@@ -143,8 +152,10 @@ async function upgrade() {
 
       updateEnergyUI();
       updateLevel();
+      updateUpgradeButton();
+
     } else {
-      alert("Not enough coins!");
+      alert("Need " + data.required + " coins!");
     }
 
   } catch (err) {
