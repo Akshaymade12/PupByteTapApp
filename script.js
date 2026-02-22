@@ -22,27 +22,31 @@ const levels = [
 // ================= LEVEL UPDATE =================
 
 function updateLevel() {
-  let currentLevel = levels[0];
 
-  for (let lvl of levels) {
-    if (coins >= lvl.min) {
-      currentLevel = lvl;
+  const levels = [
+    { name: "Bronze", min: 0 },
+    { name: "Silver", min: 500 },
+    { name: "Gold", min: 2000 },
+    { name: "Platinum", min: 5000 },
+    { name: "Diamond", min: 15000 }
+  ];
+
+  let currentLevel = levels[0];
+  let nextLevel = null;
+
+  for (let i = 0; i < levels.length; i++) {
+    if (coins >= levels[i].min) {
+      currentLevel = levels[i];
+      nextLevel = levels[i + 1];
     }
   }
 
   document.getElementById("level").innerText = currentLevel.name;
 
-  let next = levels.find(l => l.min > coins);
-
-  if (next) {
-    let progress = (coins / next.min) * 100;
-    if (progress > 100) progress = 100;
-
-    document.getElementById("progressBar").style.width = progress + "%";
+  if (nextLevel) {
     document.getElementById("nextLevelInfo").innerText =
-      "Next Level: " + next.name + " (" + next.min + " coins)";
+      "Next Level: " + nextLevel.name + " (" + nextLevel.min + " coins)";
   } else {
-    document.getElementById("progressBar").style.width = "100%";
     document.getElementById("nextLevelInfo").innerText =
       "Max Level Reached";
   }
