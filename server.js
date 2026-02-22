@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema({
   upgradeLevel: { type: Number, default: 0 },
   lastRewardLevel: { type: Number, default: 0 },
   tapLevel: { type: Number, default: 0 },
+  energyLevel: { type: Number, default: 0 },
+rechargeLevel: { type: Number, default: 0 },
   
   lastActive: { type: Date, default: Date.now }
 });
@@ -49,7 +51,8 @@ app.get("/load/:id", async (req, res) => {
     const secondsPassed = (now - user.lastActive) / 1000;
 
     user.coins += (user.profitPerHour / 3600) * secondsPassed;
-    user.energy += secondsPassed;
+    user.energy += secondsPassed * (1 + user.rechargeLevel);
+    user.maxEnergy = 100 + (user.energyLevel * 20);
 
     if (user.energy > user.maxEnergy) {
       user.energy = user.maxEnergy;
@@ -178,7 +181,7 @@ app.post("/upgrade", async (req, res) => {
   }
 });
 
-// ================= UPGRADE =================
+// ================= UPGRADE TAP =================
 
 app.post("/upgrade-tap", async (req, res) => {
   const { telegramId } = req.body;
@@ -204,6 +207,55 @@ app.post("/upgrade-tap", async (req, res) => {
     nextCost: 200 * Math.pow(2, user.tapLevel)
   });
 });
+
+// ================= ENERGY UPGRADE =================
+
+app.post("/upgrade-energy", async (req, res) => {
+  const { telegramId } = req.body;
+  let user = await User.findOne({ telegramId });
+
+  const cost = 300 * Math.pow(2, user.energyLevel);
+
+  if (user.coins < cost)
+    return res.json({ success: false, required: cost });
+
+  user.coins -= cost;
+  user.energyLevel += 1;
+  user.maxEnergy = 100 + (user.energyLevel * 20);
+
+  await user.save();
+
+  res.json({
+    success: true,
+    coins: user.coins,
+    energyLevel: user.energyLevel,
+    maxEnergy: user.maxEnergy
+  });
+});
+
+// ================= RECHARGE UPGRADE =================
+
+app.post("/upgrade-recharge", async (req, res) => {
+  const { telegramId } = req.body;
+  let user = await User.findOne({ telegramId });
+
+  const cost = 500 * Math.pow(2, user.rechargeLevel);
+
+  if (user.coins < cost)
+    return res.json({ success: false, required: cost });
+
+  user.coins -= cost;
+  user.rechargeLevel += 1;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    coins: user.coins,
+    rechargeLevel: user.rechargeLevel
+  });
+});
+
 
 // =====================================================
 // ================= HOME ROUTE ========================
