@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema({
   // 🔥 UPGRADE LEVEL
   upgradeLevel: { type: Number, default: 0 },
   lastRewardLevel: { type: Number, default: 0 },
+  tapLevel: { type: Number, default: 0 },
   
   lastActive: { type: Date, default: Date.now }
 });
@@ -83,6 +84,9 @@ app.get("/load/:id", async (req, res) => {
       maxEnergy: user.maxEnergy,
       upgradeLevel: user.upgradeLevel,
       nextCost: 100 * Math.pow(2, user.upgradeLevel),
+      tapLevel: user.tapLevel,
+tapNextCost: 200 * Math.pow(2, user.tapLevel),
+  
       bonusGiven: bonusGiven
     });
 
@@ -114,7 +118,8 @@ app.post("/tap", async (req, res) => {
     }
 
     user.energy -= 1;
-    user.coins += 1;
+    const tapReward = 1 + user.tapLevel;
+user.coins += tapReward;
 
     await user.save();
 
@@ -170,6 +175,33 @@ app.post("/upgrade", async (req, res) => {
     console.log("Upgrade Error:", err);
     res.status(500).json({ success: false });
   }
+});
+
+// ================= UPGRADE =================
+
+app.post("/upgrade-tap", async (req, res) => {
+  const { telegramId } = req.body;
+
+  let user = await User.findOne({ telegramId });
+  if (!user) return res.json({ success: false });
+
+  const cost = 200 * Math.pow(2, user.tapLevel);
+
+  if (user.coins < cost) {
+    return res.json({ success: false, required: cost });
+  }
+
+  user.coins -= cost;
+  user.tapLevel += 1;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    coins: user.coins,
+    tapLevel: user.tapLevel,
+    nextCost: 200 * Math.pow(2, user.tapLevel)
+  });
 });
 
 // =====================================================
