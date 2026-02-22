@@ -108,7 +108,7 @@ async function tap(event) {
 
   document.getElementById("coins").innerText = Math.floor(coins);
   document.getElementById("energy").innerText =
-    energy + " / " + maxEnergy;
+  Math.floor(energy) + " / " + maxEnergy;
 
   updateLevel();
 
@@ -127,7 +127,7 @@ async function tap(event) {
   // 🔥 Floating +1
   const floating = document.createElement("div");
   floating.className = "floating-coin";
-  floating.innerText = "+1";
+  floating.innerText = "+" + data.tapReward;
 
   const container = document.querySelector(".coin-container");
   container.appendChild(floating);
@@ -165,7 +165,7 @@ async function upgrade() {
   document.getElementById("profit").innerText =
   profitPerHour;
   document.getElementById("energy").innerText =
-    "Energy: " + energy + " / " + maxEnergy;
+  Math.floor(energy) + " / " + maxEnergy;
 
   updateUpgradeButton();
   updateLevel();
