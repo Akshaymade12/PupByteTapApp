@@ -199,6 +199,11 @@ body {
 .coin {
   position: relative;
   z-index: 2;
+  transition: transform 0.1s ease;
+}
+
+.coin:active {
+  transform: scale(0.92);
 }
 
 .floating-coin {
