@@ -76,9 +76,12 @@ async function loadCoins() {
 
   updateUpgradeButton();
   updateLevel();
-  if (data.bonusGiven) {
+if (data.bonusGiven) {
    alert("🎉 Level Bonus Received!");
-  }
+}
+
+}  // 👈 YE LINE ADD KARO (loadCoins close)
+   
 
 // ================= TAP =================
 
