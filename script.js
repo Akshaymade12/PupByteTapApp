@@ -76,6 +76,7 @@ async function loadCoins() {
 
   updateUpgradeButton();
   updateLevel();
+  alert("🎉 Level Bonus Applied if reached!");
 }
 
 // ================= TAP =================
