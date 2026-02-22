@@ -74,7 +74,7 @@ async function loadCoins() {
 
   document.getElementById("coins").innerText = Math.floor(coins);
   document.getElementById("profit").innerText =
-    "Profit/hour: " + profitPerHour;
+  profitPerHour;
   document.getElementById("energy").innerText =
   Math.floor(energy) + "/" + maxEnergy;
 
