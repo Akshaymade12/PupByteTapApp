@@ -3,67 +3,102 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PupByte Tap</title>
+<title>PupByte</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
 body {
   margin: 0;
-  background: #0b1120;
-  color: white;
-  text-align: center;
   font-family: sans-serif;
+  background: radial-gradient(circle at 30% 20%, #3a1c71, #1b1033 60%);
+  color: white;
+  overflow-x: hidden;
 }
 
 .container {
-  padding: 20px;
-}
-
-.level-box {
-  background: #1e293b;
   padding: 15px;
-  border-radius: 12px;
-  margin-top: 20px;
 }
 
-.progress-wrapper {
-  background: #333;
-  height: 10px;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-top: 8px;
+/* TOP BALANCE BAR */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+  padding: 12px;
+  border-radius: 15px;
+  margin-bottom: 15px;
 }
 
-#progressBar {
-  height: 10px;
-  background: gold;
-  width: 0%;
+.level-card {
+  background: rgba(255,255,255,0.08);
+  padding: 12px;
+  border-radius: 15px;
+  margin-bottom: 15px;
 }
 
-#coins {
+/* BIG COIN */
+.coin-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.coin {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, gold, #b8860b);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 40px;
-  margin-top: 30px;
-}
-
-#energy {
-  color: #00ff99;
-  margin-top: 10px;
-}
-
-#profit {
-  color: gold;
-  margin-top: 10px;
-}
-
-button {
-  padding: 15px 30px;
-  margin-top: 20px;
-  font-size: 18px;
-  border: none;
-  border-radius: 10px;
-  background: gold;
   font-weight: bold;
+  color: #1b1033;
+  box-shadow: 0 0 40px rgba(255,215,0,0.6);
+  transition: transform 0.1s;
+}
+
+.coin:active {
+  transform: scale(0.95);
+}
+
+/* ENERGY + BOOST */
+.energy-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  padding: 0 10px;
+}
+
+.boost-btn {
+  background: rgba(255,255,255,0.1);
+  padding: 10px 18px;
+  border-radius: 12px;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  backdrop-filter: blur(10px);
+}
+
+.nav-item {
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.nav-item.active {
+  opacity: 1;
+  color: gold;
 }
 </style>
 </head>
@@ -72,41 +107,42 @@ button {
 
 <div class="container">
 
-  <h2>PupByte Tap</h2>
-
-  <!-- LEVEL SECTION -->
-  <div class="level-box">
-    <h3>Level: <span id="level">Bronze</span></h3>
-
-    <div class="progress-wrapper">
-      <div id="progressBar"></div>
-    </div>
-
-    <div id="nextLevelInfo"></div>
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div>🪙 <span id="coins">0</span></div>
+    <div>⚡ <span id="energy">100/100</span></div>
   </div>
 
-  <!-- COINS -->
-  <div id="coins">0</div>
+  <!-- LEVEL -->
+  <div class="level-card">
+    Level: <span id="level">Bronze</span>
+  </div>
 
-  <!-- ENERGY -->
-  <div id="energy">Energy: 100 / 100</div>
+  <!-- BIG COIN -->
+  <div class="coin-container">
+    <div class="coin" onclick="tap()">
+      TAP
+    </div>
+  </div>
 
-  <!-- PROFIT -->
-  <div id="profit">Profit/hour: 0</div>
-
-  <!-- TAP BUTTON -->
-  <button onclick="tap()">TAP</button>
-
-  <br>
-
-  <!-- UPGRADE BUTTON -->
-  <button id="upgradeBtn" onclick="upgrade()">
-    Upgrade (100 coins)
-  </button>
+  <!-- ENERGY + BOOST -->
+  <div class="energy-row">
+    <div>⚡ <span id="energyText">100 / 100</span></div>
+    <div class="boost-btn">🔥 Boost</div>
+  </div>
 
 </div>
 
-<script src="script.js?v=5"></script>
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active">Earn</div>
+  <div class="nav-item">Tasks</div>
+  <div class="nav-item">Account</div>
+  <div class="nav-item">Skills</div>
+  <div class="nav-item">Shop</div>
+</div>
+
+<script src="script.js?v=6"></script>
 
 </body>
 </html>
