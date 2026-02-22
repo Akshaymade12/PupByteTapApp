@@ -101,19 +101,18 @@ async function tap(event) {
   });
 
   const data = await res.json();
-
-  if (!data.success) return alert("No Energy!");
+  if (!data.success) return;
 
   coins = data.coins;
   energy = data.energy;
 
   document.getElementById("coins").innerText = Math.floor(coins);
   document.getElementById("energy").innerText =
-    "Energy: " + energy + " / " + maxEnergy;
+    energy + " / " + maxEnergy;
 
   updateLevel();
 
-  // 🔥 Floating effect
+  // 🔥 Stable Floating Effect
   const floating = document.createElement("div");
   floating.className = "floating-coin";
   floating.innerText = "+1";
@@ -121,12 +120,13 @@ async function tap(event) {
   const container = document.querySelector(".coin-container");
   container.appendChild(floating);
 
+  // center position
   floating.style.left = "50%";
-  floating.style.top = "40%";
+  floating.style.top = "50%";
 
   setTimeout(() => {
     floating.remove();
-  }, 1000);
+  }, 800);
 }
 
 // ================= UPGRADE =================
