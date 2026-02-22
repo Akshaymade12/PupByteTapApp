@@ -11,10 +11,51 @@ let maxEnergy = 100;
 let upgradeLevel = 0;
 let nextUpgradeCost = 100;
 
+const levels = [
+  { name: "Bronze", min: 0 },
+  { name: "Silver", min: 500 },
+  { name: "Gold", min: 2000 },
+  { name: "Platinum", min: 5000 },
+  { name: "Diamond", min: 15000 }
+];
+
+// ================= LEVEL UPDATE =================
+
+function updateLevel() {
+  let currentLevel = levels[0];
+
+  for (let lvl of levels) {
+    if (coins >= lvl.min) {
+      currentLevel = lvl;
+    }
+  }
+
+  document.getElementById("level").innerText = currentLevel.name;
+
+  let next = levels.find(l => l.min > coins);
+
+  if (next) {
+    let progress = (coins / next.min) * 100;
+    if (progress > 100) progress = 100;
+
+    document.getElementById("progressBar").style.width = progress + "%";
+    document.getElementById("nextLevelInfo").innerText =
+      "Next Level: " + next.name + " (" + next.min + " coins)";
+  } else {
+    document.getElementById("progressBar").style.width = "100%";
+    document.getElementById("nextLevelInfo").innerText =
+      "Max Level Reached";
+  }
+}
+
+// ================= UPGRADE BUTTON =================
+
 function updateUpgradeButton() {
   document.getElementById("upgradeBtn").innerText =
     "Upgrade (" + nextUpgradeCost + " coins)";
 }
+
+// ================= LOAD =================
 
 async function loadCoins() {
   const res = await fetch("/load/" + userId);
@@ -34,7 +75,10 @@ async function loadCoins() {
     "Energy: " + Math.floor(energy) + " / " + maxEnergy;
 
   updateUpgradeButton();
+  updateLevel();
 }
+
+// ================= TAP =================
 
 async function tap() {
   const res = await fetch("/tap", {
@@ -44,6 +88,7 @@ async function tap() {
   });
 
   const data = await res.json();
+
   if (!data.success) return alert("No Energy!");
 
   coins = data.coins;
@@ -52,7 +97,11 @@ async function tap() {
   document.getElementById("coins").innerText = Math.floor(coins);
   document.getElementById("energy").innerText =
     "Energy: " + energy + " / " + maxEnergy;
+
+  updateLevel();
 }
+
+// ================= UPGRADE =================
 
 async function upgrade() {
   const res = await fetch("/upgrade", {
@@ -81,7 +130,10 @@ async function upgrade() {
     "Energy: " + energy + " / " + maxEnergy;
 
   updateUpgradeButton();
+  updateLevel();
 }
+
+// ================= AUTO UPDATE =================
 
 setInterval(() => {
   coins += profitPerHour / 3600;
@@ -92,6 +144,8 @@ setInterval(() => {
     document.getElementById("energy").innerText =
       "Energy: " + Math.floor(energy) + " / " + maxEnergy;
   }
+
+  updateLevel();
 }, 1000);
 
 loadCoins();
