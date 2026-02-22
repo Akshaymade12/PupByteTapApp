@@ -189,25 +189,35 @@ body {
    opacity: 0.8;
 }
 
+.coin-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.coin {
+  position: relative;
+  z-index: 2;
+}
+
 .floating-coin {
   position: absolute;
   color: gold;
   font-weight: bold;
-  animation: floatUp 1s ease-out forwards;
+  font-size: 18px;
   pointer-events: none;
+  animation: floatUp 0.8s ease-out forwards;
+  z-index: 1;
 }
 
 @keyframes floatUp {
   0% {
     opacity: 1;
-    transform: translateY(0px);
+    transform: translate(-50%, 0);
   }
   100% {
     opacity: 0;
-    transform: translateY(-60px);
+    transform: translate(-50%, -80px);
   }
-}
-
-.coin-container {
-  position: relative;
 }
