@@ -133,7 +133,7 @@ async function upgrade() {
 
   document.getElementById("coins").innerText = Math.floor(coins);
   document.getElementById("profit").innerText =
-    "Profit/hour: " + profitPerHour;
+  profitPerHour;
   document.getElementById("energy").innerText =
     "Energy: " + energy + " / " + maxEnergy;
 
