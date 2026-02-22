@@ -107,71 +107,83 @@ body {
 
 <div class="container">
 
-  <!-- TOP BAR -->
-  <div class="top-bar">
-    <div>🪙 <span id="coins">0</span></div>
-    <div>⚡ <span id="energy">100/100</span></div>
+  <!-- EARN SECTION START -->
+  <div id="earnSection">
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <div>🪙 <span id="coins">0</span></div>
+      <div>⚡ <span id="energy">100/100</span></div>
+    </div>
+
+    <!-- LEVEL -->
+    <div class="level-card">
+      Level: <span id="level">Bronze</span>
+    </div>
+
+    <div id="nextLevelInfo" style="margin-top:8px; font-size:14px; opacity:0.8;"></div>
+    
+    <div class="stats-card">
+      <div>💰 Profit/hour: <span id="profit">0</span></div>
+      <div style="margin-top:8px;">
+        <button class="upgrade-btn" onclick="upgrade()">
+          Upgrade (<span id="upgradeCost">100</span>)
+        </button>
+      </div>
+    </div>
+    
+    <!-- BIG COIN -->
+    <div class="coin-container">
+      <div class="coin" onclick="tap(event)">
+        TAP
+      </div>
+    </div>
+
+    <!-- ENERGY + BOOST -->
+    <div class="energy-row">
+      <div>⚡ <span id="energyText">100 / 100</span></div>
+      <div class="boost-btn">🔥 Boost</div>
+    </div>
+
+  </div>
+  <!-- EARN SECTION END -->
+
+
+  <!-- BOOTS SECTION -->
+  <div id="bootsSection" style="display:none; margin-top:30px;">
+
+    <div class="skill-card">
+      💪 Tap Power
+      <div>Level: <span id="tapLevel">0</span></div>
+      <button onclick="upgradeTap()">Upgrade</button>
+    </div>
+
+    <div class="skill-card">
+      🔋 Energy Limit
+      <div>Level: <span id="energyLevel">0</span></div>
+      <button onclick="upgradeEnergy()">Upgrade</button>
+    </div>
+
+    <div class="skill-card">
+      ⚡ Recharge Speed
+      <div>Level: <span id="rechargeLevel">0</span></div>
+      <button onclick="upgradeRecharge()">Upgrade</button>
+    </div>
+
   </div>
 
-  <!-- LEVEL -->
-  <div class="level-card">
-    Level: <span id="level">Bronze</span>
-  </div>
+</div> <!-- container end -->
 
-  <div id="nextLevelInfo" style="margin-top:8px; font-size:14px; opacity:0.8;"></div>
-  
-  <div class="stats-card">
-  <div>💰 Profit/hour: <span id="profit">0</span></div>
-  <div style="margin-top:8px;">
-    <button class="upgrade-btn" onclick="upgrade()">
-      Upgrade (<span id="upgradeCost">100</span>)
-    </button>
-  </div>
-  </div>
-  
-  <!-- BIG COIN -->
-  <div class="coin-container">
-  <div class="coin" onclick="tap(event)">
-    TAP
-  </div>
-  </div>
-
-  <!-- ENERGY + BOOST -->
-  <div class="energy-row">
-    <div>⚡ <span id="energyText">100 / 100</span></div>
-    <div class="boost-btn">🔥 Boost</div>
-  </div>
-
-<div id="bootsSection" style="display:none; margin-top:30px;">
-
-  <div class="skill-card">
-    💪 Tap Power
-    <div>Level: <span id="tapLevel">0</span></div>
-    <button onclick="upgradeTap()">Upgrade</button>
-  </div>
-
-  <div class="skill-card">
-    🔋 Energy Limit
-    <div>Level: <span id="energyLevel">0</span></div>
-    <button onclick="upgradeEnergy()">Upgrade</button>
-  </div>
-
-  <div class="skill-card">
-    ⚡ Recharge Speed
-    <div>Level: <span id="rechargeLevel">0</span></div>
-    <button onclick="upgradeRecharge()">Upgrade</button>
-  </div>
-
-</div>
 
 <!-- BOTTOM NAV -->
-<div class="nav-item active" onclick="showEarn()">Earn</div>
-<div class="nav-item">Tasks</div>
-<div class="nav-item">Account</div>
-<div class="nav-item">Skills</div>
-<div class="nav-item" onclick="showBoots()">Boots</div>
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="showEarn()">Earn</div>
+  <div class="nav-item">Tasks</div>
+  <div class="nav-item">Account</div>
+  <div class="nav-item">Skills</div>
+  <div class="nav-item" onclick="showBoots()">Boots</div>
+</div>
 
 <script src="script.js?v=6"></script>
 
 </body>
-</html>
