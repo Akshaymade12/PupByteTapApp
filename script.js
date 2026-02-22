@@ -7,6 +7,10 @@ const userId = tg.initDataUnsafe?.user?.id;
 let coins = 0;
 let profitPerHour = 0;
 
+// 🔥 ENERGY VARIABLES
+let energy = 0;
+let maxEnergy = 100;
+
 const levels = [
   { name: "Bronze", min: 0 },
   { name: "Silver", min: 500 },
@@ -44,6 +48,16 @@ function updateLevel() {
   }
 }
 
+/* ================= ENERGY UI ================= */
+
+function updateEnergyUI() {
+  const energyDiv = document.getElementById("energy");
+  if (energyDiv) {
+    energyDiv.innerText =
+      "Energy: " + Math.floor(energy) + " / " + maxEnergy;
+  }
+}
+
 /* ================= LOAD ================= */
 
 async function loadCoins() {
@@ -56,9 +70,14 @@ async function loadCoins() {
     coins = data.coins || 0;
     profitPerHour = data.profitPerHour || 0;
 
-    document.getElementById("coins").innerText = Math.floor(coins);
-    document.getElementById("profit").innerText = profitPerHour;
+    energy = data.energy || 0;
+    maxEnergy = data.maxEnergy || 100;
 
+    document.getElementById("coins").innerText = Math.floor(coins);
+    document.getElementById("profit").innerText =
+      "Profit/hour: " + profitPerHour;
+
+    updateEnergyUI();
     updateLevel();
 
   } catch (err) {
@@ -68,21 +87,34 @@ async function loadCoins() {
 
 /* ================= TAP ================= */
 
-function tap() {
+async function tap() {
   if (!userId) return;
 
-  // Instant UI update
-  coins += 1;
-  document.getElementById("coins").innerText = Math.floor(coins);
+  try {
+    const res = await fetch("/tap", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId: userId })
+    });
 
-  updateLevel();
+    const data = await res.json();
 
-  // Background save
-  fetch("/tap", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: userId })
-  }).catch(() => {});
+    if (!data.success) {
+      alert("No Energy!");
+      return;
+    }
+
+    coins = data.coins;
+    energy = data.energy;
+
+    document.getElementById("coins").innerText = Math.floor(coins);
+
+    updateEnergyUI();
+    updateLevel();
+
+  } catch (err) {
+    console.log("Tap error:", err);
+  }
 }
 
 /* ================= UPGRADE ================= */
@@ -102,10 +134,14 @@ async function upgrade() {
     if (data.success) {
       coins = data.coins;
       profitPerHour = data.profitPerHour;
+      energy = data.energy;
+      maxEnergy = data.maxEnergy;
 
       document.getElementById("coins").innerText = Math.floor(coins);
-      document.getElementById("profit").innerText = profitPerHour;
+      document.getElementById("profit").innerText =
+        "Profit/hour: " + profitPerHour;
 
+      updateEnergyUI();
       updateLevel();
     } else {
       alert("Not enough coins!");
@@ -122,8 +158,17 @@ setInterval(() => {
   if (profitPerHour > 0) {
     coins += profitPerHour / 3600;
     document.getElementById("coins").innerText = Math.floor(coins);
-
     updateLevel();
+  }
+}, 1000);
+
+/* ================= LIVE ENERGY REFILL ================= */
+
+setInterval(() => {
+  if (energy < maxEnergy) {
+    energy += 1;
+    if (energy > maxEnergy) energy = maxEnergy;
+    updateEnergyUI();
   }
 }, 1000);
 
