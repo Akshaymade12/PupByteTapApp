@@ -6,133 +6,26 @@
 <title>PupByte Tap</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<style>
-body {
-  margin: 0;
-  padding: 0;
-  background: #0b1120;
-  color: white;
-  text-align: center;
-  font-family: sans-serif;
-}
-
-.container {
-  padding: 20px;
-}
-
-h2 {
-  margin-top: 20px;
-}
-
-/* LEVEL BOX */
-.level-box {
-  background: #1e293b;
-  padding: 15px;
-  border-radius: 12px;
-  margin-top: 20px;
-}
-
-.progress-wrapper {
-  background: #333;
-  height: 10px;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-#progressBar {
-  height: 10px;
-  background: gold;
-  width: 0%;
-}
-
-#nextLevelInfo {
-  margin-top: 5px;
-  font-size: 14px;
-}
-
-/* COINS */
-#coins {
-  font-size: 36px;
-  margin-top: 30px;
-}
-
-/* ENERGY */
-#energy {
-  font-size: 16px;
-  margin-top: 10px;
-  color: #00ff99;
-}
-
-/* PROFIT */
-#profit {
-  font-size: 18px;
-  margin-top: 10px;
-  color: gold;
-}
-
-/* BUTTONS */
-button {
-  padding: 15px 30px;
-  margin-top: 20px;
-  font-size: 18px;
-  border: none;
-  border-radius: 10px;
-  background: gold;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-  button:disabled {
-  background: gray;
-  cursor: not-allowed;
-}
-
-.tap-btn {
-  margin-top: 30px;
-  font-size: 22px;
-}
-</style>
 </head>
 
-<body>
+<body style="background:#0b1120;color:white;text-align:center;font-family:sans-serif;">
 
-<div class="container">
+<h2>PupByte Tap</h2>
 
-  <h2>PupByte Tap</h2>
+<div id="coins" style="font-size:40px;margin-top:20px;">0</div>
+<div id="energy" style="color:#00ff99;margin-top:10px;">Energy: 100 / 100</div>
+<div id="profit" style="color:gold;margin-top:10px;">Profit/hour: 0</div>
 
-  <!-- LEVEL SECTION -->
-  <div class="level-box">
-    <h3>Level: <span id="level">Bronze</span></h3>
+<button onclick="tap()" style="margin-top:20px;padding:15px 30px;font-size:20px;background:gold;border:none;border-radius:10px;">
+TAP
+</button>
 
-    <div class="progress-wrapper">
-      <div id="progressBar"></div>
-    </div>
+<br><br>
 
-    <div id="nextLevelInfo"></div>
-  </div>
+<button id="upgradeBtn" onclick="upgrade()" style="padding:15px 30px;font-size:18px;background:gold;border:none;border-radius:10px;">
+Upgrade (100 coins)
+</button>
 
-  <!-- COINS -->
-  <div id="coins">0</div>
-
-  <!-- ENERGY -->
-  <div id="energy">Energy: 100 / 100</div>
-
-  <!-- PROFIT -->
-  <div id="profit">Profit/hour: 0</div>
-
-  <!-- TAP BUTTON -->
-  <button class="tap-btn" onclick="tap()">TAP</button>
-
-  <!-- UPGRADE BUTTON -->
-  <br>
-  <button id="upgradeBtn" onclick="upgrade()">Upgrade (100 coins)</button>
-
-</div>
-
-<script src="script.js"></script>
-
+<script src="script.js?v=3"></script>
 </body>
 </html>
-  
