@@ -55,6 +55,9 @@ app.get("/load/:id", async (req, res) => {
     }
 
     // 🔥 LEVEL REWARD LOGIC
+
+    let bonusGiven = false;
+    
     const rewardLevels = [
       { min: 500, bonus: 200 },
       { min: 2000, bonus: 500 },
@@ -63,12 +66,13 @@ app.get("/load/:id", async (req, res) => {
     ];
 
     rewardLevels.forEach((lvl, index) => {
-      if (user.coins >= lvl.min && user.lastRewardLevel <= index) {
-        user.coins += lvl.bonus;
-        user.lastRewardLevel = index + 1;
-      }
-    });
-
+  if (user.coins >= lvl.min && user.lastRewardLevel === index) {
+    user.coins += lvl.bonus;
+    user.lastRewardLevel += 1;
+    bonusGiven = true;   // 🔥 add this
+  }
+});
+    
     user.lastActive = now;
     await user.save();
 
@@ -78,7 +82,8 @@ app.get("/load/:id", async (req, res) => {
       energy: user.energy,
       maxEnergy: user.maxEnergy,
       upgradeLevel: user.upgradeLevel,
-      nextCost: 100 * Math.pow(2, user.upgradeLevel)
+      nextCost: 100 * Math.pow(2, user.upgradeLevel),
+      bonusGiven: bonusGiven
     });
 
   } catch (err) {
