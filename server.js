@@ -126,7 +126,8 @@ user.coins += tapReward;
     res.json({
       success: true,
       coins: user.coins,
-      energy: user.energy
+      energy: user.energy,
+      tapReward: tapReward   // 🔥 ADD THIS
     });
 
   } catch (err) {
