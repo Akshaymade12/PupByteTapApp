@@ -187,3 +187,15 @@ setInterval(() => {
 }, 1000);
 
 loadCoins();
+
+// ================= NAVIGATION =================
+
+function showBoots() {
+  document.getElementById("earnSection").style.display = "none";
+  document.getElementById("bootsSection").style.display = "block";
+}
+
+function showEarn() {
+  document.getElementById("earnSection").style.display = "block";
+  document.getElementById("bootsSection").style.display = "none";
+}
