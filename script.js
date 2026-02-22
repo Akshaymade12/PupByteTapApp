@@ -72,8 +72,11 @@ async function loadCoins() {
   document.getElementById("profit").innerText =
     "Profit/hour: " + profitPerHour;
   document.getElementById("energy").innerText =
-    "Energy: " + Math.floor(energy) + " / " + maxEnergy;
+  Math.floor(energy) + "/" + maxEnergy;
 
+document.getElementById("energyText").innerText =
+  Math.floor(energy) + " / " + maxEnergy;
+  
   updateUpgradeButton();
   updateLevel();
 if (data.bonusGiven) {
