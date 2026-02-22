@@ -18,45 +18,66 @@ const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true, unique: true },
   coins: { type: Number, default: 0 },
   profitPerHour: { type: Number, default: 10 },
+
+  // 🔥 ENERGY SYSTEM
+  energy: { type: Number, default: 100 },
+  maxEnergy: { type: Number, default: 100 },
+
   lastActive: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model("User", userSchema);
 
-// ===== LOAD (Auto Mining Calculation) =====
+// =====================================================
+// ===== LOAD (Offline Mining + Energy Restore) =====
+// =====================================================
 app.get("/load/:id", async (req, res) => {
   try {
     const telegramId = req.params.id;
-
     let user = await User.findOne({ telegramId });
 
     if (!user) {
       user = await User.create({ telegramId });
     }
 
-    // 🔥 Offline mining calculate
     const now = new Date();
     const secondsPassed = (now - user.lastActive) / 1000;
 
-    const earned = (user.profitPerHour / 3600) * secondsPassed;
+  // 🔥 Offline coin mining
+    const earnedCoins = (user.profitPerHour / 3600) * secondsPassed;
+    user.coins += earnedCoins;
 
-    user.coins += earned;
+    // 🔥 Energy restore (1 per second)
+    user.energy += secondsPassed;
+    if (user.energy > user.maxEnergy) {
+      user.energy = user.maxEnergy;
+    }
+
     user.lastActive = now;
 
     await user.save();
 
     res.json({
       coins: user.coins,
-      profitPerHour: user.profitPerHour
+      profitPerHour: user.profitPerHour,
+      energy: user.energy,
+      maxEnergy: user.maxEnergy
     });
 
   } catch (err) {
     console.log("Load Error:", err);
-    res.status(500).json({ coins: 0, profitPerHour: 0 });
+    res.status(500).json({
+      coins: 0,
+      profitPerHour: 0,
+      energy: 0,
+      maxEnergy: 100
+    });
   }
 });
 
-// ===== TAP =====
+// =====================================================
+// ====================== TAP ==========================
+// =====================================================
 app.post("/tap", async (req, res) => {
   try {
     const { telegramId } = req.body;
@@ -71,10 +92,21 @@ app.post("/tap", async (req, res) => {
       user = await User.create({ telegramId });
     }
 
+    // ❌ No Energy
+    if (user.energy <= 0) {
+      return res.json({ success: false, message: "No energy" });
+    }
+
+    user.energy -= 1;
     user.coins += 1;
+
     await user.save();
 
-    res.json({ coins: user.coins });
+    res.json({
+      success: true,
+      coins: user.coins,
+      energy: user.energy
+    });
 
   } catch (err) {
     console.log("Tap Error:", err);
@@ -82,7 +114,9 @@ app.post("/tap", async (req, res) => {
   }
 });
 
-// ===== UPGRADE =====
+// =====================================================
+// ==================== UPGRADE ========================
+// =====================================================
 app.post("/upgrade", async (req, res) => {
   try {
     const { telegramId } = req.body;
@@ -104,7 +138,9 @@ app.post("/upgrade", async (req, res) => {
     res.json({
       success: true,
       coins: user.coins,
-      profitPerHour: user.profitPerHour
+      profitPerHour: user.profitPerHour,
+      energy: user.energy,
+      maxEnergy: user.maxEnergy
     });
 
   } catch (err) {
@@ -113,12 +149,16 @@ app.post("/upgrade", async (req, res) => {
   }
 });
 
-// ===== Home Route =====
+// =====================================================
+// ================= HOME ROUTE ========================
+// =====================================================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// ===== Start Server =====
+// =====================================================
+// ================= START SERVER ======================
+// =====================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
