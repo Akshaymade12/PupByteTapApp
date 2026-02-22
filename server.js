@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
 
   // 🔥 UPGRADE LEVEL
   upgradeLevel: { type: Number, default: 0 },
+  lastRewardLevel: { type: Number, default: 0 },
   
   lastActive: { type: Date, default: Date.now }
 });
@@ -46,37 +47,42 @@ app.get("/load/:id", async (req, res) => {
     const now = new Date();
     const secondsPassed = (now - user.lastActive) / 1000;
 
-  // 🔥 Offline coin mining
-    const earnedCoins = (user.profitPerHour / 3600) * secondsPassed;
-    user.coins += earnedCoins;
-
-    // 🔥 Energy restore (1 per second)
+    user.coins += (user.profitPerHour / 3600) * secondsPassed;
     user.energy += secondsPassed;
+
     if (user.energy > user.maxEnergy) {
       user.energy = user.maxEnergy;
     }
 
-    user.lastActive = now;
+    // 🔥 LEVEL REWARD LOGIC
+    const rewardLevels = [
+      { min: 500, bonus: 200 },
+      { min: 2000, bonus: 500 },
+      { min: 5000, bonus: 1000 },
+      { min: 15000, bonus: 3000 }
+    ];
 
+    rewardLevels.forEach((lvl, index) => {
+      if (user.coins >= lvl.min && user.lastRewardLevel <= index) {
+        user.coins += lvl.bonus;
+        user.lastRewardLevel = index + 1;
+      }
+    });
+
+    user.lastActive = now;
     await user.save();
 
     res.json({
-  coins: user.coins,
-  profitPerHour: user.profitPerHour,
-  energy: user.energy,
-  maxEnergy: user.maxEnergy,
-  upgradeLevel: user.upgradeLevel,
-  nextCost: 100 * Math.pow(2, user.upgradeLevel)
-});
+      coins: user.coins,
+      profitPerHour: user.profitPerHour,
+      energy: user.energy,
+      maxEnergy: user.maxEnergy,
+      upgradeLevel: user.upgradeLevel,
+      nextCost: 100 * Math.pow(2, user.upgradeLevel)
+    });
 
   } catch (err) {
-    console.log("Load Error:", err);
-    res.status(500).json({
-      coins: 0,
-      profitPerHour: 0,
-      energy: 0,
-      maxEnergy: 100
-    });
+    res.status(500).json({ error: true });
   }
 });
 
