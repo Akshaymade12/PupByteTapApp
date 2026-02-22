@@ -61,11 +61,13 @@ app.get("/load/:id", async (req, res) => {
     await user.save();
 
     res.json({
-      coins: user.coins,
-      profitPerHour: user.profitPerHour,
-      energy: user.energy,
-      maxEnergy: user.maxEnergy
-    });
+  coins: user.coins,
+  profitPerHour: user.profitPerHour,
+  energy: user.energy,
+  maxEnergy: user.maxEnergy,
+  upgradeLevel: user.upgradeLevel,
+  nextCost: 100 * Math.pow(2, user.upgradeLevel)
+});
 
   } catch (err) {
     console.log("Load Error:", err);
