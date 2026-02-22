@@ -51,8 +51,8 @@ function updateLevel() {
 // ================= UPGRADE BUTTON =================
 
 function updateUpgradeButton() {
-  document.getElementById("upgradeBtn").innerText =
-    "Upgrade (" + nextUpgradeCost + " coins)";
+  document.getElementById("upgradeCost").innerText =
+    nextUpgradeCost + " coins";
 }
 
 // ================= LOAD =================
