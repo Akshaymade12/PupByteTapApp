@@ -188,3 +188,26 @@ body {
    font-size: 12px;
    opacity: 0.8;
 }
+
+.floating-coin {
+  position: absolute;
+  color: gold;
+  font-weight: bold;
+  animation: floatUp 1s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px);
+  }
+}
+
+.coin-container {
+  position: relative;
+}
