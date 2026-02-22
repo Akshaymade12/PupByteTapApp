@@ -68,6 +68,17 @@ body {
   display: block;
 }
 
+/* ===== Stats Card ===== */
+
+.stats-card {
+  background: rgba(255,255,255,0.08);
+  padding: 15px;
+  border-radius: 15px;
+  margin: 15px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
 /* Character */
 .character {
   width: 260px;
