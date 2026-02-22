@@ -112,7 +112,19 @@ async function tap(event) {
 
   updateLevel();
 
-  // 🔥 Stable Floating Effect
+  // 🔥 Press Animation
+  const coinElement = document.querySelector(".coin");
+  coinElement.style.transform = "scale(0.9)";
+  setTimeout(() => {
+    coinElement.style.transform = "scale(1)";
+  }, 100);
+
+  // 🔥 Vibration
+  if (navigator.vibrate) {
+    navigator.vibrate(30);
+  }
+
+  // 🔥 Floating +1
   const floating = document.createElement("div");
   floating.className = "floating-coin";
   floating.innerText = "+1";
@@ -120,7 +132,6 @@ async function tap(event) {
   const container = document.querySelector(".coin-container");
   container.appendChild(floating);
 
-  // center position
   floating.style.left = "50%";
   floating.style.top = "50%";
 
@@ -128,7 +139,6 @@ async function tap(event) {
     floating.remove();
   }, 800);
 }
-
 // ================= UPGRADE =================
 
 async function upgrade() {
