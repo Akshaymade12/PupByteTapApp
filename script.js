@@ -180,7 +180,7 @@ setInterval(() => {
   if (energy < maxEnergy) {
     energy += 1;
     document.getElementById("energy").innerText =
-      "Energy: " + Math.floor(energy) + " / " + maxEnergy;
+  Math.floor(energy) + "/" + maxEnergy;
   }
 
   updateLevel();
