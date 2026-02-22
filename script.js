@@ -92,7 +92,8 @@ if (data.bonusGiven) {
 
 // ================= TAP =================
 
-async function tap() {
+async function tap(event) {
+
   const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -111,6 +112,21 @@ async function tap() {
     "Energy: " + energy + " / " + maxEnergy;
 
   updateLevel();
+
+  // 🔥 Floating effect
+  const floating = document.createElement("div");
+  floating.className = "floating-coin";
+  floating.innerText = "+1";
+
+  const container = document.querySelector(".coin-container");
+  container.appendChild(floating);
+
+  floating.style.left = "50%";
+  floating.style.top = "40%";
+
+  setTimeout(() => {
+    floating.remove();
+  }, 1000);
 }
 
 // ================= UPGRADE =================
