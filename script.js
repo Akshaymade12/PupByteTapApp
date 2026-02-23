@@ -1,48 +1,50 @@
-const telegramId = "12345"; // temporary test ID
+let coins = 0;
+let energy = 100;
+let maxEnergy = 100;
+let profitPerHour = 10;
 
-async function loadUser() {
-  const res = await fetch(`/test-user/${telegramId}`);
-  const data = await res.json();
-
-  document.getElementById("coins").innerText = data.coins;
-  document.getElementById("energy").innerText = data.energy;
-}
-
-async function tap() {
-  const res = await fetch("/tap", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId })
-  });
-
-  const data = await res.json();
-
-  if (data.success) {
-    document.getElementById("coins").innerText = data.coins;
-    document.getElementById("energy").innerText = data.energy;
-  }
-}
-
-loadUser();
-
+const coinsEl = document.getElementById("coins");
+const energyEl = document.getElementById("energy");
+const profitEl = document.getElementById("profit");
 const tapBtn = document.getElementById("tapBtn");
 
-tapBtn.addEventListener("click", (e) => {
+profitEl.innerText = profitPerHour;
 
-  // Create +1 element
-  const plusOne = document.createElement("div");
-  plusOne.className = "plus-one";
-  plusOne.innerText = "+1";
+tapBtn.addEventListener("click", () => {
+  if (energy <= 0) return;
 
-  // Position where clicked
-  plusOne.style.left = e.offsetX + "px";
-  plusOne.style.top = e.offsetY + "px";
+  coins += 1;
+  energy -= 1;
 
-  tapBtn.parentElement.appendChild(plusOne);
+  coinsEl.innerText = coins;
+  energyEl.innerText = energy;
 
-  // Remove after animation
-  setTimeout(() => {
-    plusOne.remove();
-  }, 800);
-
+  showPlusOne();
 });
+
+/* Floating +1 */
+function showPlusOne() {
+  const plus = document.createElement("div");
+  plus.classList.add("plus-one");
+  plus.innerText = "+1";
+
+  document.querySelector(".coin-wrapper").appendChild(plus);
+
+  setTimeout(() => {
+    plus.remove();
+  }, 1000);
+}
+
+/* Energy Regeneration */
+setInterval(() => {
+  if (energy < maxEnergy) {
+    energy += 1;
+    energyEl.innerText = energy;
+  }
+}, 3000);
+
+/* Passive Profit System */
+setInterval(() => {
+  coins += profitPerHour / 3600;
+  coinsEl.innerText = Math.floor(coins);
+}, 1000);
