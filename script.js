@@ -2,9 +2,17 @@ const tg = window.Telegram.WebApp;
 
 if (tg) {
   tg.expand();
-}
-tg.disableVerticalSwipes();
 
+function setAppHeight() {
+  document.documentElement.style.setProperty(
+    "--app-height",
+    `${window.innerHeight}px`
+  );
+}
+
+window.addEventListener("resize", setAppHeight);
+setAppHeight();
+  
 const userId = tg.initDataUnsafe?.user?.id;
 
 let coins = 0;
