@@ -65,7 +65,7 @@ function showPlusOne(amount) {
 const upgradeBtn = document.getElementById("upgradeBtn");
 
 upgradeBtn.addEventListener("click", async () => {
-  const res = await fetch("/upgrade", {
+  const res = await fetch("/upgrade-tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ telegramId })
