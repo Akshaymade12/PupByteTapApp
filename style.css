@@ -1,3 +1,11 @@
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    overscroll-behavior: none;
+}
+
 body {
     background: radial-gradient(circle, #2b1b4d 0%, #000000 100%);
     color: white;
