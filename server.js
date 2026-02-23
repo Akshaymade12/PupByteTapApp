@@ -81,25 +81,24 @@ app.get("/load/:id", async (req, res) => {
     await user.save();
 
     res.json({
-      coins: user.coins,
-      profitPerHour: user.profitPerHour,
-      energy: user.energy,
-      maxEnergy: user.maxEnergy,
-      upgradeLevel: user.upgradeLevel,
-      nextCost: 100 * Math.pow(2, user.upgradeLevel),
-      tapLevel: user.tapLevel,
-tapNextCost: 200 * Math.pow(2, user.tapLevel),
+  coins: user.coins,
+  profitPerHour: user.profitPerHour,
+  energy: user.energy,
+  maxEnergy: user.maxEnergy,
+  upgradeLevel: user.upgradeLevel,
+  nextCost: 100 * Math.pow(2, user.upgradeLevel),
 
-      tapLevel: user.tapLevel,
-energyLevel: user.energyLevel,
-rechargeLevel: user.rechargeLevel,
+  tapLevel: user.tapLevel,
+  energyLevel: user.energyLevel,
+  rechargeLevel: user.rechargeLevel,
 
-tapNextCost: 200 * Math.pow(2, user.tapLevel),
-energyNextCost: 300 * Math.pow(2, user.energyLevel),
-rechargeNextCost: 500 * Math.pow(2, user.rechargeLevel),
+  tapNextCost: 200 * Math.pow(2, user.tapLevel),
+  energyNextCost: 300 * Math.pow(2, user.energyLevel),
+  rechargeNextCost: 500 * Math.pow(2, user.rechargeLevel),
+
+  bonusGiven: bonusGiven
       
-      bonusGiven: bonusGiven
-    });
+});
 
   } catch (err) {
     res.status(500).json({ error: true });
