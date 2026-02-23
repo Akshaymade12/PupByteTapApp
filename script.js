@@ -185,13 +185,7 @@ async function upgrade() {
   updateUpgradeButton();
   updateLevel();
 
-  document.getElementById("tapLevel").innerText = tapLevel;
-document.getElementById("energyLevel").innerText = energyLevel;
-document.getElementById("rechargeLevel").innerText = rechargeLevel;
-
-document.getElementById("tapCost").innerText = data.tapNextCost;
-document.getElementById("energyCost").innerText = data.energyNextCost;
-document.getElementById("rechargeCost").innerText = data.rechargeNextCost;
+  loadCoins();
   
 }
 
