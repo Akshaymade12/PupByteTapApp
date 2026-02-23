@@ -1,35 +1,34 @@
-const telegramId = "12345"; // later Telegram WebApp se lenge
-
-let coins = 0;
-let energy = 100;
-let maxEnergy = 100;
-let profitPerHour = 10;
+const telegramId = "12345";
 
 const coinsEl = document.getElementById("coins");
 const energyEl = document.getElementById("energy");
+const profitEl = document.getElementById("profit");
 const tapBtn = document.getElementById("tapBtn");
+const upgradeTapBtn = document.getElementById("upgradeTapBtn");
+const upgradeProfitBtn = document.getElementById("upgradeProfitBtn");
 
-/* Load user from server */
+let coins = 0;
+
+/* LOAD USER */
+
 async function loadUser() {
-  const res = await fetch(`/test-user/${telegramId}`);
+  const res = await fetch(`/load/${telegramId}`);
   const data = await res.json();
 
   coins = data.coins;
-  energy = data.energy;
+  coinsEl.innerText = Math.floor(data.coins);
+  energyEl.innerText = data.energy;
+  profitEl.innerText = data.profitPerHour;
 
-  coinsEl.innerText = Math.floor(coins);
-  energyEl.innerText = energy;
-
-  if (data.offlineEarned > 1) {
-    showOfflinePopup(data.offlineEarned);
-  }
+  upgradeTapBtn.innerText = `Tap Upgrade (${data.nextTapCost})`;
+  upgradeProfitBtn.innerText = `Profit Upgrade (${data.nextProfitCost})`;
 }
 
 loadUser();
 
-/* Tap */
+/* TAP */
+
 tapBtn.addEventListener("click", async () => {
-  
   const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -39,32 +38,15 @@ tapBtn.addEventListener("click", async () => {
   const data = await res.json();
 
   if (data.success) {
-  coins = data.coins;
-  energy = data.energy;
-
-  coinsEl.innerText = Math.floor(coins);
-  energyEl.innerText = energy;
-
-  showPlusOne(data.tapPower);
+    coinsEl.innerText = Math.floor(data.coins);
+    energyEl.innerText = data.energy;
+    showPlusOne(data.tapPower);
   }
 });
 
-/* Floating +1 */
-function showPlusOne(amount) {
-  const plus = document.createElement("div");
-  plus.classList.add("plus-one");
-  plus.innerText = "+" + amount;
+/* TAP UPGRADE */
 
-  document.querySelector(".coin-wrapper").appendChild(plus);
-
-  setTimeout(() => {
-    plus.remove();
-  }, 1000);
-}
-
-const upgradeBtn = document.getElementById("upgradeBtn");
-
-upgradeBtn.addEventListener("click", async () => {
+upgradeTapBtn.addEventListener("click", async () => {
   const res = await fetch("/upgrade-tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -74,28 +56,36 @@ upgradeBtn.addEventListener("click", async () => {
   const data = await res.json();
 
   if (data.success) {
-  coins = data.coins;
-  coinsEl.innerText = Math.floor(coins);
-  upgradeBtn.innerText = `Upgrade (${data.nextCost})`;
-    
+    loadUser();
   } else {
     alert("Not enough coins!");
   }
 });
 
-function showOfflinePopup(amount) {
+/* PROFIT UPGRADE */
 
-  const popup = document.createElement("div");
-  popup.className = "offline-popup";
+upgradeProfitBtn.addEventListener("click", async () => {
+  const res = await fetch("/upgrade-profit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId })
+  });
 
-  popup.innerHTML = `
-    <div class="popup-box">
-      <h2>💰 While You Were Away</h2>
-      <p>You earned <strong>${amount.toFixed(2)}</strong> PupByte</p>
-      <button onclick="this.parentElement.parentElement.remove()">Collect</button>
-    </div>
-  `;
+  const data = await res.json();
 
-  document.body.appendChild(popup);
+  if (data.success) {
+    loadUser();
+  } else {
+    alert("Not enough coins!");
+  }
+});
+
+/* +1 Animation */
+
+function showPlusOne(amount) {
+  const plus = document.createElement("div");
+  plus.className = "plus-one";
+  plus.innerText = "+" + amount;
+  document.querySelector(".coin-wrapper").appendChild(plus);
+  setTimeout(() => plus.remove(), 800);
 }
-
