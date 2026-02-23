@@ -78,6 +78,14 @@ async function loadCoins() {
   tapLevel = data.tapLevel;
 energyLevel = data.energyLevel;
 rechargeLevel = data.rechargeLevel;
+
+  document.getElementById("tapLevel").innerText = tapLevel;
+document.getElementById("energyLevel").innerText = energyLevel;
+document.getElementById("rechargeLevel").innerText = rechargeLevel;
+
+document.getElementById("tapCost").innerText = data.tapNextCost;
+document.getElementById("energyCost").innerText = data.energyNextCost;
+document.getElementById("rechargeCost").innerText = data.rechargeNextCost;
   
   document.getElementById("coins").innerText = Math.floor(coins);
   document.getElementById("profit").innerText =
@@ -195,7 +203,12 @@ setInterval(() => {
   document.getElementById("coins").innerText = Math.floor(coins);
 
   if (energy < maxEnergy) {
-    energy += 1;
+    energy += 1 + rechargeLevel;
+
+    if (energy > maxEnergy) {
+        energy = maxEnergy;
+    }
+    
     document.getElementById("energy").innerText =
   Math.floor(energy) + "/" + maxEnergy;
   }
