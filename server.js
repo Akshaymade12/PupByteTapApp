@@ -24,6 +24,22 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model("User", userSchema);
 
 
+setInterval(async () => {
+  try {
+    const users = await User.find({});
+
+    for (let user of users) {
+      if (user.energy < user.maxEnergy) {
+        user.energy += 1;
+        await user.save();
+      }
+    }
+
+  } catch (err) {
+    console.log("Energy recharge error");
+  }
+}, 5000); // every 10 seconds
+
 // ===== Create / Get User =====
 app.get("/test-user/:id", async (req, res) => {
   try {
