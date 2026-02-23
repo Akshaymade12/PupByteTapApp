@@ -37,6 +37,9 @@ tapBtn.addEventListener("click", async () => {
   if (data.success) {
     coinsEl.innerText = Math.floor(data.coins);
     energyEl.innerText = data.energy;
+    
+    profitEl.innerText = data.profitPerHour || profitEl.innerText;
+    
     showPlusOne(data.tapPower);
   }
 });
