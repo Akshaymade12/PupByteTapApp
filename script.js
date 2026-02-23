@@ -24,3 +24,25 @@ async function tap() {
 }
 
 loadUser();
+
+const tapBtn = document.getElementById("tapBtn");
+
+tapBtn.addEventListener("click", (e) => {
+
+  // Create +1 element
+  const plusOne = document.createElement("div");
+  plusOne.className = "plus-one";
+  plusOne.innerText = "+1";
+
+  // Position where clicked
+  plusOne.style.left = e.offsetX + "px";
+  plusOne.style.top = e.offsetY + "px";
+
+  tapBtn.parentElement.appendChild(plusOne);
+
+  // Remove after animation
+  setTimeout(() => {
+    plusOne.remove();
+  }, 800);
+
+});
