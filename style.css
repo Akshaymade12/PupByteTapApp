@@ -1,3 +1,10 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -7,8 +14,11 @@ body {
 
 .container {
   padding: 20px;
-  padding-bottom: 100px;
+  padding-bottom: 90px;
   text-align: center;
+  height: calc(100vh - 65px);
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .coins {
@@ -98,10 +108,6 @@ body {
   bottom: 0;
   width: 100%;
   height: 65px;
-  background: rgba(0,0,0,0.9);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
 }
 
 .nav-item {
