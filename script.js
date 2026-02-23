@@ -37,21 +37,22 @@ tapBtn.addEventListener("click", async () => {
   const data = await res.json();
 
   if (data.success) {
-    coins = data.coins;
-    energy = data.energy;
+  coins = data.coins;
+  energy = data.energy;
 
-    coinsEl.innerText = coins;
-    energyEl.innerText = energy;
+  coinsEl.innerText = coins;
+  energyEl.innerText = energy;
 
-    showPlusOne();
+  showPlusOne(data.tapPower);
+  }
   }
 });
 
 /* Floating +1 */
-function showPlusOne() {
+function showPlusOne(amount) {
   const plus = document.createElement("div");
   plus.classList.add("plus-one");
-  plus.innerText = "+1";
+  plus.innerText = "+" + amount;
 
   document.querySelector(".coin-wrapper").appendChild(plus);
 
