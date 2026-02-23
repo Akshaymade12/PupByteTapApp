@@ -1,236 +1,142 @@
 body {
   margin: 0;
-  font-family: Arial;
-  background: radial-gradient(circle at center, #1e293b, #0f172a);
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at 30% 20%, #1e1b4b, #0f0c29 70%);
   color: white;
   text-align: center;
   overflow-x: hidden;
-  padding-bottom: 80px;   /* 🔥 ADD THIS */
+  padding-bottom: 90px;
 }
 
-/* Top Section */
-.top-section {
-  padding: 25px 15px;
-  background: linear-gradient(145deg, #0f172a, #1e293b);
-  border-bottom-left-radius: 25px;
-  border-bottom-right-radius: 25px;
+/* Container */
+.container {
+  padding: 20px;
 }
 
-.level-title,
-.profit-title {
-  font-size: 12px;
-  opacity: 0.7;
-  letter-spacing: 1px;
-}
-
-.level-number {
-  font-size: 28px;
-  font-weight: bold;
-  color: gold;
-  margin-bottom: 5px;
-}
-
-.next-info {
-  font-size: 12px;
-  margin-bottom: 15px;
-  word-wrap: break-word;
-}
-
-.profit-number {
-  font-size: 22px;
-  font-weight: bold;
-  color: #00ff99;
-}
-
-/* Coins */
+/* Big Coins */
 #coins {
-  font-size: 70px;
-  margin: 30px 0;
+  font-size: 72px;
+  font-weight: bold;
   color: gold;
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-  min-height: 90px;   /* 🔥 ADD THIS */
+  text-shadow: 0 0 25px rgba(255,215,0,0.9);
+  margin-top: 20px;
+}
+
+/* Energy */
+#energyText {
+  display: block;
+  margin-top: 8px;
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+/* Level Card */
+.level-box {
+  margin-top: 25px;
+  background: rgba(255,255,255,0.07);
+  padding: 18px;
+  border-radius: 20px;
+}
+
+.level-name {
+  font-size: 28px;
+  color: gold;
+  font-weight: bold;
+}
+
+/* Progress */
+.progress-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 20px;
+  margin: 12px 0;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, gold, orange);
+  transition: width 0.5s;
+}
+
+/* Profit Card */
+.stats-card {
+  margin-top: 25px;
+  background: rgba(255,255,255,0.07);
+  padding: 20px;
+  border-radius: 20px;
 }
 
 /* Upgrade Button */
 .upgrade-btn {
-  width: 85%;
-  max-width: 400px;
-  padding: 14px;
-  font-size: 16px;
+  margin-top: 15px;
   background: linear-gradient(45deg, gold, orange);
   border: none;
+  padding: 14px 30px;
   border-radius: 30px;
-  cursor: pointer;
   font-weight: bold;
-  color: #111;
-  box-shadow: 0 5px 20px rgba(255,165,0,0.5);
-  margin: 10px auto 20px auto;
-  display: block;
+  font-size: 16px;
+  box-shadow: 0 0 25px rgba(255,165,0,0.6);
 }
 
-/* ===== Stats Card ===== */
-
-.stats-card {
-  background: rgba(255,255,255,0.08);
-  padding: 15px;
-  border-radius: 15px;
-  margin: 15px;
-  text-align: center;
-  backdrop-filter: blur(10px);
-}
-
-.energy-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 40px;
-  padding: 0 10px;
-}
-
-/* Character */
-.character {
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-  box-shadow: 0 0 30px gold;
-  transition: transform 0.1s ease;
-}
-
-.character:active {
-  transform: scale(0.95);
-}
-
-/* Bottom Menu */
-
-.bottom-menu {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  padding: 15px 0;
-  background: #111827;
-  z-index: 1000;   /* 🔥 ADD THIS */
-}
-
-.level-popup {
-  position: fixed;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: gold;
-  color: black;
-  padding: 20px 30px;
-  border-radius: 12px;
-  font-size: 20px;
-  font-weight: bold;
-  animation: fadeOut 2s forwards;
-  z-index: 999;
-}
-
-@keyframes fadeOut {
-  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
-}
-
-.tap-effect {
-  position: fixed;
-  bottom: 40%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: gold;
-  font-size: 22px;
-  font-weight: bold;
-  animation: floatUp 1s ease-out forwards;
-}
-
-@keyframes floatUp {
-  0% { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, -80px); }
-}
-
-.level-box {
-   padding: 15px;
-   background: rgba(255,255,255,0.05);
-   border-radius: 15px;
-   margin-bottom: 15px;
-}
-
-.level-header {
-   display: flex;
-   justify-content: space-between;
-   align-items: center;
-}
-
-.level-label {
-   font-size: 14px;
-   opacity: 0.7;
-}
-
-.level-name {
-   font-size: 22px;
-   font-weight: bold;
-   color: gold;
-}
-
-.progress-container {
-   width: 100%;
-   height: 8px;
-   background: rgba(255,255,255,0.1);
-   border-radius: 10px;
-   margin: 10px 0;
-   overflow: hidden;
-}
-
-.progress-bar {
-   height: 100%;
-   width: 0%;
-   background: linear-gradient(90deg, gold, orange);
-   transition: width 0.5s ease;
-}
-
-.next-info {
-   font-size: 12px;
-   opacity: 0.8;
-}
-
+/* Coin Button */
 .coin-container {
-  position: relative;
   display: flex;
   justify-content: center;
-  align-items: center;
+  margin-top: 35px;
 }
 
 .coin {
-  position: relative;
-  z-index: 2;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background: radial-gradient(circle, gold, #b8860b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: bold;
+  color: #1e1b4b;
+  box-shadow: 0 0 50px rgba(255,215,0,0.7);
   transition: transform 0.1s ease;
 }
 
 .coin:active {
-  transform: scale(0.92);
+  transform: scale(0.95);
 }
 
-.floating-coin {
-  position: absolute;
+/* Boots Button */
+.energy-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.boost-btn {
+  background: rgba(255,255,255,0.1);
+  padding: 10px 20px;
+  border-radius: 15px;
+}
+
+/* Bottom Nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: space-around;
+  padding: 15px 0;
+}
+
+.nav-item {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.nav-item.active {
+  opacity: 1;
   color: gold;
-  font-weight: bold;
-  font-size: 18px;
-  pointer-events: none;
-  animation: floatUp 0.8s ease-out forwards;
-  z-index: 1;
-}
-
-@keyframes floatUp {
-  0% {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -80px);
-  }
 }
