@@ -89,3 +89,24 @@ function showPlusOne(amount) {
   document.querySelector(".coin-wrapper").appendChild(plus);
   setTimeout(() => plus.remove(), 800);
 }
+
+const navItems = document.querySelectorAll(".nav-item");
+
+navItems.forEach(item => {
+  if (item.innerText.includes("Skills")) {
+    item.addEventListener("click", showBoots);
+  }
+  if (item.innerText.includes("Earn")) {
+    item.addEventListener("click", showEarn);
+  }
+});
+
+function showBoots() {
+  document.querySelector(".coin-wrapper").style.display = "none";
+  document.getElementById("bootsSection").style.display = "block";
+}
+
+function showEarn() {
+  document.querySelector(".coin-wrapper").style.display = "block";
+  document.getElementById("bootsSection").style.display = "none";
+}
