@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema({
   profitPerHour: { type: Number, default: 10 },
   energy: { type: Number, default: 100 },
   maxEnergy: { type: Number, default: 100 },
+  tapLevel: { type: Number, default: 1 },
+tapPower: { type: Number, default: 1 },
   upgradeLevel: { type: Number, default: 0 },
   lastActive: { type: Date, default: Date.now }
 });
@@ -76,7 +78,7 @@ app.post("/tap", async (req, res) => {
       return res.json({ success: false, message: "No energy" });
     }
 
-    user.coins += 1;
+    user.coins += user.tapPower;
     user.energy -= 1;
 
     await user.save();
@@ -85,6 +87,40 @@ app.post("/tap", async (req, res) => {
       success: true,
       coins: user.coins,
       energy: user.energy
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+// =============== UPGRADE ================
+
+app.post("/upgrade", async (req, res) => {
+  try {
+    const { telegramId } = req.body;
+
+    const user = await User.findOne({ telegramId });
+    if (!user) return res.json({ success: false });
+
+    const cost = 100 * Math.pow(2, user.tapLevel - 1);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, required: cost });
+    }
+
+    user.coins -= cost;
+    user.tapLevel += 1;
+    user.tapPower += 1;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      tapLevel: user.tapLevel,
+      tapPower: user.tapPower,
+      nextCost: 100 * Math.pow(2, user.tapLevel - 1)
     });
 
   } catch (err) {
