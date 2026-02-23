@@ -4,11 +4,14 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
 
+
 // ===== MongoDB Connection =====
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log("Mongo Error ❌", err));
 
+
+// ===== User Schema =====
 const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true, unique: true },
   coins: { type: Number, default: 0 },
@@ -20,6 +23,8 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
+
+// ===== Create / Get User =====
 app.get("/test-user/:id", async (req, res) => {
   try {
     const telegramId = req.params.id;
@@ -37,6 +42,8 @@ app.get("/test-user/:id", async (req, res) => {
   }
 });
 
+
+// ===== TAP (POST) =====
 app.post("/tap", async (req, res) => {
   try {
     const { telegramId } = req.body;
@@ -64,10 +71,41 @@ app.post("/tap", async (req, res) => {
   }
 });
 
-// ===== Test Route =====
+
+// ===== TAP TEST (GET for mobile testing) =====
+app.get("/tap-test/:id", async (req, res) => {
+  try {
+    const telegramId = req.params.id;
+
+    const user = await User.findOne({ telegramId });
+    if (!user) return res.json({ success: false });
+
+    if (user.energy <= 0) {
+      return res.json({ success: false, message: "No energy" });
+    }
+
+    user.coins += 1;
+    user.energy -= 1;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      energy: user.energy
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+
+// ===== Root Test Route =====
 app.get("/", (req, res) => {
   res.send("PupByte Server Running 🚀");
 });
+
 
 // ===== Start Server =====
 const PORT = process.env.PORT || 3000;
