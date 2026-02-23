@@ -10,6 +10,9 @@ let energy = 0;
 let maxEnergy = 100;
 let upgradeLevel = 0;
 let nextUpgradeCost = 100;
+let tapLevel = 0;
+let energyLevel = 0;
+let rechargeLevel = 0;
 
 const levels = [
   { name: "Bronze", min: 0 },
@@ -72,6 +75,10 @@ async function loadCoins() {
   upgradeLevel = data.upgradeLevel;
   nextUpgradeCost = data.nextCost;
 
+  tapLevel = data.tapLevel;
+energyLevel = data.energyLevel;
+rechargeLevel = data.rechargeLevel;
+  
   document.getElementById("coins").innerText = Math.floor(coins);
   document.getElementById("profit").innerText =
   profitPerHour;
@@ -169,7 +176,17 @@ async function upgrade() {
 
   updateUpgradeButton();
   updateLevel();
+
+  document.getElementById("tapLevel").innerText = tapLevel;
+document.getElementById("energyLevel").innerText = energyLevel;
+document.getElementById("rechargeLevel").innerText = rechargeLevel;
+
+document.getElementById("tapCost").innerText = data.tapNextCost;
+document.getElementById("energyCost").innerText = data.energyNextCost;
+document.getElementById("rechargeCost").innerText = data.rechargeNextCost;
+  
 }
+
 
 // ================= AUTO UPDATE =================
 
@@ -199,3 +216,43 @@ function showEarn() {
   document.getElementById("earnSection").style.display = "block";
   document.getElementById("bootsSection").style.display = "none";
 }
+
+async function upgradeEnergy() {
+  const res = await fetch("/upgrade-energy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: userId })
+  });
+
+  const data = await res.json();
+  if (!data.success) return alert("Need more coins!");
+
+  loadCoins();
+}
+
+async function upgradeTap() {
+  const res = await fetch("/upgrade-tap", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: userId })
+  });
+
+  const data = await res.json();
+  if (!data.success) return alert("Need more coins!");
+
+  loadCoins();
+}
+
+async function upgradeRecharge() {
+  const res = await fetch("/upgrade-recharge", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: userId })
+  });
+
+  const data = await res.json();
+  if (!data.success) return alert("Need more coins!");
+
+  loadCoins();
+}
+
