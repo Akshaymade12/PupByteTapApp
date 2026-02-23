@@ -1,16 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>PupByte Tap</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PupByte</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1 id="coins">0</h1>
-  <p>⚡ Energy: <span id="energy">0</span></p>
+<div class="app">
 
-  <button onclick="tap()">TAP</button>
+  <!-- Top Stats -->
+  <div class="top-bar">
+    <div class="stat">🪙 <span id="balance">0</span></div>
+    <div class="stat">⚡ <span id="profit">10</span>/h</div>
+    <div class="stat">💎 0</div>
+    <div class="stat">🤖 0</div>
+  </div>
 
-  <script src="script.js"></script>
+  <!-- Level & Wallet -->
+  <div class="info-row">
+    <div class="level-box">
+      🏆 Bronze
+    </div>
+
+    <div class="wallet-box">
+      👛 Connect Wallet
+    </div>
+  </div>
+
+  <!-- Coin Section -->
+  <div class="coin-section">
+    <div class="coin-glow"></div>
+    <img src="https://i.ibb.co/4R6P6Gk/gold-coin.png" class="coin" id="tapBtn">
+  </div>
+
+  <!-- Energy + Boost -->
+  <div class="bottom-info">
+    <div class="energy">
+      ⚡ <span id="energy">100</span>/100
+    </div>
+
+    <button class="boost-btn">🔥 Boost</button>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav active">Earn</div>
+    <div class="nav">Tasks</div>
+    <div class="nav">Account</div>
+    <div class="nav">Skills</div>
+    <div class="nav">Cashier</div>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
