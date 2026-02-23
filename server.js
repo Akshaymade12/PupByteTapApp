@@ -89,30 +89,29 @@ app.post("/tap", async (req, res) => {
 
 
 // ===== TAP TEST (GET for mobile testing) =====
-app.get("/tap-test/:id", async (req, res) => {
+app.get("/test-user/:id", async (req, res) => {
   try {
     const telegramId = req.params.id;
 
-    const user = await User.findOne({ telegramId });
-    if (!user) return res.json({ success: false });
+    let user = await User.findOne({ telegramId });
 
-    if (user.energy <= 0) {
-      return res.json({ success: false, message: "No energy" });
+    if (!user) {
+      user = await User.create({ telegramId });
     }
 
-    user.coins += 1;
-    user.energy -= 1;
+    const now = new Date();
+    const secondsPassed = (now - user.createdAt) / 1000;
+
+    user.coins += (user.profitPerHour / 3600) * secondsPassed;
+
+    user.createdAt = now;
 
     await user.save();
 
-    res.json({
-      success: true,
-      coins: user.coins,
-      energy: user.energy
-    });
+    res.json(user);
 
   } catch (err) {
-    res.status(500).json({ success: false });
+    res.status(500).json({ error: true });
   }
 });
 
