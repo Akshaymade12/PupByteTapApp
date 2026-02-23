@@ -32,13 +32,16 @@ async function applyOfflineMining(user) {
   const now = new Date();
   const secondsPassed = (now - user.lastActive) / 1000;
 
+  let earned = 0;
+
   if (secondsPassed > 0) {
-    const earned = (user.profitPerHour / 3600) * secondsPassed;
+    earned = (user.profitPerHour / 3600) * secondsPassed;
     user.coins += earned;
     user.lastActive = now;
     await user.save();
   }
 
+  return earned;
 }
 
 // ===== Energy Auto Recharge =====
@@ -57,6 +60,7 @@ setInterval(async () => {
 }, 5000);
 
 // ===== Create / Get User + Offline Mining =====
+
 app.get("/test-user/:id", async (req, res) => {
   try {
     const telegramId = req.params.id;
@@ -67,9 +71,12 @@ app.get("/test-user/:id", async (req, res) => {
       user = await User.create({ telegramId });
     }
 
-    await applyOfflineMining(user);
+    const earned = await applyOfflineMining(user);
 
-    res.json(user);
+    res.json({
+      ...user._doc,
+      offlineEarned: earned
+    });
 
   } catch (err) {
     res.status(500).json({ error: true });
