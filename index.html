@@ -13,19 +13,18 @@ body {
   font-family: sans-serif;
   background: radial-gradient(circle at 30% 20%, #3a1c71, #1b1033 60%);
   color: white;
-  overflow-x: hidden;
 }
 
 .container {
   padding: 15px;
+  padding-bottom: 80px;
 }
 
-/* TOP BALANCE BAR */
+/* Top Bar */
 .top-bar {
   display: flex;
   justify-content: space-between;
   background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(10px);
   padding: 12px;
   border-radius: 15px;
   margin-bottom: 15px;
@@ -38,11 +37,27 @@ body {
   margin-bottom: 15px;
 }
 
-/* BIG COIN */
+/* Profit Card */
+.stats-card {
+  background: rgba(255,255,255,0.08);
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+}
+
+.upgrade-btn {
+  background: gold;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+/* Coin */
 .coin-container {
   display: flex;
   justify-content: center;
-  margin-top: 40px;
+  margin-top: 30px;
 }
 
 .coin {
@@ -64,34 +79,39 @@ body {
   transform: scale(0.95);
 }
 
-/* ENERGY + BOOST */
+/* Energy Row */
 .energy-row {
   display: flex;
   justify-content: space-between;
-  margin-top: 40px;
-  padding: 0 10px;
+  margin-top: 30px;
 }
 
 .boost-btn {
   background: rgba(255,255,255,0.1);
-  padding: 10px 18px;
-  border-radius: 12px;
+  padding: 8px 15px;
+  border-radius: 10px;
 }
 
-/* BOTTOM NAV */
+/* Boots Card */
+.skill-card {
+  background: rgba(255,255,255,0.08);
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 15px;
+}
+
+/* Bottom Nav */
 .bottom-nav {
   position: fixed;
   bottom: 0;
   width: 100%;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.7);
   display: flex;
   justify-content: space-around;
-  padding: 10px 0;
-  backdrop-filter: blur(10px);
+  padding: 12px 0;
 }
 
 .nav-item {
-  text-align: center;
   font-size: 14px;
   opacity: 0.8;
 }
@@ -107,64 +127,70 @@ body {
 
 <div class="container">
 
-  <!-- EARN SECTION START -->
+    <!-- ================= EARN SECTION ================= -->
   <div id="earnSection">
 
-    <!-- TOP BAR -->
     <div class="top-bar">
       <div>🪙 <span id="coins">0</span></div>
-      
+      <div>⚡ <span id="energyText">100 / 100</span></div>
     </div>
 
-    <!-- LEVEL -->
     <div class="level-card">
       Level: <span id="level">Bronze</span>
+      <div id="nextLevelInfo" style="margin-top:5px;font-size:13px;opacity:0.7;"></div>
     </div>
 
-    <div id="nextLevelInfo" style="margin-top:8px; font-size:14px; opacity:0.8;"></div>
-
     <div class="stats-card">
-  <div>💰 Profit/hour: <span id="profit">0</span></div>
-  <div style="margin-top:8px;">
-    <button class="upgrade-btn" onclick="upgrade()">
-      Upgrade (<span id="upgradeCost">100</span>)
-    </button>
-  </div>
-</div>
+      💰 Profit/hour: <span id="profit">0</span><br><br>
+      <button class="upgrade-btn" onclick="upgrade()">
+        Upgrade (<span id="upgradeCost">100</span>)
+      </button>
+    </div>
 
-<div class="coin-container">
-  <div class="coin" onclick="tap(event)">
-    TAP
-  </div>
-</div>
+    <div class="coin-container">
+      <div class="coin" onclick="tap(event)">
+        TAP
+      </div>
+    </div>
 
-<div class="energy-row">
-  <div>⚡ <span id="energyText">100 / 100</span></div>
-</div>
-    
-<div class="skill-card">
-  💪 Tap Power
-  <div>Level: <span id="tapLevel">0</span></div>
-  <div>Next Cost: <span id="tapCost">0</span></div>
-  <button onclick="upgradeTap()">Upgrade</button>
-</div>
-
-<div class="skill-card">
-  🔋 Energy Limit
-  <div>Level: <span id="energyLevel">0</span></div>
-  <div>Next Cost: <span id="energyCost">0</span></div>
-  <button onclick="upgradeEnergy()">Upgrade</button>
-</div>
-
-<div class="skill-card">
-  ⚡ Recharge Speed
-  <div>Level: <span id="rechargeLevel">0</span></div>
-  <div>Next Cost: <span id="rechargeCost">0</span></div>
-  <button onclick="upgradeRecharge()">Upgrade</button>
-</div>
+    <div class="energy-row">
+      <div></div>
+      <div class="boost-btn" onclick="showBoots()">🔥 Boots</div>
+    </div>
 
   </div>
+  <!-- ================= END EARN ================= -->
 
+
+  <!-- ================= BOOTS SECTION ================= -->
+  <div id="bootsSection" style="display:none;">
+
+    <div class="skill-card">
+      💪 Tap Power<br>
+      Level: <span id="tapLevel">0</span><br>
+      Next Cost: <span id="tapCost">0</span><br><br>
+      <button onclick="upgradeTap()">Upgrade</button>
+    </div>
+
+    <div class="skill-card">
+      🔋 Energy Limit<br>
+      Level: <span id="energyLevel">0</span><br>
+      Next Cost: <span id="energyCost">0</span><br><br>
+      <button onclick="upgradeEnergy()">Upgrade</button>
+    </div>
+
+    <div class="skill-card">
+      ⚡ Recharge Speed<br>
+      Level: <span id="rechargeLevel">0</span><br>
+      Next Cost: <span id="rechargeCost">0</span><br><br>
+      <button onclick="upgradeRecharge()">Upgrade</button>
+    </div>
+
+  </div>
+  <!-- ================= END BOOTS ================= -->
+
+</div>
+  
 </div> <!-- container end -->
 
 
