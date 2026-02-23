@@ -1,106 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PupByte</title>
+  <meta charset="UTF-8">
+  <title>PupByte Tap Bot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div class="container">
 
-  <!-- ================= EARN SECTION ================= -->
-  <div id="earnSection">
-
-    <!-- Top Bar -->
-    <div class="top-bar">
-      <div>🪙 <span id="coins">0</span></div>
-      <div>⚡ <span id="energyText">100 / 100</span></div>
-    </div>
-
-    <!-- Level Box -->
-    <div class="level-box">
-      <div class="level-header">
-        <div>
-          <div class="level-label">Level</div>
-          <div class="level-name" id="level">Bronze</div>
-        </div>
-      </div>
-
-      <div class="progress-container">
-        <div class="progress-bar" id="levelProgress"></div>
-      </div>
-
-      <div class="next-info" id="nextLevelInfo"></div>
-    </div>
-
-    <!-- Profit Card -->
-    <div class="stats-card">
-      💰 Profit/hour: <span id="profit">0</span><br><br>
-      <button class="upgrade-btn" onclick="upgrade()">
-        Upgrade (<span id="upgradeCost">100</span>)
-      </button>
-    </div>
-
-    <!-- Coin -->
-    <div class="coin-container">
-      <div class="coin" onclick="tap(event)">
-        TAP
-      </div>
-    </div>
-
-    <!-- Boots Button -->
-    <div class="energy-row">
-      <div></div>
-      <div class="boost-btn" onclick="showBoots()">🔥 Boots</div>
-    </div>
-
+  <!-- Coins -->
+  <div class="coins-section">
+    <div class="coins" id="coins">0</div>
+    <div class="energy">⚡ <span id="energy">100</span> / <span id="maxEnergy">100</span></div>
   </div>
-  <!-- ================= END EARN ================= -->
 
+  <!-- Level Card -->
+  <div class="card">
+    <div class="level-title">Level</div>
+    <div class="level-name" id="levelName">Bronze</div>
 
-  <!-- ================= BOOTS SECTION ================= -->
-  <div id="bootsSection" style="display:none;">
-
-    <div class="skill-card">
-      💪 Tap Power<br>
-      Level: <span id="tapLevel">0</span><br>
-      Next Cost: <span id="tapCost">0</span><br><br>
-      <button onclick="upgradeTap()">Upgrade</button>
+    <div class="progress-bar">
+      <div class="progress" id="levelProgress"></div>
     </div>
 
-    <div class="skill-card">
-      🔋 Energy Limit<br>
-      Level: <span id="energyLevel">0</span><br>
-      Next Cost: <span id="energyCost">0</span><br><br>
-      <button onclick="upgradeEnergy()">Upgrade</button>
+    <div class="next-level" id="nextLevel">
+      Next Level: Silver
     </div>
-
-    <div class="skill-card">
-      ⚡ Recharge Speed<br>
-      Level: <span id="rechargeLevel">0</span><br>
-      Next Cost: <span id="rechargeCost">0</span><br><br>
-      <button onclick="upgradeRecharge()">Upgrade</button>
-    </div>
-
   </div>
-  <!-- ================= END BOOTS ================= -->
+
+  <!-- Profit Card -->
+  <div class="card">
+    <div class="profit">
+      💰 Profit/hour: <span id="profit">0</span>
+    </div>
+
+    <button class="upgrade-btn" onclick="upgradeLevel()">
+      Upgrade (100)
+    </button>
+  </div>
+
+  <!-- Tap Button -->
+  <div class="tap-wrapper">
+    <div class="tap-btn" onclick="tap()">TAP</div>
+  </div>
 
 </div>
 
-<!-- Bottom Nav -->
+<!-- Bottom Navigation -->
 <div class="bottom-nav">
-  <div class="nav-item active" onclick="showEarn()">Earn</div>
+  <div class="nav-item active">Earn</div>
   <div class="nav-item">Tasks</div>
   <div class="nav-item">Account</div>
   <div class="nav-item">Skills</div>
   <div class="nav-item">Shop</div>
 </div>
 
-<script src="script.js?v=7"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="script.js"></script>
+
 </body>
 </html>
