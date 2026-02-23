@@ -123,52 +123,26 @@ body {
 
     <div id="nextLevelInfo" style="margin-top:8px; font-size:14px; opacity:0.8;"></div>
     
-    <div class="stats-card">
-      <div>💰 Profit/hour: <span id="profit">0</span></div>
-      <div style="margin-top:8px;">
-        <button class="upgrade-btn" onclick="upgrade()">
-          Upgrade (<span id="upgradeCost">100</span>)
-        </button>
-      </div>
-    </div>
-    
-    <!-- BIG COIN -->
-    <div class="coin-container">
-      <div class="coin" onclick="tap(event)">
-        TAP
-      </div>
-    </div>
-
-    <!-- ENERGY + BOOST -->
-<div class="energy-row">
-  <div>⚡ <span id="energyText">100 / 100</span></div>
-  <div class="boost-btn" onclick="showBoots()">🔥 Boots</div>
+<div class="skill-card">
+  💪 Tap Power
+  <div>Level: <span id="tapLevel">0</span></div>
+  <div>Next Cost: <span id="tapCost">0</span></div>
+  <button onclick="upgradeTap()">Upgrade</button>
 </div>
 
-</div> <!-- ✅ earnSection properly close -->
-<!-- EARN SECTION END -->
+<div class="skill-card">
+  🔋 Energy Limit
+  <div>Level: <span id="energyLevel">0</span></div>
+  <div>Next Cost: <span id="energyCost">0</span></div>
+  <button onclick="upgradeEnergy()">Upgrade</button>
+</div>
 
-
-  <!-- BOOTS SECTION -->
-  <div id="bootsSection" style="display:none; margin-top:30px;">
-
-    <div class="skill-card">
-      💪 Tap Power
-      <div>Level: <span id="tapLevel">0</span></div>
-      <button onclick="upgradeTap()">Upgrade</button>
-    </div>
-
-    <div class="skill-card">
-      🔋 Energy Limit
-      <div>Level: <span id="energyLevel">0</span></div>
-      <button onclick="upgradeEnergy()">Upgrade</button>
-    </div>
-
-    <div class="skill-card">
-      ⚡ Recharge Speed
-      <div>Level: <span id="rechargeLevel">0</span></div>
-      <button onclick="upgradeRecharge()">Upgrade</button>
-    </div>
+<div class="skill-card">
+  ⚡ Recharge Speed
+  <div>Level: <span id="rechargeLevel">0</span></div>
+  <div>Next Cost: <span id="rechargeCost">0</span></div>
+  <button onclick="upgradeRecharge()">Upgrade</button>
+</div>
 
   </div>
 
