@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
   energy: { type: Number, default: 100 },
   maxEnergy: { type: Number, default: 100 },
   createdAt: { type: Date, default: Date.now }
+  lastActive: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model("User", userSchema);
@@ -100,11 +101,13 @@ app.get("/test-user/:id", async (req, res) => {
     }
 
     const now = new Date();
-    const secondsPassed = (now - user.createdAt) / 1000;
+    const secondsPassed = (now - user.lastActive) / 1000;
 
+    // Offline Mining
     user.coins += (user.profitPerHour / 3600) * secondsPassed;
 
-    user.createdAt = now;
+    // Update last active
+    user.lastActive = now;
 
     await user.save();
 
@@ -114,7 +117,6 @@ app.get("/test-user/:id", async (req, res) => {
     res.status(500).json({ error: true });
   }
 });
-
 
 // ===== Root Test Route =====
 app.get("/", (req, res) => {
