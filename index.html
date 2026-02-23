@@ -122,6 +122,25 @@ body {
     </div>
 
     <div id="nextLevelInfo" style="margin-top:8px; font-size:14px; opacity:0.8;"></div>
+
+    <div class="stats-card">
+  <div>💰 Profit/hour: <span id="profit">0</span></div>
+  <div style="margin-top:8px;">
+    <button class="upgrade-btn" onclick="upgrade()">
+      Upgrade (<span id="upgradeCost">100</span>)
+    </button>
+  </div>
+</div>
+
+<div class="coin-container">
+  <div class="coin" onclick="tap(event)">
+    TAP
+  </div>
+</div>
+
+<div class="energy-row">
+  <div>⚡ <span id="energyText">100 / 100</span></div>
+</div>
     
 <div class="skill-card">
   💪 Tap Power
