@@ -122,17 +122,19 @@ async function tap(event) {
   energy = data.energy;
 
   document.getElementById("coins").innerText = Math.floor(coins);
-  document.getElementById("energy").innerText =
+  document.getElementById("energyText").innerText =
   Math.floor(energy) + " / " + maxEnergy;
 
   updateLevel();
 
   // 🔥 Press Animation
-  const coinElement = document.querySelector(".coin");
+ const coinElement = document.querySelector(".coin");
+if (coinElement) {
   coinElement.style.transform = "scale(0.9)";
   setTimeout(() => {
     coinElement.style.transform = "scale(1)";
   }, 100);
+}
 
   // 🔥 Vibration
   if (navigator.vibrate) {
@@ -179,7 +181,7 @@ async function upgrade() {
   document.getElementById("coins").innerText = Math.floor(coins);
   document.getElementById("profit").innerText =
   profitPerHour;
-  document.getElementById("energy").innerText =
+  document.getElementById("energyText").innerText =
   Math.floor(energy) + " / " + maxEnergy;
 
   updateUpgradeButton();
