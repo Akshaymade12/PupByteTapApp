@@ -10,7 +10,6 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log("Mongo Error ❌", err));
 
-
 // ===== User Schema =====
 const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true, unique: true },
@@ -18,39 +17,44 @@ const userSchema = new mongoose.Schema({
   profitPerHour: { type: Number, default: 10 },
   energy: { type: Number, default: 100 },
   maxEnergy: { type: Number, default: 100 },
-  createdAt: { type: Date, default: Date.now }
   lastActive: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model("User", userSchema);
 
-
+// ===== Energy Auto Recharge =====
 setInterval(async () => {
   try {
     const users = await User.find({});
-
     for (let user of users) {
       if (user.energy < user.maxEnergy) {
         user.energy += 1;
         await user.save();
       }
     }
-
   } catch (err) {
     console.log("Energy recharge error");
   }
-}, 5000); // every 10 seconds
+}, 5000);
 
-// ===== Create / Get User =====
+// ===== Create / Get User + Offline Mining =====
 app.get("/test-user/:id", async (req, res) => {
   try {
     const telegramId = req.params.id;
 
     let user = await User.findOne({ telegramId });
-
     if (!user) {
       user = await User.create({ telegramId });
     }
+
+    const now = new Date();
+    const secondsPassed = (now - user.lastActive) / 1000;
+
+    // Offline mining
+    user.coins += (user.profitPerHour / 3600) * secondsPassed;
+
+    user.lastActive = now;
+    await user.save();
 
     res.json(user);
 
@@ -59,8 +63,7 @@ app.get("/test-user/:id", async (req, res) => {
   }
 });
 
-
-// ===== TAP (POST) =====
+// ===== TAP =====
 app.post("/tap", async (req, res) => {
   try {
     const { telegramId } = req.body;
@@ -88,41 +91,10 @@ app.post("/tap", async (req, res) => {
   }
 });
 
-
-// ===== TAP TEST (GET for mobile testing) =====
-app.get("/test-user/:id", async (req, res) => {
-  try {
-    const telegramId = req.params.id;
-
-    let user = await User.findOne({ telegramId });
-
-    if (!user) {
-      user = await User.create({ telegramId });
-    }
-
-    const now = new Date();
-    const secondsPassed = (now - user.lastActive) / 1000;
-
-    // Offline Mining
-    user.coins += (user.profitPerHour / 3600) * secondsPassed;
-
-    // Update last active
-    user.lastActive = now;
-
-    await user.save();
-
-    res.json(user);
-
-  } catch (err) {
-    res.status(500).json({ error: true });
-  }
-});
-
-// ===== Root Test Route =====
+// ===== Root Route =====
 app.get("/", (req, res) => {
   res.send("PupByte Server Running 🚀");
 });
-
 
 // ===== Start Server =====
 const PORT = process.env.PORT || 3000;
@@ -130,3 +102,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
+
