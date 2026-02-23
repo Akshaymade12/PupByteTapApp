@@ -16,10 +16,13 @@ async function loadUser() {
 
   coins = data.coins;
   energy = data.energy;
-  profitPerHour = data.profitPerHour;
 
-  coinsEl.innerText = coins;
+  coinsEl.innerText = Math.floor(coins);
   energyEl.innerText = energy;
+
+  if (data.offlineEarned > 1) {
+    showOfflinePopup(data.offlineEarned);
+  }
 }
 
 loadUser();
@@ -78,3 +81,20 @@ upgradeBtn.addEventListener("click", async () => {
     alert("Not enough coins!");
   }
 });
+
+function showOfflinePopup(amount) {
+
+  const popup = document.createElement("div");
+  popup.className = "offline-popup";
+
+  popup.innerHTML = `
+    <div class="popup-box">
+      <h2>💰 While You Were Away</h2>
+      <p>You earned <strong>${amount.toFixed(2)}</strong> PupByte</p>
+      <button onclick="this.parentElement.parentElement.remove()">Collect</button>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+}
+
