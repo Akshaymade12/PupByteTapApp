@@ -46,18 +46,17 @@ async function applyOfflineMining(user) {
 
 // ===== Energy Auto Recharge =====
 setInterval(async () => {
-  try {
-    const users = await User.find({});
-    for (let user of users) {
-      if (user.energy < user.maxEnergy) {
-        user.energy += 1;
-        await user.save();
+  const users = await User.find({});
+  for (let user of users) {
+    if (user.energy < user.maxEnergy) {
+      user.energy += 2;
+      if (user.energy > user.maxEnergy) {
+        user.energy = user.maxEnergy;
       }
+      await user.save();
     }
-  } catch (err) {
-    console.log("Energy recharge error");
   }
-}, 5000);
+}, 3000);
 
 // ===== Create / Get User + Offline Mining =====
 
@@ -114,18 +113,50 @@ app.post("/tap", async (req, res) => {
   }
 });
 
-// =============== UPGRADE ================
-
-app.post("/upgrade", async (req, res) => {
+// ===== UPGRADE PROFIT =====
+app.post("/upgrade-profit", async (req, res) => {
   try {
     const { telegramId } = req.body;
-
     const user = await User.findOne({ telegramId });
     if (!user) return res.json({ success: false });
 
     await applyOfflineMining(user);
-    
-    const cost = 100 * Math.pow(2, user.tapLevel - 1);
+
+    const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
+
+    if (user.coins < cost) {
+      return res.json({ success: false, required: cost });
+    }
+
+    user.coins -= cost;
+    user.profitPerHour += 3 + user.upgradeLevel;
+    user.upgradeLevel += 1;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      profitPerHour: user.profitPerHour,
+      nextCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+// =============== UPGRADE ================
+
+app.post("/upgrade-tap", async (req, res) => {
+  try {
+    const { telegramId } = req.body;
+    const user = await User.findOne({ telegramId });
+    if (!user) return res.json({ success: false });
+
+    await applyOfflineMining(user);
+
+    const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
     if (user.coins < cost) {
       return res.json({ success: false, required: cost });
@@ -133,7 +164,10 @@ app.post("/upgrade", async (req, res) => {
 
     user.coins -= cost;
     user.tapLevel += 1;
-    user.tapPower += 1;
+
+    if (user.tapLevel % 2 === 0) {
+      user.tapPower += 1;
+    }
 
     await user.save();
 
@@ -142,7 +176,7 @@ app.post("/upgrade", async (req, res) => {
       coins: user.coins,
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
-      nextCost: 100 * Math.pow(2, user.tapLevel - 1)
+      nextCost: Math.floor(40 * Math.pow(1.7, user.tapLevel))
     });
 
   } catch (err) {
