@@ -37,6 +37,33 @@ app.get("/test-user/:id", async (req, res) => {
   }
 });
 
+app.post("/tap", async (req, res) => {
+  try {
+    const { telegramId } = req.body;
+
+    const user = await User.findOne({ telegramId });
+    if (!user) return res.json({ success: false });
+
+    if (user.energy <= 0) {
+      return res.json({ success: false, message: "No energy" });
+    }
+
+    user.coins += 1;
+    user.energy -= 1;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      energy: user.energy
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
 // ===== Test Route =====
 app.get("/", (req, res) => {
   res.send("PupByte Server Running 🚀");
