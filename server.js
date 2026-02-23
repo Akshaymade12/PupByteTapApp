@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
   profitPerHour: { type: Number, default: 10 },
   energy: { type: Number, default: 100 },
   maxEnergy: { type: Number, default: 100 },
+  upgradeLevel: { type: Number, default: 0 },
   lastActive: { type: Date, default: Date.now }
 });
 
@@ -84,6 +85,38 @@ app.post("/tap", async (req, res) => {
       success: true,
       coins: user.coins,
       energy: user.energy
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+// ===== UPGRADE PROFIT =====
+app.post("/upgrade", async (req, res) => {
+  try {
+    const { telegramId } = req.body;
+
+    const user = await User.findOne({ telegramId });
+    if (!user) return res.json({ success: false });
+
+    const cost = 100 * Math.pow(2, user.upgradeLevel);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, required: cost });
+    }
+
+    user.coins -= cost;
+    user.profitPerHour += 10;
+    user.upgradeLevel += 1;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      profitPerHour: user.profitPerHour,
+      nextCost: 100 * Math.pow(2, user.upgradeLevel)
     });
 
   } catch (err) {
