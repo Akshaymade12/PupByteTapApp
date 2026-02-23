@@ -96,7 +96,8 @@ app.post("/tap", async (req, res) => {
     success: true,
     coins: user.coins,
     energy: user.energy,
-    tapPower: user.tapPower
+    tapPower: user.tapPower,
+    profitPerHour: user.profitPerHour
   });
 });
 
