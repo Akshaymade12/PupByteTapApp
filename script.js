@@ -59,3 +59,22 @@ function showPlusOne() {
     plus.remove();
   }, 1000);
 }
+
+const upgradeBtn = document.getElementById("upgradeBtn");
+
+upgradeBtn.addEventListener("click", async () => {
+  const res = await fetch("/upgrade", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    coinsEl.innerText = data.coins;
+    upgradeBtn.innerText = `Upgrade (${data.nextCost})`;
+  } else {
+    alert("Not enough coins!");
+  }
+});
