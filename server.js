@@ -4,64 +4,57 @@ const path = require("path");
 
 const app = express();
 
-// ===== Middleware =====
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// ===== MongoDB Connect =====
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log("Mongo Error ❌", err));
 
-// ===== User Schema =====
+// ================= USER SCHEMA =================
+
 const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true, unique: true },
   coins: { type: Number, default: 0 },
   profitPerHour: { type: Number, default: 10 },
 
-  // 🔥 ENERGY SYSTEM
   energy: { type: Number, default: 100 },
   maxEnergy: { type: Number, default: 100 },
 
-  // 🔥 UPGRADE LEVEL
   upgradeLevel: { type: Number, default: 0 },
-  lastRewardLevel: { type: Number, default: 0 },
   tapLevel: { type: Number, default: 0 },
   energyLevel: { type: Number, default: 0 },
-rechargeLevel: { type: Number, default: 0 },
-  
+  rechargeLevel: { type: Number, default: 0 },
+
+  lastRewardLevel: { type: Number, default: 0 },
   lastActive: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model("User", userSchema);
 
-// =====================================================
-// ===== LOAD (Offline Mining + Energy Restore) =====
-// =====================================================
+// ================= LOAD =================
+
 app.get("/load/:id", async (req, res) => {
   try {
     const telegramId = req.params.id;
     let user = await User.findOne({ telegramId });
 
-    if (!user) {
-      user = await User.create({ telegramId });
-    }
+    if (!user) user = await User.create({ telegramId });
 
     const now = new Date();
     const secondsPassed = (now - user.lastActive) / 1000;
 
+    // Offline Mining
     user.coins += (user.profitPerHour / 3600) * secondsPassed;
-    user.energy += secondsPassed * (1 + user.rechargeLevel);
+
+    // Recharge Energy
     user.maxEnergy = 100 + (user.energyLevel * 20);
+    user.energy += secondsPassed * (1 + user.rechargeLevel);
 
-    if (user.energy > user.maxEnergy) {
+    if (user.energy > user.maxEnergy)
       user.energy = user.maxEnergy;
-    }
 
-    // 🔥 LEVEL REWARD LOGIC
-
-    let bonusGiven = false;
-    
+    // Level Rewards
     const rewardLevels = [
       { min: 500, bonus: 200 },
       { min: 2000, bonus: 500 },
@@ -69,67 +62,48 @@ app.get("/load/:id", async (req, res) => {
       { min: 15000, bonus: 3000 }
     ];
 
+    let bonusGiven = false;
+
     rewardLevels.forEach((lvl, index) => {
-  if (user.coins >= lvl.min && user.lastRewardLevel === index) {
-    user.coins += lvl.bonus;
-    user.lastRewardLevel += 1;
-    bonusGiven = true;   // 🔥 add this
-  }
-});
-    
+      if (user.coins >= lvl.min && user.lastRewardLevel === index) {
+        user.coins += lvl.bonus;
+        user.lastRewardLevel++;
+        bonusGiven = true;
+      }
+    });
+
     user.lastActive = now;
     await user.save();
 
     res.json({
-  coins: user.coins,
-  profitPerHour: user.profitPerHour,
-  energy: user.energy,
-  maxEnergy: user.maxEnergy,
-  upgradeLevel: user.upgradeLevel,
-  nextCost: 100 * Math.pow(2, user.upgradeLevel),
-
-  tapLevel: user.tapLevel,
-  energyLevel: user.energyLevel,
-  rechargeLevel: user.rechargeLevel,
-
-  tapNextCost: 200 * Math.pow(2, user.tapLevel),
-  energyNextCost: 300 * Math.pow(2, user.energyLevel),
-  rechargeNextCost: 500 * Math.pow(2, user.rechargeLevel),
-
-  bonusGiven: bonusGiven
-      
-});
+      coins: user.coins,
+      profitPerHour: user.profitPerHour,
+      energy: user.energy,
+      maxEnergy: user.maxEnergy,
+      nextCost: 100 * Math.pow(2, user.upgradeLevel),
+      bonusGiven
+    });
 
   } catch (err) {
     res.status(500).json({ error: true });
   }
 });
 
-// =====================================================
-// ====================== TAP ==========================
-// =====================================================
+// ================= TAP =================
+
 app.post("/tap", async (req, res) => {
   try {
     const { telegramId } = req.body;
-
-    if (!telegramId) {
-      return res.status(400).json({ success: false });
-    }
-
     let user = await User.findOne({ telegramId });
+    if (!user) user = await User.create({ telegramId });
 
-    if (!user) {
-      user = await User.create({ telegramId });
-    }
+    if (user.energy <= 0)
+      return res.json({ success: false });
 
-    // ❌ No Energy
-    if (user.energy <= 0) {
-      return res.json({ success: false, message: "No energy" });
-    }
+    const tapReward = 1 + user.tapLevel;
 
     user.energy -= 1;
-    const tapReward = 1 + user.tapLevel;
-user.coins += tapReward;
+    user.coins += tapReward;
 
     await user.save();
 
@@ -137,53 +111,36 @@ user.coins += tapReward;
       success: true,
       coins: user.coins,
       energy: user.energy,
-      tapReward: tapReward   // 🔥 ADD THIS
+      tapReward
     });
 
   } catch (err) {
-    console.log("Tap Error:", err);
     res.status(500).json({ success: false });
   }
 });
 
-// =====================================================
-// ==================== UPGRADE ========================
-// =====================================================
+// ================= UPGRADE PROFIT =================
+
 app.post("/upgrade", async (req, res) => {
   try {
     const { telegramId } = req.body;
-
     let user = await User.findOne({ telegramId });
     if (!user) return res.json({ success: false });
 
-    // 🔥 Exponential cost
-    const upgradeCost = 100 * Math.pow(2, user.upgradeLevel);
+    const cost = 100 * Math.pow(2, user.upgradeLevel);
 
-    if (user.coins < upgradeCost) {
-      return res.json({
-        success: false,
-        required: upgradeCost
-      });
-    }
+    if (user.coins < cost)
+      return res.json({ success: false, required: cost });
 
-    user.coins -= upgradeCost;
+    user.coins -= cost;
     user.profitPerHour += 10;
-    user.upgradeLevel += 1;
+    user.upgradeLevel++;
 
     await user.save();
 
-    res.json({
-      success: true,
-      coins: user.coins,
-      profitPerHour: user.profitPerHour,
-      energy: user.energy,
-      maxEnergy: user.maxEnergy,
-      upgradeLevel: user.upgradeLevel,
-      nextCost: 100 * Math.pow(2, user.upgradeLevel)
-    });
+    res.json({ success: true });
 
   } catch (err) {
-    console.log("Upgrade Error:", err);
     res.status(500).json({ success: false });
   }
 });
@@ -192,30 +149,21 @@ app.post("/upgrade", async (req, res) => {
 
 app.post("/upgrade-tap", async (req, res) => {
   const { telegramId } = req.body;
-
   let user = await User.findOne({ telegramId });
-  if (!user) return res.json({ success: false });
 
   const cost = 200 * Math.pow(2, user.tapLevel);
 
-  if (user.coins < cost) {
+  if (user.coins < cost)
     return res.json({ success: false, required: cost });
-  }
 
   user.coins -= cost;
-  user.tapLevel += 1;
+  user.tapLevel++;
 
   await user.save();
-
-  res.json({
-    success: true,
-    coins: user.coins,
-    tapLevel: user.tapLevel,
-    nextCost: 200 * Math.pow(2, user.tapLevel)
-  });
+  res.json({ success: true });
 });
 
-// ================= ENERGY UPGRADE =================
+// ================= UPGRADE ENERGY =================
 
 app.post("/upgrade-energy", async (req, res) => {
   const { telegramId } = req.body;
@@ -227,20 +175,14 @@ app.post("/upgrade-energy", async (req, res) => {
     return res.json({ success: false, required: cost });
 
   user.coins -= cost;
-  user.energyLevel += 1;
+  user.energyLevel++;
   user.maxEnergy = 100 + (user.energyLevel * 20);
 
   await user.save();
-
-  res.json({
-    success: true,
-    coins: user.coins,
-    energyLevel: user.energyLevel,
-    maxEnergy: user.maxEnergy
-  });
+  res.json({ success: true });
 });
 
-// ================= RECHARGE UPGRADE =================
+// ================= UPGRADE RECHARGE =================
 
 app.post("/upgrade-recharge", async (req, res) => {
   const { telegramId } = req.body;
@@ -252,28 +194,20 @@ app.post("/upgrade-recharge", async (req, res) => {
     return res.json({ success: false, required: cost });
 
   user.coins -= cost;
-  user.rechargeLevel += 1;
+  user.rechargeLevel++;
 
   await user.save();
-
-  res.json({
-    success: true,
-    coins: user.coins,
-    rechargeLevel: user.rechargeLevel
-  });
+  res.json({ success: true });
 });
 
+// ================= HOME =================
 
-// =====================================================
-// ================= HOME ROUTE ========================
-// =====================================================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// =====================================================
-// ================= START SERVER ======================
-// =====================================================
+// ================= START =================
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
