@@ -1,5 +1,8 @@
 const tg = window.Telegram.WebApp;
-tg.expand();
+
+if (tg) {
+  tg.expand();
+}
 tg.disableVerticalSwipes();
 
 const userId = tg.initDataUnsafe?.user?.id;
