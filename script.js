@@ -102,11 +102,11 @@ navItems.forEach(item => {
 });
 
 function showBoots() {
-  document.querySelector(".coin-wrapper").style.display = "none";
+  document.getElementById("earnSection").style.display = "none";
   document.getElementById("bootsSection").style.display = "block";
 }
 
 function showEarn() {
-  document.querySelector(".coin-wrapper").style.display = "block";
+  document.getElementById("earnSection").style.display = "block";
   document.getElementById("bootsSection").style.display = "none";
 }
