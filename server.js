@@ -5,227 +5,165 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// ===== MongoDB Connection =====
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log("Mongo Error ❌", err));
 
-// ===== User Schema =====
+/* ================= SCHEMA ================= */
+
 const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true, unique: true },
   coins: { type: Number, default: 0 },
-  profitPerHour: { type: Number, default: 10 },
+  profitPerHour: { type: Number, default: 5 },
   energy: { type: Number, default: 100 },
   maxEnergy: { type: Number, default: 100 },
   tapLevel: { type: Number, default: 1 },
-tapPower: { type: Number, default: 1 },
+  tapPower: { type: Number, default: 1 },
   upgradeLevel: { type: Number, default: 0 },
   lastActive: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model("User", userSchema);
 
-// ===== Offline Mining Function =====
+/* ================= OFFLINE MINING ================= */
 
 async function applyOfflineMining(user) {
-
   const now = new Date();
-  const secondsPassed = (now - user.lastActive) / 1000;
+  const seconds = (now - user.lastActive) / 1000;
 
-  let earned = 0;
-
-  if (secondsPassed > 0) {
-    earned = (user.profitPerHour / 3600) * secondsPassed;
+  if (seconds > 0) {
+    const earned = (user.profitPerHour / 3600) * seconds;
     user.coins += earned;
     user.lastActive = now;
     await user.save();
   }
-
-  return earned;
 }
 
-// ===== Energy Auto Recharge =====
+/* ================= ENERGY RECHARGE ================= */
+
 setInterval(async () => {
   const users = await User.find({});
   for (let user of users) {
     if (user.energy < user.maxEnergy) {
       user.energy += 2;
-      if (user.energy > user.maxEnergy) {
+      if (user.energy > user.maxEnergy)
         user.energy = user.maxEnergy;
-      }
       await user.save();
     }
   }
 }, 3000);
 
-// ===== Create / Get User + Offline Mining =====
+/* ================= LOAD USER ================= */
 
-app.get("/test-user/:id", async (req, res) => {
-  try {
-    const telegramId = req.params.id;
+app.get("/load/:id", async (req, res) => {
+  const telegramId = req.params.id;
 
-    let user = await User.findOne({ telegramId });
+  let user = await User.findOne({ telegramId });
+  if (!user) user = await User.create({ telegramId });
 
-    if (!user) {
-      user = await User.create({ telegramId });
-    }
+  await applyOfflineMining(user);
 
-    const earned = await applyOfflineMining(user);
-
-    res.json({
-      ...user._doc,
-      offlineEarned: earned
-    });
-
-  } catch (err) {
-    res.status(500).json({ error: true });
-  }
+  res.json({
+    coins: user.coins,
+    energy: user.energy,
+    profitPerHour: user.profitPerHour,
+    tapLevel: user.tapLevel,
+    tapPower: user.tapPower,
+    nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
+    nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
+  });
 });
 
-// ===== TAP =====
+/* ================= TAP ================= */
+
 app.post("/tap", async (req, res) => {
-  try {
-    const { telegramId } = req.body;
+  const { telegramId } = req.body;
 
-    const user = await User.findOne({ telegramId });
-    if (!user) return res.json({ success: false });
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ success: false });
 
-    await applyOfflineMining(user);
+  await applyOfflineMining(user);
 
-    if (user.energy < user.tapPower) {
-      return res.json({ success: false });
-    }
+  if (user.energy < user.tapPower)
+    return res.json({ success: false });
 
-    user.coins += user.tapPower;
-    user.energy -= user.tapPower;
+  user.coins += user.tapPower;
+  user.energy -= user.tapPower;
 
-    await user.save();
+  await user.save();
 
-    res.json({
-      success: true,
-      coins: user.coins,
-      energy: user.energy,
-      tapPower: user.tapPower
-    });
-
-  } catch (err) {
-    res.status(500).json({ success: false });
-  }
+  res.json({
+    success: true,
+    coins: user.coins,
+    energy: user.energy,
+    tapPower: user.tapPower
+  });
 });
 
-// ===== UPGRADE PROFIT =====
-app.post("/upgrade-profit", async (req, res) => {
-  try {
-    const { telegramId } = req.body;
-    const user = await User.findOne({ telegramId });
-    if (!user) return res.json({ success: false });
-
-    await applyOfflineMining(user);
-
-    const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
-
-    if (user.coins < cost) {
-      return res.json({ success: false, required: cost });
-    }
-
-    user.coins -= cost;
-    user.profitPerHour += 3 + user.upgradeLevel;
-    user.upgradeLevel += 1;
-
-    await user.save();
-
-    res.json({
-      success: true,
-      coins: user.coins,
-      profitPerHour: user.profitPerHour,
-      nextCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
-    });
-
-  } catch (err) {
-    res.status(500).json({ success: false });
-  }
-});
-
-// =============== UPGRADE ================
+/* ================= TAP UPGRADE ================= */
 
 app.post("/upgrade-tap", async (req, res) => {
-  try {
-    const { telegramId } = req.body;
-    const user = await User.findOne({ telegramId });
-    if (!user) return res.json({ success: false });
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ success: false });
 
-    await applyOfflineMining(user);
+  await applyOfflineMining(user);
 
-    const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
+  const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
-    if (user.coins < cost) {
-      return res.json({ success: false, required: cost });
-    }
+  if (user.coins < cost)
+    return res.json({ success: false, required: cost });
 
-    user.coins -= cost;
-    user.tapLevel += 1;
+  user.coins -= cost;
+  user.tapLevel += 1;
 
-    if (user.tapLevel % 2 === 0) {
-      user.tapPower += 1;
-    }
+  if (user.tapLevel % 2 === 0)
+    user.tapPower += 1;
 
-    await user.save();
+  await user.save();
 
-    res.json({
-      success: true,
-      coins: user.coins,
-      tapLevel: user.tapLevel,
-      tapPower: user.tapPower,
-      nextCost: Math.floor(40 * Math.pow(1.7, user.tapLevel))
-    });
-
-  } catch (err) {
-    res.status(500).json({ success: false });
-  }
+  res.json({
+    success: true,
+    coins: user.coins,
+    tapLevel: user.tapLevel,
+    tapPower: user.tapPower,
+    nextCost: Math.floor(40 * Math.pow(1.7, user.tapLevel))
+  });
 });
 
-// ===== UPGRADE PROFIT =====
+/* ================= PROFIT UPGRADE ================= */
 
-app.get("/upgrade-test/:id", async (req, res) => {
-  try {
-    const telegramId = req.params.id;
+app.post("/upgrade-profit", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ success: false });
 
-    const user = await User.findOne({ telegramId });
-    if (!user) return res.json({ success: false });
+  await applyOfflineMining(user);
 
-    const cost = 100 * Math.pow(2, user.upgradeLevel);
+  const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
-    if (user.coins < cost) {
-      return res.json({ success: false, required: cost });
-    }
+  if (user.coins < cost)
+    return res.json({ success: false, required: cost });
 
-    user.coins -= cost;
-    user.profitPerHour += 10;
-    user.upgradeLevel += 1;
+  user.coins -= cost;
+  user.profitPerHour += 3 + user.upgradeLevel;
+  user.upgradeLevel += 1;
 
-    await user.save();
+  await user.save();
 
-    res.json({
-      success: true,
-      coins: user.coins,
-      profitPerHour: user.profitPerHour,
-      level: user.upgradeLevel
-    });
-
-  } catch (err) {
-    res.status(500).json({ success: false });
-  }
+  res.json({
+    success: true,
+    coins: user.coins,
+    profitPerHour: user.profitPerHour,
+    nextCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
+  });
 });
 
-// ===== Root Route =====
+/* ================= ROOT ================= */
+
 app.get("/", (req, res) => {
   res.send("PupByte Server Running 🚀");
 });
 
-// ===== Start Server =====
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
-});
-
+app.listen(process.env.PORT || 3000);
+  
