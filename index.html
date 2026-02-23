@@ -1,62 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>PupByte Tap Bot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PupByte Tap Bot</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
+<div class="app-container">
 
-  <!-- Coins -->
-  <div class="coins-section">
-    <div class="coins" id="coins">0</div>
-    <div class="energy">⚡ <span id="energy">100</span> / <span id="maxEnergy">100</span></div>
-  </div>
-
-  <!-- Level Card -->
-  <div class="card">
-    <div class="level-title">Level</div>
-    <div class="level-name" id="levelName">Bronze</div>
-
-    <div class="progress-bar">
-      <div class="progress" id="levelProgress"></div>
+    <!-- HEADER STATS -->
+    <div class="header-stats">
+        <div class="stat-item">
+            💰 <span id="coins">0</span>
+        </div>
+        <div class="stat-item">
+            ⚡ <span id="energyText">100 / 100</span>
+        </div>
     </div>
 
-    <div class="next-level" id="nextLevel">
-      Next Level: Silver
+    <!-- LEVEL CARD -->
+    <div class="card">
+        <div class="level-title">Level</div>
+        <div class="level-name" id="level">Bronze</div>
+
+        <div class="progress-bar">
+            <div class="progress" id="levelProgress"></div>
+        </div>
+
+        <div class="next-level" id="nextLevelInfo">
+            Next Level: Silver (500 coins)
+        </div>
     </div>
-  </div>
 
-  <!-- Profit Card -->
-  <div class="card">
-    <div class="profit">
-      💰 Profit/hour: <span id="profit">0</span>
+    <!-- PROFIT CARD -->
+    <div class="card">
+        <div class="profit">
+            💰 Profit/hour: <span id="profit">0</span>
+        </div>
+
+        <button class="upgrade-btn" onclick="upgrade()">
+            Upgrade (<span id="upgradeCost">100 coins</span>)
+        </button>
     </div>
 
-    <button class="upgrade-btn" onclick="upgradeLevel()">
-      Upgrade (100)
-    </button>
-  </div>
+    <!-- TAP SECTION -->
+    <div class="coin-section">
+        <div class="coin-card coin-container">
+            <div class="tap-btn" onclick="tap(event)">
+                TAP
+            </div>
+        </div>
+    </div>
 
-  <!-- Tap Button -->
-  <div class="tap-wrapper">
-    <div class="tap-btn" onclick="tap()">TAP</div>
-  </div>
+    <!-- BOOST / ENERGY -->
+    <div class="energy-section">
+        <button class="boost-btn" onclick="showBoots()">
+            🔥 Boost
+        </button>
+    </div>
 
 </div>
 
-<!-- Bottom Navigation -->
-<div class="bottom-nav">
-  <div class="nav-item active">Earn</div>
-  <div class="nav-item">Tasks</div>
-  <div class="nav-item">Account</div>
-  <div class="nav-item">Skills</div>
-  <div class="nav-item">Shop</div>
-</div>
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+    <div class="nav-item active" onclick="showEarn()">🪙<br>Earn</div>
+    <div class="nav-item">📋<br>Tasks</div>
+    <div class="nav-item">👤<br>Account</div>
+    <div class="nav-item">🤖<br>Skills</div>
+</nav>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="script.js"></script>
