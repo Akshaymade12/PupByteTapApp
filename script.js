@@ -1,3 +1,5 @@
+const telegramId = "12345"; // later Telegram WebApp se lenge
+
 let coins = 0;
 let energy = 100;
 let maxEnergy = 100;
@@ -5,21 +7,44 @@ let profitPerHour = 10;
 
 const coinsEl = document.getElementById("coins");
 const energyEl = document.getElementById("energy");
-const profitEl = document.getElementById("profit");
 const tapBtn = document.getElementById("tapBtn");
 
-profitEl.innerText = profitPerHour;
+/* Load user from server */
+async function loadUser() {
+  const res = await fetch(`/test-user/${telegramId}`);
+  const data = await res.json();
 
-tapBtn.addEventListener("click", () => {
-  if (energy <= 0) return;
-
-  coins += 1;
-  energy -= 1;
+  coins = data.coins;
+  energy = data.energy;
+  profitPerHour = data.profitPerHour;
 
   coinsEl.innerText = coins;
   energyEl.innerText = energy;
+}
 
-  showPlusOne();
+loadUser();
+
+/* Tap */
+tapBtn.addEventListener("click", async () => {
+  if (energy <= 0) return;
+
+  const res = await fetch("/tap", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    coins = data.coins;
+    energy = data.energy;
+
+    coinsEl.innerText = coins;
+    energyEl.innerText = energy;
+
+    showPlusOne();
+  }
 });
 
 /* Floating +1 */
@@ -34,17 +59,3 @@ function showPlusOne() {
     plus.remove();
   }, 1000);
 }
-
-/* Energy Regeneration */
-setInterval(() => {
-  if (energy < maxEnergy) {
-    energy += 1;
-    energyEl.innerText = energy;
-  }
-}, 3000);
-
-/* Passive Profit System */
-setInterval(() => {
-  coins += profitPerHour / 3600;
-  coinsEl.innerText = Math.floor(coins);
-}, 1000);
