@@ -7,15 +7,12 @@ const tapBtn = document.getElementById("tapBtn");
 const upgradeTapBtn = document.getElementById("upgradeTapBtn");
 const upgradeProfitBtn = document.getElementById("upgradeProfitBtn");
 
-let coins = 0;
-
 /* LOAD USER */
 
 async function loadUser() {
   const res = await fetch(`/load/${telegramId}`);
   const data = await res.json();
 
-  coins = data.coins;
   coinsEl.innerText = Math.floor(data.coins);
   energyEl.innerText = data.energy;
   profitEl.innerText = data.profitPerHour;
