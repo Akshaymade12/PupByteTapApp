@@ -124,6 +124,37 @@ app.post("/upgrade", async (req, res) => {
   }
 });
 
+app.get("/upgrade-test/:id", async (req, res) => {
+  try {
+    const telegramId = req.params.id;
+
+    const user = await User.findOne({ telegramId });
+    if (!user) return res.json({ success: false });
+
+    const cost = 100 * Math.pow(2, user.upgradeLevel);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, required: cost });
+    }
+
+    user.coins -= cost;
+    user.profitPerHour += 10;
+    user.upgradeLevel += 1;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      profitPerHour: user.profitPerHour,
+      level: user.upgradeLevel
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
 // ===== Root Route =====
 app.get("/", (req, res) => {
   res.send("PupByte Server Running 🚀");
