@@ -29,8 +29,7 @@ loadUser();
 
 /* Tap */
 tapBtn.addEventListener("click", async () => {
-  if (energy <= 0) return;
-
+  
   const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -43,7 +42,7 @@ tapBtn.addEventListener("click", async () => {
   coins = data.coins;
   energy = data.energy;
 
-  coinsEl.innerText = coins;
+  coinsEl.innerText = Math.floor(coins);
   energyEl.innerText = energy;
 
   showPlusOne(data.tapPower);
@@ -75,8 +74,10 @@ upgradeBtn.addEventListener("click", async () => {
   const data = await res.json();
 
   if (data.success) {
-    coinsEl.innerText = data.coins;
-    upgradeBtn.innerText = `Upgrade (${data.nextCost})`;
+  coins = data.coins;
+  coinsEl.innerText = Math.floor(coins);
+  upgradeBtn.innerText = `Upgrade (${data.nextCost})`;
+    
   } else {
     alert("Not enough coins!");
   }
