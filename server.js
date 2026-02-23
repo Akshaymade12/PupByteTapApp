@@ -14,7 +14,7 @@ mongoose.connect(process.env.MONGO_URI)
 const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true, unique: true },
   coins: { type: Number, default: 0 },
-  profitPerHour: { type: Number, default: 5 },
+  profitPerHour: { type: Number, default: 10 },
   energy: { type: Number, default: 100 },
   maxEnergy: { type: Number, default: 100 },
   tapLevel: { type: Number, default: 1 },
@@ -125,8 +125,6 @@ app.post("/upgrade-tap", async (req, res) => {
   res.json({
     success: true,
     coins: user.coins,
-    tapLevel: user.tapLevel,
-    tapPower: user.tapPower,
     nextCost: Math.floor(40 * Math.pow(1.7, user.tapLevel))
   });
 });
@@ -166,4 +164,3 @@ app.get("/", (req, res) => {
 });
 
 app.listen(process.env.PORT || 3000);
-  
