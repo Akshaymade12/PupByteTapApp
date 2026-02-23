@@ -45,7 +45,6 @@ tapBtn.addEventListener("click", async () => {
 
   showPlusOne(data.tapPower);
   }
-  }
 });
 
 /* Floating +1 */
