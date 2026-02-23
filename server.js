@@ -89,7 +89,15 @@ app.get("/load/:id", async (req, res) => {
       nextCost: 100 * Math.pow(2, user.upgradeLevel),
       tapLevel: user.tapLevel,
 tapNextCost: 200 * Math.pow(2, user.tapLevel),
-  
+
+      tapLevel: user.tapLevel,
+energyLevel: user.energyLevel,
+rechargeLevel: user.rechargeLevel,
+
+tapNextCost: 200 * Math.pow(2, user.tapLevel),
+energyNextCost: 300 * Math.pow(2, user.energyLevel),
+rechargeNextCost: 500 * Math.pow(2, user.rechargeLevel),
+      
       bonusGiven: bonusGiven
     });
 
