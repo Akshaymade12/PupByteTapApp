@@ -25,6 +25,22 @@ tapPower: { type: Number, default: 1 },
 
 const User = mongoose.model("User", userSchema);
 
+// ===== Offline Mining Function =====
+
+async function applyOfflineMining(user) {
+
+  const now = new Date();
+  const secondsPassed = (now - user.lastActive) / 1000;
+
+  if (secondsPassed > 0) {
+    const earned = (user.profitPerHour / 3600) * secondsPassed;
+    user.coins += earned;
+    user.lastActive = now;
+    await user.save();
+  }
+
+}
+
 // ===== Energy Auto Recharge =====
 setInterval(async () => {
   try {
@@ -46,18 +62,12 @@ app.get("/test-user/:id", async (req, res) => {
     const telegramId = req.params.id;
 
     let user = await User.findOne({ telegramId });
+
     if (!user) {
       user = await User.create({ telegramId });
     }
 
-    const now = new Date();
-    const secondsPassed = (now - user.lastActive) / 1000;
-
-    // Offline mining
-    user.coins += (user.profitPerHour / 3600) * secondsPassed;
-
-    user.lastActive = now;
-    await user.save();
+    await applyOfflineMining(user);
 
     res.json(user);
 
@@ -74,21 +84,23 @@ app.post("/tap", async (req, res) => {
     const user = await User.findOne({ telegramId });
     if (!user) return res.json({ success: false });
 
-    if (user.energy < user.tapPower) {
-  return res.json({ success: false });
-}
+    await applyOfflineMining(user);
 
-user.coins += user.tapPower;
-user.energy -= user.tapPower;
+    if (user.energy < user.tapPower) {
+      return res.json({ success: false });
+    }
+
+    user.coins += user.tapPower;
+    user.energy -= user.tapPower;
 
     await user.save();
 
     res.json({
-  success: true,
-  coins: user.coins,
-  energy: user.energy,
-  tapPower: user.tapPower
-});
+      success: true,
+      coins: user.coins,
+      energy: user.energy,
+      tapPower: user.tapPower
+    });
 
   } catch (err) {
     res.status(500).json({ success: false });
@@ -104,6 +116,8 @@ app.post("/upgrade", async (req, res) => {
     const user = await User.findOne({ telegramId });
     if (!user) return res.json({ success: false });
 
+    await applyOfflineMining(user);
+    
     const cost = 100 * Math.pow(2, user.tapLevel - 1);
 
     if (user.coins < cost) {
