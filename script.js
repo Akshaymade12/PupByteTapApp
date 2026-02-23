@@ -203,8 +203,8 @@ setInterval(() => {
         energy = maxEnergy;
     }
     
-    document.getElementById("energy").innerText =
-  Math.floor(energy) + "/" + maxEnergy;
+    document.getElementById("energyText").innerText =
+  Math.floor(energy) + " / " + maxEnergy;
   }
 
   updateLevel();
