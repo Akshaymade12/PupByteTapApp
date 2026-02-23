@@ -74,20 +74,21 @@ app.post("/tap", async (req, res) => {
     const user = await User.findOne({ telegramId });
     if (!user) return res.json({ success: false });
 
-    if (user.energy <= 0) {
-      return res.json({ success: false, message: "No energy" });
-    }
+    if (user.energy < user.tapPower) {
+  return res.json({ success: false });
+}
 
-    user.coins += user.tapPower;
-    user.energy -= 1;
+user.coins += user.tapPower;
+user.energy -= user.tapPower;
 
     await user.save();
 
     res.json({
-      success: true,
-      coins: user.coins,
-      energy: user.energy
-    });
+  success: true,
+  coins: user.coins,
+  energy: user.energy,
+  tapPower: user.tapPower
+});
 
   } catch (err) {
     res.status(500).json({ success: false });
