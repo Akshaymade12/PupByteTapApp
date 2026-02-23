@@ -2,16 +2,6 @@ const tg = window.Telegram.WebApp;
 
 if (tg) {
   tg.expand();
-
-function setAppHeight() {
-  document.documentElement.style.setProperty(
-    "--app-height",
-    `${window.innerHeight}px`
-  );
-}
-
-window.addEventListener("resize", setAppHeight);
-setAppHeight();
   
 const userId = tg.initDataUnsafe?.user?.id;
 
@@ -139,8 +129,7 @@ async function tap(event) {
   updateLevel();
 
   // 🔥 Press Animation
- const coinElement = document.querySelector(".coin");
-if (coinElement) {
+ const coinElement = document.querySelector(".tap-btn");
   coinElement.style.transform = "scale(0.9)";
   setTimeout(() => {
     coinElement.style.transform = "scale(1)";
@@ -209,9 +198,6 @@ setInterval(() => {
   coins += profitPerHour / 3600;
   document.getElementById("coins").innerText = Math.floor(coins);
 
-  if (energy < maxEnergy) {
-    energy += 1 + rechargeLevel;
-
     if (energy > maxEnergy) {
         energy = maxEnergy;
     }
@@ -276,3 +262,4 @@ async function upgradeRecharge() {
   loadCoins();
 }
 
+}
