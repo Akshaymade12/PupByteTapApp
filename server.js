@@ -20,10 +20,38 @@ const userSchema = new mongoose.Schema({
   tapLevel: { type: Number, default: 1 },
   tapPower: { type: Number, default: 1 },
   upgradeLevel: { type: Number, default: 0 },
+  league: { type: String, default: "Wood" },
   lastActive: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model("User", userSchema);
+
+/* ================= LEAGUE SYSTEM ================= */
+
+const leagues = [
+  { name: "Wood", min: 0 },
+  { name: "Bronze", min: 5000 },
+  { name: "Silver", min: 20000 },
+  { name: "Gold", min: 50000 },
+  { name: "Platinum", min: 250000 },
+  { name: "Diamond", min: 500000 },
+  { name: "Master", min: 1000000 },
+  { name: "Grandmaster", min: 2500000 },
+  { name: "Elite", min: 5000000 },
+  { name: "Legendary", min: 10000000 }
+];
+
+function getLeague(coins) {
+  let currentLeague = leagues[0].name;
+
+  for (let league of leagues) {
+    if (coins >= league.min) {
+      currentLeague = league.name;
+    }
+  }
+
+  return currentLeague;
+}
 
 /* ================= OFFLINE MINING ================= */
 
@@ -89,6 +117,7 @@ app.post("/tap", async (req, res) => {
 
   user.coins += user.tapPower;
   user.energy -= user.tapPower;
+  user.league = getLeague(user.coins);
 
   await user.save();
 
@@ -156,6 +185,19 @@ app.post("/upgrade-profit", async (req, res) => {
     profitPerHour: user.profitPerHour,
     nextCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
   });
+});
+
+/* ================= TOP 10 LEAGUE ================= */
+
+app.get("/top/:league", async (req, res) => {
+  const league = req.params.league;
+
+  const topUsers = await User.find({ league })
+    .sort({ coins: -1 })
+    .limit(10)
+    .select("telegramId coins");
+
+  res.json(topUsers);
 });
 
 /* ================= ROOT ================= */
