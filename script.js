@@ -91,7 +91,7 @@ function showPlusOne(amount) {
 }
 
 const earnSection = document.getElementById("earnSection");
-const boostSection = document.getElementById("boostSection");
+const boostSection = document.getElementById("bootsSection");
 
 document.getElementById("openBoost").onclick = () => {
   earnSection.style.display = "none";
@@ -102,6 +102,26 @@ document.getElementById("backBtn").onclick = () => {
   boostSection.style.display = "none";
   earnSection.style.display = "block";
 };
+
+/* ========= LEAGUE SECTION ========= */
+
+const leagueSection = document.getElementById("leagueSection");
+const openLeague = document.getElementById("openLeague");
+
+openLeague.addEventListener("click", async () => {
+
+  earnSection.style.display = "none";
+  boostSection.style.display = "none";
+  leagueSection.style.display = "block";
+
+  const res = await fetch(`/load/${telegramId}`);
+  const data = await res.json();
+
+  document.getElementById("leagueName").innerText =
+    data.league + " League";
+
+  loadTopUsers(data.league);
+});
 
 /* ================= TOP USERS ================= */
 
