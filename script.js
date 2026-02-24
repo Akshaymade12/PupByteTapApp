@@ -90,16 +90,8 @@ function showPlusOne(amount) {
   setTimeout(() => plus.remove(), 800);
 }
 
-const navItems = document.querySelectorAll(".nav-item");
-
-navItems.forEach(item => {
-  if (item.innerText.includes("Skills")) {
-    item.addEventListener("click", showBoots);
-  }
-  if (item.innerText.includes("Earn")) {
-    item.addEventListener("click", showEarn);
-  }
-});
+document.getElementById("navBoots").addEventListener("click", showBoots);
+document.getElementById("navEarn").addEventListener("click", showEarn);
 
 function showBoots() {
   document.getElementById("earnSection").style.display = "none";
@@ -107,6 +99,6 @@ function showBoots() {
 }
 
 function showEarn() {
-  document.getElementById("earnSection").style.display = "block";
+  document.getElementById("earnSection").style.display = "flex";
   document.getElementById("bootsSection").style.display = "none";
 }
