@@ -91,7 +91,7 @@ function showPlusOne(amount) {
 }
 
 const earnSection = document.getElementById("earnSection");
-const boostSection = document.getElementById("bootsSection");
+const boostSection = document.getElementById("boostSection");
 
 document.getElementById("openBoost").onclick = () => {
   earnSection.style.display = "none";
@@ -108,21 +108,28 @@ document.getElementById("backBtn").onclick = () => {
 const leagueSection = document.getElementById("leagueSection");
 const openLeague = document.getElementById("openLeague");
 
-openLeague.addEventListener("click", async () => {
+if (openLeague) {
+  openLeague.addEventListener("click", async () => {
 
-  earnSection.style.display = "none";
-  boostSection.style.display = "none";
-  leagueSection.style.display = "block";
+    if (earnSection) earnSection.style.display = "none";
+    if (boostSection) boostSection.style.display = "none";
+    if (leagueSection) leagueSection.style.display = "block";
 
-  const res = await fetch(`/load/${telegramId}`);
-  const data = await res.json();
+    try {
+      const res = await fetch(`/load/${telegramId}`);
+      const data = await res.json();
 
-  document.getElementById("leagueName").innerText =
-    data.league + " League";
+      document.getElementById("leagueName").innerText =
+        data.league + " League";
 
-  loadTopUsers(data.league);
-});
+      loadTopUsers(data.league);
 
+    } catch (err) {
+      console.log("League error:", err);
+    }
+
+  });
+}
 /* ================= TOP USERS ================= */
 
 async function loadTopUsers(league) {
@@ -143,3 +150,11 @@ async function loadTopUsers(league) {
   });
   
 }
+
+/* ========= EARN NAV FIX ========= */
+
+document.querySelector(".nav-item.active").onclick = () => {
+  if (earnSection) earnSection.style.display = "block";
+  if (boostSection) boostSection.style.display = "none";
+  if (leagueSection) leagueSection.style.display = "none";
+};
