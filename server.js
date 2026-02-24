@@ -193,10 +193,10 @@ app.get("/top/:league", async (req, res) => {
   const league = req.params.league;
 
   const topUsers = await User.find({ league })
-    .sort({ coins: -1 })
-    .limit(10)
-    .select("telegramId coins");
-
+  .sort({ coins: -1 })
+  .limit(10)
+  .select("telegramId coins");
+  
   res.json(topUsers);
 });
 
@@ -206,4 +206,8 @@ app.get("/", (req, res) => {
   res.send("PupByte Server Running 🚀");
 });
 
-app.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
