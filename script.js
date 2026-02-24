@@ -90,15 +90,15 @@ function showPlusOne(amount) {
   setTimeout(() => plus.remove(), 800);
 }
 
-document.getElementById("navBoots").addEventListener("click", showBoots);
-document.getElementById("navEarn").addEventListener("click", showEarn);
+const earnSection = document.getElementById("earnSection");
+const bootsSection = document.getElementById("bootsSection");
 
-function showBoots() {
-  document.getElementById("earnSection").style.display = "none";
-  document.getElementById("bootsSection").style.display = "block";
-}
+document.getElementById("navEarn").addEventListener("click", () => {
+  earnSection.style.display = "block";
+  bootsSection.style.display = "none";
+});
 
-function showEarn() {
-  document.getElementById("earnSection").style.display = "flex";
-  document.getElementById("bootsSection").style.display = "none";
-}
+document.getElementById("navBoots").addEventListener("click", () => {
+  earnSection.style.display = "none";
+  bootsSection.style.display = "block";
+});
