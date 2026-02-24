@@ -1,65 +1,80 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PupByte Tap</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PupByte Tap Bot</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app">
 
-  <!-- Top Bar -->
+  <!-- TOP BAR -->
   <div class="top-bar">
-    <div class="stat">🪙 <span id="coins">0</span></div>
-    <div class="stat">⛏️ <span id="profit">10</span> P/H</div>
-    <div class="stat">💎 0</div>
-    <div class="stat">🤖 0</div>
+    <div>🪙 <span id="coins">0</span></div>
+    <div>⛏ <span id="profit">10</span> P/H</div>
+    <div>💎 0</div>
+    <div>🤖 0</div>
   </div>
 
-  <!-- Cards -->
+  <!-- RANK + WALLET -->
   <div class="card-row">
     <div class="glass-card">🏆 Bronze</div>
     <div class="glass-card">👛 Connect Wallet</div>
   </div>
 
-<!-- Coin -->
-<div id="earnSection">
-  <div class="coin-wrapper">
-    <div class="coin-circle">
+  <!-- ================= EARN SECTION ================= -->
+  <div id="earnSection">
+
+    <div class="coin-wrapper">
       <img src="logo.png" id="tapBtn" class="main-coin">
     </div>
-  </div>
-</div>
-  
-<!-- Boost Section -->
-<div id="boostSection" style="display:none;">
 
-  <div class="boost-container">
-
-    <h2>🔥 Boots</h2>
-
-    <button id="upgradeTapBtn" class="upgrade-btn">
-      Tap Upgrade
-    </button>
-
-    <button id="upgradeProfitBtn" class="upgrade-btn">
-      Profit Upgrade
-    </button>
+    <div class="energy-row">
+      <div>⚡ <span id="energy">100</span>/100</div>
+      <button id="openBoost" class="boost-btn">🔥 Boost</button>
+    </div>
 
   </div>
-</div>
-  
-  <!-- Bottom Nav -->
+
+  <!-- ================= BOOTS SECTION ================= -->
+  <div id="boostSection" style="display:none;">
+
+    <div class="boost-header">
+      <button id="backBtn">← Back</button>
+      <h2>🔥 Boots</h2>
+    </div>
+
+    <div class="boost-card">
+      <h3>Tap Level</h3>
+      <p>Increase coins per tap</p>
+      <button id="upgradeTapBtn" class="upgrade-btn">
+        Upgrade Tap (<span id="tapCost">100</span>)
+      </button>
+    </div>
+
+    <div class="boost-card">
+      <h3>Profit Level</h3>
+      <p>Increase hourly income</p>
+      <button id="upgradeProfitBtn" class="upgrade-btn">
+        Upgrade Profit (<span id="profitCost">150</span>)
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ================= BOTTOM NAV ================= -->
   <div class="bottom-nav">
-  <div class="nav-item active" id="navEarn">Earn</div>
-  <div class="nav-item">Tasks</div>
-  <div class="nav-item">Account</div>
-  <div class="nav-item" id="navBoots">Skills</div>
-  <div class="nav-item">Cashier</div>
+    <div class="nav-item active">Earn</div>
+    <div class="nav-item">Tasks</div>
+    <div class="nav-item">Account</div>
+    <div class="nav-item">Skills</div>
+    <div class="nav-item">Cashier</div>
   </div>
-  
+
+</div>
+
 <script src="script.js"></script>
 </body>
 </html>
