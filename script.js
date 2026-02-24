@@ -92,13 +92,23 @@ function showPlusOne(amount) {
 
 const earnSection = document.getElementById("earnSection");
 const bootsSection = document.getElementById("bootsSection");
+const boostSection = document.getElementById("boostSection");
+const boostBtn = document.querySelector(".boost-btn");
 
 document.getElementById("navEarn").addEventListener("click", () => {
   earnSection.style.display = "block";
   bootsSection.style.display = "none";
+  boostSection.style.display = "none";
 });
 
 document.getElementById("navBoots").addEventListener("click", () => {
   earnSection.style.display = "none";
   bootsSection.style.display = "block";
+  boostSection.style.display = "none";
+});
+
+boostBtn.addEventListener("click", () => {
+  earnSection.style.display = "none";
+  bootsSection.style.display = "none";
+  boostSection.style.display = "block";
 });
