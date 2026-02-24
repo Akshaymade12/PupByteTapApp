@@ -172,3 +172,40 @@ body {
   background: gold;
   color: black;
 }
+
+/* Boost Section */
+
+.boost-container {
+  padding: 20px;
+}
+
+.boost-title {
+  margin-top: 25px;
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: white;
+}
+
+.boost-row {
+  display: flex;
+  gap: 15px;
+}
+
+.boost-card {
+  flex: 1;
+  padding: 15px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #3a1c6d, #2a124d);
+  text-align: center;
+  font-weight: bold;
+}
+
+.boost-item {
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #3a1c6d, #2a124d);
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
