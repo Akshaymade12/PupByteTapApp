@@ -97,6 +97,7 @@ app.get("/load/:id", async (req, res) => {
     profitPerHour: user.profitPerHour,
     tapLevel: user.tapLevel,
     tapPower: user.tapPower,
+    league: user.league,
     nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
     nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
   });
