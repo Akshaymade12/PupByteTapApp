@@ -102,3 +102,24 @@ document.getElementById("backBtn").onclick = () => {
   boostSection.style.display = "none";
   earnSection.style.display = "block";
 };
+
+/* ================= TOP USERS ================= */
+
+async function loadTopUsers(league) {
+  const res = await fetch(`/top/${league}`);
+  const data = await res.json();
+
+  const container = document.getElementById("topUsers");
+  container.innerHTML = "";
+
+  data.forEach((user, index) => {
+    container.innerHTML += `
+      <div class="user-row">
+        <span>#${index + 1}</span>
+        <span>${user.telegramId}</span>
+        <span>${user.coins}</span>
+      </div>
+    `;
+  });
+  
+}
