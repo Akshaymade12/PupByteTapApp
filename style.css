@@ -48,18 +48,24 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
+}
+
+.coin-circle {
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle, #ffd700 0%, #b8860b 100%);
+  box-shadow: 0 0 60px rgba(255, 215, 0, 0.6);
 }
 
 .main-coin {
-  width: 260px;
-  transition: 0.1s;
-  filter: drop-shadow(0 0 30px gold);
-  cursor: pointer;
-}
-
-.main-coin:active {
-  transform: scale(0.95);
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 /* Floating +1 */
@@ -80,7 +86,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 80px;
+  margin-bottom: 100px;
 }
 
 .boost-btn {
