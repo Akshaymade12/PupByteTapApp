@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
   tapLevel: { type: Number, default: 1 },
   tapPower: { type: Number, default: 1 },
   upgradeLevel: { type: Number, default: 0 },
+  lastTap: { type: Number, default: 0 },
   league: { type: String, default: "Wood" },
   lastActive: { type: Date, default: Date.now }
 });
@@ -62,6 +63,7 @@ async function applyOfflineMining(user) {
   if (seconds > 0) {
     const earned = (user.profitPerHour / 3600) * seconds;
     user.coins += earned;
+    user.league = getLeague(user.coins);
     user.lastActive = now;
     await user.save();
   }
@@ -116,9 +118,14 @@ app.post("/tap", async (req, res) => {
   if (user.energy < user.tapPower)
     return res.json({ success: false });
 
+  if (Date.now() - user.lastTap < 300) {
+  return res.json({ success: false });
+  }
+
   user.coins += user.tapPower;
   user.energy -= user.tapPower;
   user.league = getLeague(user.coins);
+  user.lastTap = Date.now();
 
   await user.save();
 
