@@ -39,7 +39,39 @@
     </div>
 
   </div>
+=============== tasksSection ========================== -->
+  
+  <div id="tasksSection" style="display:none;">   
 
+  <h2>Tasks</h2>
+
+  <button onclick="showTab('special')">Special</button>
+  <button onclick="showTab('league')">League</button>
+  <button onclick="showTab('refer')">Refer</button>
+
+  <div id="specialTab">
+    <button onclick="completeTask('telegram_join')">
+      Join Telegram (1000 Coins)
+    </button>
+    <button onclick="completeTask('twitter_follow')">
+      Follow Twitter (500 Coins)
+    </button>
+  </div>
+
+  <div id="leagueTab" style="display:none;">
+    <button onclick="claimLeagueReward()">
+      Claim League Reward
+    </button>
+  </div>
+
+  <div id="referTab" style="display:none;">
+    <button onclick="generateReferral()">
+      Copy Referral Link
+    </button>
+  </div>
+
+  </div>
+  
   <!-- ================= BOOTS SECTION ================= -->
   <div id="boostSection" style="display:none;">
 
