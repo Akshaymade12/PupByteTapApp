@@ -1,4 +1,14 @@
-const telegramId = "12345";
+const tg = window.Telegram?.WebApp;
+
+if (tg) {
+  tg.expand();
+}
+
+const telegramId = tg?.initDataUnsafe?.user?.id;
+
+if (!telegramId) {
+  alert("Please open inside Telegram!");
+}
 
 const coinsEl = document.getElementById("coins");
 const energyEl = document.getElementById("energy");
