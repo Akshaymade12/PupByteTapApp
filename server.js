@@ -23,6 +23,8 @@ const userSchema = new mongoose.Schema({
   lastTap: { type: Number, default: 0 },
   referredBy: { type: String, default: null },
 referrals: { type: Number, default: 0 },
+  completedTasks: { type: [String], default: [] },
+leagueRewardsClaimed: { type: [String], default: [] },
   league: { type: String, default: "Wood" },
   lastActive: { type: Date, default: Date.now }
 });
@@ -224,6 +226,63 @@ app.get("/top/:league", async (req, res) => {
   .select("telegramId coins");
   
   res.json(topUsers);
+});
+
+/* ================= SPECIAL TASK ================= */
+
+app.post("/complete-task", async (req, res) => {
+  const { telegramId, taskId } = req.body;
+
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ success: false });
+
+  if (user.completedTasks.includes(taskId)) {
+    return res.json({ success: false, message: "Already completed" });
+  }
+
+  let reward = 0;
+
+  if (taskId === "telegram_join") reward = 1000;
+  if (taskId === "twitter_follow") reward = 500;
+
+  if (reward === 0) return res.json({ success: false });
+
+  user.coins += reward;
+  user.completedTasks.push(taskId);
+
+  await user.save();
+
+  res.json({ success: true, reward });
+});
+
+/* ================= LEAGUE REWARD ================= */
+
+app.post("/claim-league", async (req, res) => {
+  const { telegramId } = req.body;
+
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ success: false });
+
+  const league = user.league;
+
+  if (user.leagueRewardsClaimed.includes(league)) {
+    return res.json({ success: false });
+  }
+
+  let reward = 0;
+
+  if (league === "Bronze") reward = 2000;
+  if (league === "Silver") reward = 5000;
+  if (league === "Gold") reward = 10000;
+
+  if (reward === 0) return res.json({ success: false });
+
+  user.coins += reward;
+  user.leagueRewardsClaimed.push(league);
+
+  await user.save();
+
+  res.json({ success: true, reward });
 });
 
 /* ================= ROOT ================= */
