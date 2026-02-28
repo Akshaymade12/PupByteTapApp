@@ -35,6 +35,10 @@ async function loadUser() {
 
 loadUser();
 
+  document.getElementById("inviteBtn").addEventListener("click", () => {
+  generateReferral();
+});
+  
 /* TAP */
 
 tapBtn.addEventListener("click", async () => {
@@ -205,9 +209,10 @@ navItems.forEach((item, index) => {
 });
 
   function generateReferral() {
-  const botUsername = "PupByteTapBot"; // exact username likhna
+  const botUsername = "PupByteTapBot";
   const link = `https://t.me/${botUsername}?start=${telegramId}`;
-  alert("Your Referral Link:\n" + link);
+
+  window.Telegram.WebApp.openTelegramLink(link);
   }
 
   function showTab(tab) {
