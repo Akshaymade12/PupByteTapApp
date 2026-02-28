@@ -165,22 +165,43 @@ async function loadTopUsers(league) {
   
 }
 
-/* ========= NAVIGATION FIX ========= */
+/* ========= NAVIGATION SYSTEM ========= */
 
 const navItems = document.querySelectorAll(".nav-item");
 
-navItems[0].addEventListener("click", () => {
-  document.getElementById("earnSection").style.display = "block";
-  document.getElementById("boostSection").style.display = "none";
-  document.getElementById("leagueSection").style.display = "none";
-  document.getElementById("tasksSection").style.display = "none";
-});
+navItems.forEach((item, index) => {
+  item.addEventListener("click", () => {
 
-navItems[1].addEventListener("click", () => {
-  document.getElementById("earnSection").style.display = "none";
-  document.getElementById("boostSection").style.display = "none";
-  document.getElementById("leagueSection").style.display = "none";
-  document.getElementById("tasksSection").style.display = "block";
+    // remove active class from all
+    navItems.forEach(nav => nav.classList.remove("active"));
+
+    // add active to clicked
+    item.classList.add("active");
+
+    // hide all sections
+    document.getElementById("earnSection").style.display = "none";
+    document.getElementById("boostSection").style.display = "none";
+    document.getElementById("leagueSection").style.display = "none";
+    document.getElementById("tasksSection").style.display = "none";
+
+    // show section based on index
+    if (index === 0) {
+      document.getElementById("earnSection").style.display = "block";
+    }
+    if (index === 1) {
+      document.getElementById("tasksSection").style.display = "block";
+    }
+    if (index === 2) {
+      alert("Account section coming soon");
+    }
+    if (index === 3) {
+      document.getElementById("boostSection").style.display = "block";
+    }
+    if (index === 4) {
+      alert("Cashier coming soon");
+    }
+
+  });
 });
 
   function generateReferral() {
