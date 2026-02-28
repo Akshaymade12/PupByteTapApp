@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema({
   tapPower: { type: Number, default: 1 },
   upgradeLevel: { type: Number, default: 0 },
   lastTap: { type: Number, default: 0 },
+  referredBy: { type: String, default: null },
+referrals: { type: Number, default: 0 },
   league: { type: String, default: "Wood" },
   lastActive: { type: Date, default: Date.now }
 });
@@ -85,12 +87,28 @@ setInterval(async () => {
 
 /* ================= LOAD USER ================= */
 
-app.get("/load/:id", async (req, res) => {
+app.get("/load/:id/:ref?", async (req, res) => {
   const telegramId = req.params.id;
+  const refId = req.params.ref;
 
   let user = await User.findOne({ telegramId });
-  if (!user) user = await User.create({ telegramId });
 
+if (!user) {
+  user = await User.create({
+    telegramId,
+    referredBy: refId && refId !== telegramId ? refId : null
+  });
+
+  if (refId && refId !== telegramId) {
+    const refUser = await User.findOne({ telegramId: refId });
+    if (refUser) {
+      refUser.coins += 500;
+      refUser.referrals += 1;
+      await refUser.save();
+    }
+  }
+}
+  
   await applyOfflineMining(user);
 
   res.json({
