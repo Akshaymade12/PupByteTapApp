@@ -6,6 +6,7 @@ if (tg) {
 }
 
 const telegramId = tg?.initDataUnsafe?.user?.id;
+  const startParam = tg?.initDataUnsafe?.start_param;
 
 if (!telegramId) {
   alert("Please open inside Telegram!");
@@ -21,7 +22,7 @@ const upgradeProfitBtn = document.getElementById("upgradeProfitBtn");
 /* LOAD USER */
 
 async function loadUser() {
-  const res = await fetch(`/load/${telegramId}`);
+  const res = await fetch(`/load/${telegramId}/${startParam || ""}`);
   const data = await res.json();
 
   coinsEl.innerText = Math.floor(data.coins);
@@ -172,4 +173,10 @@ document.querySelector(".nav-item.active").onclick = () => {
   if (leagueSection) leagueSection.style.display = "none";
 };
 
+  function generateReferral() {
+  const botUsername = "PupByteTapBot"; // exact username likhna
+  const link = `https://t.me/${botUsername}?start=${telegramId}`;
+  alert("Your Referral Link:\n" + link);
+  }
+  
 });
