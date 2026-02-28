@@ -130,7 +130,7 @@ if (openLeague) {
     if (leagueSection) leagueSection.style.display = "block";
 
     try {
-      const res = await fetch(`/load/${telegramId}`);
+      const res = await fetch(`/load/${telegramId}/${startParam || ""}`);
       const data = await res.json();
 
       document.getElementById("leagueName").innerText =
@@ -172,6 +172,15 @@ document.querySelector(".nav-item.active").onclick = () => {
   document.getElementById("boostSection").style.display = "none";
   document.getElementById("leagueSection").style.display = "none";
   document.getElementById("tasksSection").style.display = "none";
+};
+
+/* ========= TASKS NAV ========= */
+
+document.querySelectorAll(".nav-item")[1].onclick = () => {
+  document.getElementById("earnSection").style.display = "none";
+  document.getElementById("boostSection").style.display = "none";
+  document.getElementById("leagueSection").style.display = "none";
+  document.getElementById("tasksSection").style.display = "block";
 };
 
   function generateReferral() {
