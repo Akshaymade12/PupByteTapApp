@@ -165,23 +165,23 @@ async function loadTopUsers(league) {
   
 }
 
-/* ========= EARN NAV FIX ========= */
+/* ========= NAVIGATION FIX ========= */
 
-document.querySelector(".nav-item.active").onclick = () => {
+const navItems = document.querySelectorAll(".nav-item");
+
+navItems[0].addEventListener("click", () => {
   document.getElementById("earnSection").style.display = "block";
   document.getElementById("boostSection").style.display = "none";
   document.getElementById("leagueSection").style.display = "none";
   document.getElementById("tasksSection").style.display = "none";
-};
+});
 
-/* ========= TASKS NAV ========= */
-
-document.querySelectorAll(".nav-item")[1].onclick = () => {
+navItems[1].addEventListener("click", () => {
   document.getElementById("earnSection").style.display = "none";
   document.getElementById("boostSection").style.display = "none";
   document.getElementById("leagueSection").style.display = "none";
   document.getElementById("tasksSection").style.display = "block";
-};
+});
 
   function generateReferral() {
   const botUsername = "PupByteTapBot"; // exact username likhna
