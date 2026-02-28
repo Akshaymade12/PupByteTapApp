@@ -1,3 +1,4 @@
+document.addEventListener("DOMContentLoaded", () => {
 const tg = window.Telegram?.WebApp;
 
 if (tg) {
@@ -121,6 +122,8 @@ const openLeague = document.getElementById("openLeague");
 if (openLeague) {
   openLeague.addEventListener("click", async () => {
 
+    console.log("League clicked");
+
     if (earnSection) earnSection.style.display = "none";
     if (boostSection) boostSection.style.display = "none";
     if (leagueSection) leagueSection.style.display = "block";
@@ -168,3 +171,5 @@ document.querySelector(".nav-item.active").onclick = () => {
   if (boostSection) boostSection.style.display = "none";
   if (leagueSection) leagueSection.style.display = "none";
 };
+
+});
