@@ -178,5 +178,38 @@ document.querySelector(".nav-item.active").onclick = () => {
   const link = `https://t.me/${botUsername}?start=${telegramId}`;
   alert("Your Referral Link:\n" + link);
   }
+
+  function showTab(tab) {
+  document.getElementById("specialTab").style.display = "none";
+  document.getElementById("leagueTab").style.display = "none";
+  document.getElementById("referTab").style.display = "none";
+  document.getElementById(tab + "Tab").style.display = "block";
+}
+
+async function completeTask(taskId) {
+  const res = await fetch("/complete-task", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId, taskId })
+  });
+  const data = await res.json();
+  if (data.success) {
+    alert("You earned " + data.reward);
+    loadUser();
+  }
+}
+
+async function claimLeagueReward() {
+  const res = await fetch("/claim-league", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId })
+  });
+  const data = await res.json();
+  if (data.success) {
+    alert("League reward: " + data.reward);
+    loadUser();
+  }
+}
   
 });
