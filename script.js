@@ -212,6 +212,18 @@ navItems.forEach((item, index) => {
   });
 });
 
+  document.getElementById("specialBtn").addEventListener("click", () => {
+  showTab("special");
+});
+
+document.getElementById("leagueBtn").addEventListener("click", () => {
+  showTab("league");
+});
+
+document.getElementById("referBtn").addEventListener("click", () => {
+  showTab("refer");
+});
+
   function generateReferral() {
   const botUsername = "PupByteTapBot";
   const link = `https://t.me/share/url?url=https://t.me/${botUsername}?start=${telegramId}`;
