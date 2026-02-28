@@ -214,7 +214,7 @@ navItems.forEach((item, index) => {
 
   function generateReferral() {
   const botUsername = "PupByteTapBot";
-  const link = `https://t.me/${botUsername}?start=${telegramId}`;
+  const link = `https://t.me/share/url?url=https://t.me/${botUsername}?start=${telegramId}`;
 
   window.location.href = link;
   }
