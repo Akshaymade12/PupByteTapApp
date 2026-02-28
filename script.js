@@ -216,7 +216,7 @@ navItems.forEach((item, index) => {
   const botUsername = "PupByteTapBot";
   const link = `https://t.me/${botUsername}?start=${telegramId}`;
 
-  window.Telegram.WebApp.openTelegramLink(link);
+  window.location.href = link;
   }
 
   function showTab(tab) {
