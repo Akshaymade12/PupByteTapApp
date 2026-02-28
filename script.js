@@ -168,9 +168,10 @@ async function loadTopUsers(league) {
 /* ========= EARN NAV FIX ========= */
 
 document.querySelector(".nav-item.active").onclick = () => {
-  if (earnSection) earnSection.style.display = "block";
-  if (boostSection) boostSection.style.display = "none";
-  if (leagueSection) leagueSection.style.display = "none";
+  document.getElementById("earnSection").style.display = "block";
+  document.getElementById("boostSection").style.display = "none";
+  document.getElementById("leagueSection").style.display = "none";
+  document.getElementById("tasksSection").style.display = "none";
 };
 
   function generateReferral() {
@@ -192,10 +193,14 @@ async function completeTask(taskId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ telegramId, taskId })
   });
+
   const data = await res.json();
+
   if (data.success) {
-    alert("You earned " + data.reward);
+    alert("You earned " + data.reward + " coins!");
     loadUser();
+  } else {
+    alert("Task already completed!");
   }
 }
 
