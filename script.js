@@ -35,6 +35,73 @@ async function loadUser() {
 
 loadUser();
 
+  /* ========= TASK TAB BUTTONS ========= */
+
+document.getElementById("specialBtn").addEventListener("click", () => {
+  showTab("special");
+});
+
+document.getElementById("leagueBtn").addEventListener("click", () => {
+  showTab("league");
+});
+
+document.getElementById("referBtn").addEventListener("click", () => {
+  showTab("refer");
+});
+
+/* ========= REFERRAL ========= */
+
+function generateReferral() {
+  const botUsername = "PupByteTapBot";
+  const link = `https://t.me/share/url?url=https://t.me/${botUsername}?start=${telegramId}`;
+  window.location.href = link;
+}
+
+/* ========= TAB SWITCH ========= */
+
+function showTab(tab) {
+  document.getElementById("specialTab").style.display = "none";
+  document.getElementById("leagueTab").style.display = "none";
+  document.getElementById("referTab").style.display = "none";
+  document.getElementById(tab + "Tab").style.display = "block";
+}
+
+/* ========= TASK COMPLETE ========= */
+
+async function completeTask(taskId) {
+  const res = await fetch("/complete-task", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId, taskId })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    alert("You earned " + data.reward + " coins!");
+    loadUser();
+  } else {
+    alert("Task already completed!");
+  }
+}
+
+/* ========= LEAGUE CLAIM ========= */
+
+async function claimLeagueReward() {
+  const res = await fetch("/claim-league", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    alert("League reward: " + data.reward);
+    loadUser();
+  }
+}
+  
 const inviteBtn = document.getElementById("inviteBtn");
 
 if (inviteBtn) {
@@ -210,61 +277,3 @@ navItems.forEach((item, index) => {
     }
 
   });
-
-  document.getElementById("specialBtn").addEventListener("click", () => {
-  showTab("special");
-});
-
-document.getElementById("leagueBtn").addEventListener("click", () => {
-  showTab("league");
-});
-
-document.getElementById("referBtn").addEventListener("click", () => {
-  showTab("refer");
-});
-
-  function generateReferral() {
-  const botUsername = "PupByteTapBot";
-  const link = `https://t.me/share/url?url=https://t.me/${botUsername}?start=${telegramId}`;
-
-  window.location.href = link;
-  }
-
-  function showTab(tab) {
-  document.getElementById("specialTab").style.display = "none";
-  document.getElementById("leagueTab").style.display = "none";
-  document.getElementById("referTab").style.display = "none";
-  document.getElementById(tab + "Tab").style.display = "block";
-}
-
-async function completeTask(taskId) {
-  const res = await fetch("/complete-task", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId, taskId })
-  });
-
-  const data = await res.json();
-
-  if (data.success) {
-    alert("You earned " + data.reward + " coins!");
-    loadUser();
-  } else {
-    alert("Task already completed!");
-  }
-}
-
-async function claimLeagueReward() {
-  const res = await fetch("/claim-league", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId })
-  });
-  const data = await res.json();
-  if (data.success) {
-    alert("League reward: " + data.reward);
-    loadUser();
-  }
-}
-  
-});
