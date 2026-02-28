@@ -35,9 +35,13 @@ async function loadUser() {
 
 loadUser();
 
-  document.getElementById("inviteBtn").addEventListener("click", () => {
-  generateReferral();
-});
+const inviteBtn = document.getElementById("inviteBtn");
+
+if (inviteBtn) {
+  inviteBtn.addEventListener("click", () => {
+    generateReferral();
+  });
+}
   
 /* TAP */
 
