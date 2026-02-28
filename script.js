@@ -37,17 +37,27 @@ loadUser();
 
   /* ========= TASK TAB BUTTONS ========= */
 
-document.getElementById("specialBtn").addEventListener("click", () => {
-  showTab("special");
-});
+const specialBtn = document.getElementById("specialBtn");
+const leagueBtn = document.getElementById("leagueBtn");
+const referBtn = document.getElementById("referBtn");
 
-document.getElementById("leagueBtn").addEventListener("click", () => {
-  showTab("league");
-});
+if (specialBtn) {
+  specialBtn.addEventListener("click", () => {
+    showTab("special");
+  });
+}
 
-document.getElementById("referBtn").addEventListener("click", () => {
-  showTab("refer");
-});
+if (leagueBtn) {
+  leagueBtn.addEventListener("click", () => {
+    showTab("league");
+  });
+}
+
+if (referBtn) {
+  referBtn.addEventListener("click", () => {
+    showTab("refer");
+  });
+}
 
 /* ========= REFERRAL ========= */
 
