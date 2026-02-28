@@ -210,7 +210,6 @@ navItems.forEach((item, index) => {
     }
 
   });
-});
 
   document.getElementById("specialBtn").addEventListener("click", () => {
   showTab("special");
