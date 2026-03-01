@@ -1,13 +1,32 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const TelegramBot = require("node-telegram-bot-api");
+
+const bot = new TelegramBot(process.env.BOT_TOKEN, {
+  polling: true
+});
 
 const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-mongoose.connect(process.env.MONGO_URI)
+/* ================= ENV ================= */
+
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!BOT_TOKEN) {
+  console.error("BOT_TOKEN missing ❌");
+  process.exit(1);
+}
+
+mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log("Mongo Error ❌", err));
+
+/* ================= TELEGRAM BOT ================= */
+
+const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
 /* ================= SCHEMA ================= */
 
@@ -75,6 +94,52 @@ async function applyOfflineMining(user) {
   }
 }
 
+/* ================= TELEGRAM START HANDLER ================= */
+
+bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
+
+  const telegramId = msg.from.id.toString();
+  const refId = match[1];
+
+  let user = await User.findOne({ telegramId });
+
+  if (!user) {
+
+    user = await User.create({
+      telegramId,
+      referredBy: refId && refId !== telegramId ? refId : null
+    });
+
+    if (refId && refId !== telegramId) {
+      const refUser = await User.findOne({ telegramId: refId });
+
+      if (refUser) {
+        refUser.coins += 500;
+        refUser.referrals += 1;
+        await refUser.save();
+      }
+    }
+  }
+
+  bot.sendMessage(
+    msg.chat.id,
+    "🚀 Welcome to PupByte Tap Bot!\nTap to earn coins!",
+    {
+      reply_markup: {
+        inline_keyboard: [[
+          {
+            text: "🔥 Open App",
+            web_app: {
+              url: "https://pupbytetapapp.onrender.com"
+            }
+          }
+        ]]
+      }
+    }
+  );
+
+});
+
 /* ================= ENERGY RECHARGE ================= */
 
 setInterval(async () => {
@@ -91,7 +156,7 @@ setInterval(async () => {
 
 /* ================= LOAD USER ================= */
 
-app.get("/load/:id/:ref?", async (req, res) => {
+app.get("/load/:id", async (req, res) => {
   const telegramId = req.params.id;
   const refId = req.params.ref;
   console.log("Ref ID:", refId);
