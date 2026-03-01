@@ -1,29 +1,25 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: radial-gradient(circle at top, #3a1c71, #14072e 70%);
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(180deg, #0f0f1a, #1b1b2f);
   color: white;
-  overflow: hidden;
 }
 
 .app {
-  max-width: 420px;
+  max-width: 500px;
   margin: auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  box-sizing: border-box;
+  padding-bottom: 80px;
 }
 
-/* Top Bar */
 .top-bar {
   display: flex;
   justify-content: space-between;
-  background: rgba(255,255,255,0.08);
-  padding: 12px;
-  border-radius: 15px;
+  padding: 15px;
+  font-weight: bold;
+  background: rgba(255,255,255,0.05);
   backdrop-filter: blur(10px);
+  border-radius: 12px;
+  margin: 10px;
 }
 
 /* Cards */
@@ -34,20 +30,19 @@ body {
 }
 
 .glass-card {
-  flex: 1;
   background: rgba(255,255,255,0.08);
-  padding: 15px;
+  backdrop-filter: blur(12px);
+  padding: 12px;
   border-radius: 15px;
   text-align: center;
-  backdrop-filter: blur(8px);
+  margin: 5px;
 }
 
 /* Coin */
 .coin-wrapper {
   display: flex;
   justify-content: center;
-  align-items: center;
-  margin-top: 55px;
+  margin-top: 30px;
 }
 
 .coin-circle {
@@ -62,10 +57,16 @@ body {
 }
 
 .main-coin {
-  width: 220px;
-  height: 220px;
-  object-fit: contain;
-  border-radius: 50%;
+  width: 160px;
+  transition: transform 0.1s ease;
+}
+
+.main-coin:active {
+  transform: scale(0.9);
+}
+
+.main-coin {
+  filter: drop-shadow(0 0 20px #00f7ff);
 }
 
 /* Floating +1 */
@@ -89,38 +90,39 @@ body {
   margin-bottom: 100px;
 }
 
-.boost-btn {
-  background: rgba(255,255,255,0.1);
+.boost-btn,
+
+.upgrade-btn,
+button {
+  background: linear-gradient(45deg, #6a00ff, #00c3ff);
   border: none;
-  padding: 10px 20px;
-  border-radius: 12px;
   color: white;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-weight: bold;
+  margin-top: 10px;
+  box-shadow: 0 0 15px rgba(0, 195, 255, 0.6);
 }
 
-/* Bottom Nav */
 .bottom-nav {
   position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  background: rgba(255,255,255,0.08);
-  border-radius: 25px;
+  bottom: 0;
+  width: 100%;
+  max-width: 500px;
   display: flex;
   justify-content: space-around;
-  padding: 15px;
-  backdrop-filter: blur(15px);
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  padding: 12px 0;
 }
 
 .nav-item {
-  font-size: 12px;
-  text-align: center;
-  opacity: 0.6;
+  color: #aaa;
 }
 
 .nav-item.active {
-  opacity: 1;
-  color: gold;
+  color: #00f7ff;
+  font-weight: bold;
 }
 
 .offline-popup {
@@ -289,6 +291,10 @@ body {
 }
 
 #spinBtn {
+  box-shadow: 0 0 20px #ff00ff;
+}
+
+#spinBtn {
   background: gold;
   color: black;
   padding: 10px 20px;
@@ -296,3 +302,18 @@ body {
   border: none;
   font-weight: bold;
 }
+
+#earnSection,
+#tasksSection,
+#boostSection,
+#accountSection,
+#skillsSection,
+#leagueSection {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
