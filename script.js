@@ -151,13 +151,22 @@ document.addEventListener("DOMContentLoaded", () => {
   
 /* ================= SPIN ================= */
   
-  const wheel = document.getElementById("wheel");
-const wheelContainer = document.getElementById("wheelContainer");
+const rewardsMap = {
+  100: 30,
+  200: 90,
+  300: 150,
+  500: 210,
+  800: 270,
+  1000: 330
+};
+
+const wheel = document.getElementById("wheel");
+const wheelWrapper = document.getElementById("wheelWrapper");
 
 if (spinBtn) {
   spinBtn.onclick = async () => {
 
-    wheelContainer.style.display = "flex";
+    wheelWrapper.style.display = "flex";
 
     const res = await fetch("/spin", {
       method: "POST",
@@ -168,15 +177,20 @@ if (spinBtn) {
     const data = await res.json();
 
     if (!data.success) {
-      alert("Already used today!");
+      alert("Already spun today!");
       return;
     }
 
-    const randomDeg = 2000 + Math.floor(Math.random() * 1000);
-    wheel.style.transform = `rotate(${randomDeg}deg)`;
+    const reward = data.reward;
+    const baseDeg = rewardsMap[reward];
+
+    const spinRounds = 5 * 360;
+    const finalDeg = spinRounds + (360 - baseDeg);
+
+    wheel.style.transform = `rotate(${finalDeg}deg)`;
 
     setTimeout(() => {
-      alert("🎉 You won " + data.reward + " coins!");
+      alert("🎉 You won " + reward + " coins!");
       loadUser();
     }, 4000);
   };
