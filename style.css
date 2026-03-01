@@ -43,6 +43,7 @@ body {
   display: flex;
   justify-content: center;
   margin-top: 30px;
+  position: relative;   /* ADD THIS */
 }
 
 .coin-circle {
@@ -107,22 +108,19 @@ button {
 .bottom-nav {
   position: fixed;
   bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
   max-width: 500px;
-  display: flex;
-  justify-content: space-around;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(10px);
-  padding: 12px 0;
-}
 
 .nav-item {
-  color: #aaa;
+  transition: all 0.2s ease;
 }
 
 .nav-item.active {
   color: #00f7ff;
   font-weight: bold;
+  text-shadow: 0 0 10px #00f7ff;
 }
 
 .offline-popup {
