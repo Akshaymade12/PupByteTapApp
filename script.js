@@ -9,9 +9,10 @@ const telegramId = tg?.initDataUnsafe?.user?.id;
   const startParam = tg?.initDataUnsafe?.start_param;
 
 if (!telegramId) {
-  alert("Please open inside Telegram!");
+  console.log("Not inside Telegram");
+  return;   // 🔥 VERY IMPORTANT
 }
-
+  
 const coinsEl = document.getElementById("coins");
 const energyEl = document.getElementById("energy");
 const profitEl = document.getElementById("profit");
@@ -122,7 +123,8 @@ if (inviteBtn) {
   
 /* TAP */
 
-tapBtn.addEventListener("click", async () => {
+if (tapBtn) {
+  tapBtn.addEventListener("click", async () => {
   const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -143,7 +145,8 @@ tapBtn.addEventListener("click", async () => {
 
 /* TAP UPGRADE */
 
-upgradeTapBtn.addEventListener("click", async () => {
+if (upgradeTapBtn) {
+  upgradeTapBtn.addEventListener("click", async () => {
   const res = await fetch("/upgrade-tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -158,10 +161,13 @@ upgradeTapBtn.addEventListener("click", async () => {
     alert("Not enough coins!");
   }
 });
-
+  
+}
+  
 /* PROFIT UPGRADE */
 
-upgradeProfitBtn.addEventListener("click", async () => {
+if (upgradeProfitBtn) {
+   upgradeProfitBtn.addEventListener("click", async () => {
   const res = await fetch("/upgrade-profit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -176,7 +182,9 @@ upgradeProfitBtn.addEventListener("click", async () => {
     alert("Not enough coins!");
   }
 });
-
+  
+}
+  
 /* +1 Animation */
 
 function showPlusOne(amount) {
