@@ -16,10 +16,6 @@ if (!BOT_TOKEN) {
   process.exit(1);
 }
 
-if (!MONGO_URI) {
-  console.error("MONGO_URI missing ❌");
-  process.exit(1);
-}
 mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log("Mongo Error ❌", err));
