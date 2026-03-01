@@ -146,9 +146,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function generateReferral() {
   const botUsername = "PupByteTapBot";
-  const link = `https://t.me/${botUsername}?start=${telegramId}`;
-  window.open(link, "_blank");
-}
+  const referralLink = `https://t.me/${botUsername}?start=${telegramId}`;
+
+  if (tg) {
+    tg.openTelegramLink(
+      `https://t.me/share/url?url=${encodeURIComponent(referralLink)}`
+    );
+  }
+  }
   
   const inviteBtn = document.getElementById("inviteBtn");
   if (inviteBtn) inviteBtn.onclick = generateReferral;
