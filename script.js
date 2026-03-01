@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= LOAD USER ================= */
 
   async function loadUser() {
-    const res = await fetch(`/load/${telegramId}/${startParam || ""}`);
+    const res = await fetch(`/load/${telegramId}`);
     const data = await res.json();
 
     coinsEl.innerText = Math.floor(data.coins);
