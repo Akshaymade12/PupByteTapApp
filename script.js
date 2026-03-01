@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const boostSection = document.getElementById("boostSection");
   const tasksSection = document.getElementById("tasksSection");
   const leagueSection = document.getElementById("leagueSection");
+  const dailyRewardBtn = document.getElementById("dailyRewardBtn");
 
   /* ================= LOAD USER ================= */
 
@@ -125,6 +126,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /* ================= DAILY REWARD ================= */
+
+if (dailyRewardBtn) {
+  dailyRewardBtn.addEventListener("click", async () => {
+
+    const res = await fetch("/daily-reward", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("You received " + data.reward + " coins!");
+      loadUser();
+    } else {
+      alert("Already claimed today!");
+    }
+
+  });
+}
+  
   /* ================= TASK TABS ================= */
 
   function showTab(tab) {
