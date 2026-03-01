@@ -151,10 +151,13 @@ document.addEventListener("DOMContentLoaded", () => {
   
 /* ================= SPIN ================= */
   
-  const spinBtn = document.getElementById("spinBtn");
+  const wheel = document.getElementById("wheel");
+const wheelContainer = document.getElementById("wheelContainer");
 
 if (spinBtn) {
-  spinBtn.addEventListener("click", async () => {
+  spinBtn.onclick = async () => {
+
+    wheelContainer.style.display = "flex";
 
     const res = await fetch("/spin", {
       method: "POST",
@@ -164,13 +167,19 @@ if (spinBtn) {
 
     const data = await res.json();
 
-    if (data.success) {
+    if (!data.success) {
+      alert("Already used today!");
+      return;
+    }
+
+    const randomDeg = 2000 + Math.floor(Math.random() * 1000);
+    wheel.style.transform = `rotate(${randomDeg}deg)`;
+
+    setTimeout(() => {
       alert("🎉 You won " + data.reward + " coins!");
       loadUser();
-    } else {
-      alert(data.message || "Spin already used today!");
-    }
-  });
+    }, 4000);
+  };
 }
   
   /* ================= OPEN BOOST ================= */
