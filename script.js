@@ -29,7 +29,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const tasksSection = document.getElementById("tasksSection");
   const leagueSection = document.getElementById("leagueSection");
   const dailyRewardBtn = document.getElementById("dailyRewardBtn");
+  
+  const accountSection = document.getElementById("accountSection");
+  const accountUserId = document.getElementById("accountUserId");
+  const accountCoins = document.getElementById("accountCoins");
+  const accountReferrals = document.getElementById("accountReferrals");
+  const accountRefLink = document.getElementById("accountRefLink");
+  const copyRefBtn = document.getElementById("copyRefBtn");
 
+  if (copyRefBtn) {
+  copyRefBtn.onclick = () => {
+    navigator.clipboard.writeText(accountRefLink.value);
+    alert("Referral link copied!");
+  };
+  }
+  
   /* ================= LOAD USER ================= */
 
   async function loadUser() {
@@ -40,6 +54,14 @@ document.addEventListener("DOMContentLoaded", () => {
       coinsEl.innerText = Math.floor(data.coins);
       energyEl.innerText = data.energy;
       profitEl.innerText = data.profitPerHour;
+
+      if (accountUserId) accountUserId.innerText = telegramId;
+if (accountCoins) accountCoins.innerText = Math.floor(data.coins);
+if (accountReferrals) accountReferrals.innerText = data.referrals || 0;
+
+if (accountRefLink) {
+  accountRefLink.value = `https://t.me/PupByteTapBot?start=${telegramId}`;
+}
 
       if (upgradeTapBtn)
         upgradeTapBtn.innerText = `Tap Upgrade (${data.nextTapCost})`;
@@ -242,6 +264,8 @@ const openBoost = document.getElementById("openBoost");
 
   /* ================= NAVIGATION ================= */
 
+  const accountSection = document.getElementById("accountSection");
+  
   const navItems = document.querySelectorAll(".nav-item");
 
   navItems.forEach((item, index) => {
@@ -254,9 +278,11 @@ const openBoost = document.getElementById("openBoost");
       boostSection.style.display = "none";
       leagueSection.style.display = "none";
       tasksSection.style.display = "none";
+      accountSection.style.display = "none";
 
       if (index === 0) earnSection.style.display = "block";
       if (index === 1) tasksSection.style.display = "block";
+      if (index === 2) accountSection.style.display = "block";
       if (index === 3) boostSection.style.display = "block";
 
     });
