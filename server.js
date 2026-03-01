@@ -26,7 +26,9 @@ referrals: { type: Number, default: 0 },
   completedTasks: { type: [String], default: [] },
 leagueRewardsClaimed: { type: [String], default: [] },
   league: { type: String, default: "Wood" },
-  lastActive: { type: Date, default: Date.now }
+  lastActive: { type: Date, default: Date.now },
+  lastDailyClaim: { type: Date, default: null }
+  
 });
 
 const User = mongoose.model("User", userSchema);
@@ -281,6 +283,34 @@ app.post("/claim-league", async (req, res) => {
   user.coins += reward;
   user.leagueRewardsClaimed.push(league);
 
+  await user.save();
+
+  res.json({ success: true, reward });
+});
+
+/* ================= DAILY REWARD ================= */
+
+app.post("/daily-reward", async (req, res) => {
+  const { telegramId } = req.body;
+
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ success: false });
+
+  const now = new Date();
+
+  if (user.lastDailyClaim) {
+    const diff = now - user.lastDailyClaim;
+    const hours = diff / (1000 * 60 * 60);
+
+    if (hours < 24) {
+      return res.json({ success: false, message: "Already claimed" });
+    }
+  }
+
+  const reward = 1000;
+
+  user.coins += reward;
+  user.lastDailyClaim = now;
   await user.save();
 
   res.json({ success: true, reward });
