@@ -34,6 +34,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const accountSection = document.getElementById("accountSection");
   const skillsSection = document.getElementById("skillsSection");
 
+  /* ================= BOOST OPEN / BACK ================= */
+
+const openBoost = document.getElementById("openBoost");
+const backBtn = document.getElementById("backBtn");
+
+if (openBoost) {
+  openBoost.onclick = () => {
+    earnSection.style.display = "none";
+    boostSection.style.display = "block";
+  };
+}
+
+if (backBtn) {
+  backBtn.onclick = () => {
+    boostSection.style.display = "none";
+    earnSection.style.display = "block";
+  };
+}
+  
   const dailyRewardBtn = document.getElementById("dailyRewardBtn");
 
   const accountUserId = document.getElementById("accountUserId");
@@ -246,32 +265,43 @@ if (referBtn) {
   };
 }
 
-  /* ================= NAVIGATION ================= */
+  /* ================= LEAGUE OPEN ================= */
 
-  const navItems = document.querySelectorAll(".nav-item");
+const openLeague = document.getElementById("openLeague");
 
-  navItems.forEach((item, index) => {
+if (openLeague) {
+  openLeague.onclick = () => {
+    earnSection.style.display = "none";
+    leagueSection.style.display = "block";
+  };
+}
+  
+/* ================= NAVIGATION ================= */
 
-    item.onclick = () => {
+const navItems = document.querySelectorAll(".nav-item");
 
-      navItems.forEach(nav => nav.classList.remove("active"));
-      item.classList.add("active");
+navItems.forEach((item, index) => {
 
-      if (earnSection) earnSection.style.display = "none";
-if (boostSection) boostSection.style.display = "none";
-if (tasksSection) tasksSection.style.display = "none";
-if (leagueSection) leagueSection.style.display = "none";
-if (accountSection) accountSection.style.display = "none";
-if (skillsSection) skillsSection.style.display = "none";
-      
-      if (index === 0) earnSection.style.display = "block";
-      if (index === 1) tasksSection.style.display = "block";
-      if (index === 2) accountSection.style.display = "block";
-      if (index === 3) skillsSection.style.display = "block";
-      if (index === 4) alert("Cashier coming soon");
-    };
-  });
+  item.onclick = () => {
 
+    navItems.forEach(nav => nav.classList.remove("active"));
+    item.classList.add("active");
+
+    if (earnSection) earnSection.style.display = "none";
+    if (boostSection) boostSection.style.display = "none";
+    if (tasksSection) tasksSection.style.display = "none";
+    if (leagueSection) leagueSection.style.display = "none";
+    if (accountSection) accountSection.style.display = "none";
+    if (skillsSection) skillsSection.style.display = "none";
+
+    if (index === 0 && earnSection) earnSection.style.display = "block";
+    if (index === 1 && tasksSection) tasksSection.style.display = "block";
+    if (index === 2 && accountSection) accountSection.style.display = "block";
+    if (index === 3 && skillsSection) skillsSection.style.display = "block";
+    if (index === 4) alert("Cashier coming soon");
+  };
+});
+  
   /* ================= +1 Animation ================= */
 
   function showPlusOne(amount) {
