@@ -42,8 +42,8 @@ body {
 .coin-wrapper {
   display: flex;
   justify-content: center;
-  margin-top: 30px;
-  position: relative;   /* ADD THIS */
+  margin-top: 40px;
+  position: relative;
 }
 
 .coin-circle {
@@ -60,14 +60,11 @@ body {
 .main-coin {
   width: 160px;
   transition: transform 0.1s ease;
+  filter: drop-shadow(0 0 25px #00f7ff);
 }
 
 .main-coin:active {
   transform: scale(0.9);
-}
-
-.main-coin {
-  filter: drop-shadow(0 0 20px #00f7ff);
 }
 
 /* Floating +1 */
@@ -88,7 +85,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 20px;
+  margin: 25px;
 }
 
 .boost-btn,
@@ -112,16 +109,18 @@ button {
   transform: translateX(-50%);
   width: 100%;
   max-width: 500px;
-  display: flex;            
+  display: flex;
   justify-content: space-around;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(10px);
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(12px);
   padding: 12px 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 .nav-item {
-  transition: all 0.2s ease;
   font-size: 14px;
+  color: #aaa;
+  transition: all 0.2s ease;
 }
 
 .nav-item.active {
