@@ -291,16 +291,13 @@ button {
 }
 
 #spinBtn {
-  box-shadow: 0 0 20px #ff00ff;
-}
-
-#spinBtn {
   background: gold;
   color: black;
   padding: 10px 20px;
   border-radius: 10px;
   border: none;
   font-weight: bold;
+  box-shadow: 0 0 20px #ff00ff;
 }
 
 #earnSection,
