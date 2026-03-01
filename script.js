@@ -33,25 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const leagueSection = document.getElementById("leagueSection");
   const accountSection = document.getElementById("accountSection");
   const skillsSection = document.getElementById("skillsSection");
-
-  /* ================= BOOST OPEN / BACK ================= */
-
-const openBoost = document.getElementById("openBoost");
-const backBtn = document.getElementById("backBtn");
-
-if (openBoost) {
-  openBoost.onclick = () => {
-    earnSection.style.display = "none";
-    boostSection.style.display = "block";
-  };
-}
-
-if (backBtn) {
-  backBtn.onclick = () => {
-    boostSection.style.display = "none";
-    earnSection.style.display = "block";
-  };
-}
   
   const dailyRewardBtn = document.getElementById("dailyRewardBtn");
 
