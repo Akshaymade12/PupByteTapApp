@@ -324,3 +324,41 @@ button {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.wheel-container {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.wheel {
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: conic-gradient(
+    gold 0deg 60deg,
+    orange 60deg 120deg,
+    #ff00ff 120deg 180deg,
+    #00f7ff 180deg 240deg,
+    #6a00ff 240deg 300deg,
+    red 300deg 360deg
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  transition: transform 4s cubic-bezier(.17,.67,.83,.67);
+  box-shadow: 0 0 40px rgba(255,255,255,0.4);
+}
+
+.wheel-center {
+  width: 80px;
+  height: 80px;
+  background: black;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: gold;
+  font-weight: bold;
+  cursor: pointer;
+}
