@@ -109,9 +109,11 @@ button {
   transform: translateX(-50%);
   width: 100%;
   max-width: 500px;
-  display: flex;
+  display: flex !important;        /* VERY IMPORTANT */
+  flex-direction: row !important;  /* FORCE HORIZONTAL */
   justify-content: space-around;
-  background: rgba(0,0,0,0.7);
+  align-items: center;
+  background: rgba(0,0,0,0.8);
   backdrop-filter: blur(12px);
   padding: 12px 0;
   border-top: 1px solid rgba(255,255,255,0.1);
@@ -120,7 +122,7 @@ button {
 .nav-item {
   font-size: 14px;
   color: #aaa;
-  transition: all 0.2s ease;
+  display: inline-block;
 }
 
 .nav-item.active {
