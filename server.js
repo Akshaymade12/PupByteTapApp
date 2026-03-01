@@ -16,6 +16,10 @@ if (!BOT_TOKEN) {
   process.exit(1);
 }
 
+if (!MONGO_URI) {
+  console.error("MONGO_URI missing ❌");
+  process.exit(1);
+}
 mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log("Mongo Error ❌", err));
@@ -84,7 +88,7 @@ async function applyOfflineMining(user) {
 
   if (seconds > 0) {
     const earned = (user.profitPerHour / 3600) * seconds;
-    user.coins += earned;
+    user.coins += Math.floor(earned);
     user.league = getLeague(user.coins);
     user.lastActive = now;
     await user.save();
@@ -190,7 +194,7 @@ app.post("/tap", async (req, res) => {
   if (user.energy < user.tapPower)
     return res.json({ success: false, message: "No energy" });
 
-  if (Date.now() - user.lastTap < 300) {
+   if (Date.now() - user.lastTap < 250) {
   return res.json({ success: false });
   }
 
