@@ -155,27 +155,13 @@ setInterval(async () => {
 
 app.get("/load/:id", async (req, res) => {
   const telegramId = req.params.id;
-  const refId = req.params.ref;
-  console.log("Ref ID:", refId);
 
   let user = await User.findOne({ telegramId });
 
-if (!user) {
-  user = await User.create({
-    telegramId,
-    referredBy: refId && refId !== telegramId ? refId : null
-  });
-
-  if (refId && refId !== telegramId) {
-    const refUser = await User.findOne({ telegramId: refId });
-    if (refUser) {
-      refUser.coins += 500;
-      refUser.referrals += 1;
-      await refUser.save();
-    }
+  if (!user) {
+    user = await User.create({ telegramId });
   }
-}
-  
+
   await applyOfflineMining(user);
 
   res.json({
@@ -202,7 +188,7 @@ app.post("/tap", async (req, res) => {
   await applyOfflineMining(user);
 
   if (user.energy < user.tapPower)
-    return res.json({ success: false });
+    return res.json({ success: false, message: "No energy" });
 
   if (Date.now() - user.lastTap < 300) {
   return res.json({ success: false });
@@ -372,6 +358,8 @@ app.post("/spin", async (req, res) => {
 
   user.coins += reward;
   user.lastSpin = now;
+  user.league = getLeague(user.coins);
+  
   await user.save();
 
   res.json({ success: true, reward, coins: user.coins });
@@ -400,6 +388,8 @@ app.post("/daily-reward", async (req, res) => {
 
   user.coins += reward;
   user.lastDailyClaim = now;
+  user.league = getLeague(user.coins);
+  
   await user.save();
 
   res.json({ success: true, reward });
