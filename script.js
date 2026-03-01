@@ -173,6 +173,25 @@ if (spinBtn) {
   });
 }
   
+  /* ================= OPEN BOOST ================= */
+
+const openBoostBtn = document.getElementById("openBoost");
+const backBtn = document.getElementById("backBtn");
+
+if (openBoostBtn) {
+  openBoostBtn.onclick = () => {
+    earnSection.style.display = "none";
+    boostSection.style.display = "block";
+  };
+}
+
+if (backBtn) {
+  backBtn.onclick = () => {
+    boostSection.style.display = "none";
+    earnSection.style.display = "block";
+  };
+}
+  
   /* ================= REFERRAL ================= */
 
   const inviteBtn = document.getElementById("inviteBtn");
@@ -193,6 +212,40 @@ if (spinBtn) {
     };
   }
 
+  /* ================= TASK TABS ================= */
+
+const specialBtn = document.getElementById("specialBtn");
+const leagueBtn = document.getElementById("leagueBtn");
+const referBtn = document.getElementById("referBtn");
+
+const specialTab = document.getElementById("specialTab");
+const leagueTab = document.getElementById("leagueTab");
+const referTab = document.getElementById("referTab");
+
+if (specialBtn) {
+  specialBtn.onclick = () => {
+    specialTab.style.display = "block";
+    leagueTab.style.display = "none";
+    referTab.style.display = "none";
+  };
+}
+
+if (leagueBtn) {
+  leagueBtn.onclick = () => {
+    specialTab.style.display = "none";
+    leagueTab.style.display = "block";
+    referTab.style.display = "none";
+  };
+}
+
+if (referBtn) {
+  referBtn.onclick = () => {
+    specialTab.style.display = "none";
+    leagueTab.style.display = "none";
+    referTab.style.display = "block";
+  };
+}
+
   /* ================= NAVIGATION ================= */
 
   const navItems = document.querySelectorAll(".nav-item");
@@ -204,12 +257,12 @@ if (spinBtn) {
       navItems.forEach(nav => nav.classList.remove("active"));
       item.classList.add("active");
 
-      earnSection.style.display = "none";
-      boostSection.style.display = "none";
-      tasksSection.style.display = "none";
-      leagueSection.style.display = "none";
-      accountSection.style.display = "none";
-      skillsSection.style.display = "none";
+      if (earnSection) earnSection.style.display = "none";
+if (boostSection) boostSection.style.display = "none";
+if (tasksSection) tasksSection.style.display = "none";
+if (leagueSection) leagueSection.style.display = "none";
+if (accountSection) accountSection.style.display = "none";
+if (skillsSection) skillsSection.style.display = "none";
       
       if (index === 0) earnSection.style.display = "block";
       if (index === 1) tasksSection.style.display = "block";
