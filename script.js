@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const tasksSection = document.getElementById("tasksSection");
   const leagueSection = document.getElementById("leagueSection");
   const accountSection = document.getElementById("accountSection");
+  const skillsSection = document.getElementById("skillsSection");
 
   const dailyRewardBtn = document.getElementById("dailyRewardBtn");
 
@@ -147,7 +148,31 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
   }
+  
+/* ================= SPIN ================= */
+  
+  const spinBtn = document.getElementById("spinBtn");
 
+if (spinBtn) {
+  spinBtn.addEventListener("click", async () => {
+
+    const res = await fetch("/spin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("🎉 You won " + data.reward + " coins!");
+      loadUser();
+    } else {
+      alert(data.message || "Spin already used today!");
+    }
+  });
+}
+  
   /* ================= REFERRAL ================= */
 
   const inviteBtn = document.getElementById("inviteBtn");
@@ -184,11 +209,12 @@ document.addEventListener("DOMContentLoaded", () => {
       tasksSection.style.display = "none";
       leagueSection.style.display = "none";
       accountSection.style.display = "none";
-
+      skillsSection.style.display = "none";
+      
       if (index === 0) earnSection.style.display = "block";
       if (index === 1) tasksSection.style.display = "block";
       if (index === 2) accountSection.style.display = "block";
-      if (index === 3) boostSection.style.display = "block";
+      if (index === 3) skillsSection.style.display = "block";
       if (index === 4) alert("Cashier coming soon");
     };
   });
