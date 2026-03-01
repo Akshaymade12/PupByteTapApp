@@ -145,11 +145,11 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= REFERRAL ================= */
 
   function generateReferral() {
-    const botUsername = "PupByteTapBot";
-    const link = `https://t.me/share/url?url=https://t.me/${botUsername}?start=${telegramId}`;
-    window.location.href = link;
-  }
-
+  const botUsername = "PupByteTapBot";
+  const link = `https://t.me/${botUsername}?start=${telegramId}`;
+  window.open(link, "_blank");
+}
+  
   const inviteBtn = document.getElementById("inviteBtn");
   if (inviteBtn) inviteBtn.onclick = generateReferral;
 
