@@ -42,7 +42,8 @@ referrals: { type: Number, default: 0 },
 leagueRewardsClaimed: { type: [String], default: [] },
   league: { type: String, default: "Wood" },
   lastActive: { type: Date, default: Date.now },
-  lastDailyClaim: { type: Date, default: null }
+  lastDailyClaim: { type: Date, default: null },
+  lastSpin: { type: Date, default: null }
   
 });
 
@@ -348,6 +349,32 @@ app.post("/claim-league", async (req, res) => {
   await user.save();
 
   res.json({ success: true, reward });
+});
+
+/* ================= SPIN ================= */
+
+app.post("/spin", async (req, res) => {
+  const { telegramId } = req.body;
+
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ success: false });
+
+  const now = new Date();
+
+  // 24 hour restriction
+  if (user.lastSpin && (now - user.lastSpin) < 24 * 60 * 60 * 1000) {
+    return res.json({ success: false, message: "Already spun today" });
+  }
+
+  // random reward
+  const rewards = [100, 200, 300, 500, 800, 1000];
+  const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+  user.coins += reward;
+  user.lastSpin = now;
+  await user.save();
+
+  res.json({ success: true, reward, coins: user.coins });
 });
 
 /* ================= DAILY REWARD ================= */
