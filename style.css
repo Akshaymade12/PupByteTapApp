@@ -47,17 +47,21 @@ body {
 }
 
 .coin-circle {
-  .main-coin {
-  width: 160px;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 50%;   /* ADD THIS */
-  transition: transform 0.1s ease;
-  filter: drop-shadow(0 0 25px #00f7ff);
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle, #ffd700 0%, #b8860b 100%);
+  box-shadow: 0 0 60px rgba(255, 215, 0, 0.6);
 }
 
 .main-coin {
   width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 50%;
   transition: transform 0.1s ease;
   background: transparent;
   filter: drop-shadow(0 0 25px #00f7ff);
