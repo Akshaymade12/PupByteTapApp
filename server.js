@@ -92,6 +92,7 @@ setInterval(async () => {
 app.get("/load/:id/:ref?", async (req, res) => {
   const telegramId = req.params.id;
   const refId = req.params.ref;
+  console.log("Ref ID:", refId);
 
   let user = await User.findOne({ telegramId });
 
