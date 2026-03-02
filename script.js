@@ -198,22 +198,12 @@ document.addEventListener("DOMContentLoaded", () => {
   
 /* ================= SPIN ================= */
   
-const rewardsMap = {
-  100: 30,
-  200: 90,
-  300: 150,
-  500: 210,
-  800: 270,
-  1000: 330
-};
-
+const spinBtn = document.getElementById("spinBtn");
 const wheel = document.getElementById("wheel");
 const wheelWrapper = document.getElementById("wheelWrapper");
 
 if (spinBtn) {
   spinBtn.onclick = async () => {
-
-    wheelWrapper.style.display = "flex";
 
     const res = await fetch("/spin", {
       method: "POST",
@@ -228,18 +218,38 @@ if (spinBtn) {
       return;
     }
 
+    const rewardsMap = {
+      100: 30,
+      200: 90,
+      300: 150,
+      500: 210,
+      800: 270,
+      1000: 330
+    };
+
     const reward = data.reward;
-    const baseDeg = rewardsMap[reward];
 
-    const spinRounds = 5 * 360;
-    const finalDeg = spinRounds + (360 - baseDeg);
+    // SAFETY CHECK
+    if (wheel && wheelWrapper) {
 
-    wheel.style.transform = `rotate(${finalDeg}deg)`;
+      wheelWrapper.style.display = "flex";
 
-    setTimeout(() => {
+      const baseDeg = rewardsMap[reward];
+      const spinRounds = 5 * 360;
+      const finalDeg = spinRounds + (360 - baseDeg);
+
+      wheel.style.transform = `rotate(${finalDeg}deg)`;
+
+      setTimeout(() => {
+        alert("🎉 You won " + reward + " coins!");
+        loadUser();
+      }, 4000);
+
+    } else {
+      // Fallback if wheel missing
       alert("🎉 You won " + reward + " coins!");
       loadUser();
-    }, 4000);
+    }
   };
 }
   
