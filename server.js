@@ -34,6 +34,8 @@ const userSchema = new mongoose.Schema({
   maxEnergy: { type: Number, default: 100 },
   tapLevel: { type: Number, default: 1 },
   tapPower: { type: Number, default: 1 },
+  tapCount: { type: Number, default: 0 },
+tapResetTime: { type: Number, default: Date.now }
   upgradeLevel: { type: Number, default: 0 },
   lastTap: { type: Number, default: 0 },
   referredBy: { type: String, default: null },
@@ -156,6 +158,10 @@ setInterval(async () => {
 app.get("/load/:id", async (req, res) => {
   const telegramId = req.params.id;
 
+  if (!telegramId || telegramId.length < 5) {
+  return res.json({ success: false });
+  }
+  
   let user = await User.findOne({ telegramId });
 
   if (!user) {
@@ -182,17 +188,38 @@ app.get("/load/:id", async (req, res) => {
 app.post("/tap", async (req, res) => {
   const { telegramId } = req.body;
 
+  if (!telegramId || telegramId.length < 5) {
+  return res.json({ success: false });
+  }
+  
   const user = await User.findOne({ telegramId });
   if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
 
+  // Reset every 60 sec
+if (Date.now() - user.tapResetTime > 60000) {
+  user.tapCount = 0;
+  user.tapResetTime = Date.now();
+}
+
+// Limit 200 taps per minute
+if (user.tapCount > 200) {
+  return res.json({ success: false, message: "Too fast" });
+}
+
+user.tapCount += 1;
+
+if (user.energy <= 0) {
+  return res.json({ success: false, message: "No energy" });
+}
+  
   if (user.energy < user.tapPower)
     return res.json({ success: false, message: "No energy" });
 
-   if (Date.now() - user.lastTap < 250) {
+   if (Date.now() - user.lastTap < 400) {
   return res.json({ success: false });
-  }
+   }
 
   user.coins += user.tapPower;
   user.energy -= user.tapPower;
@@ -214,6 +241,11 @@ app.post("/tap", async (req, res) => {
 
 app.post("/upgrade-tap", async (req, res) => {
   const { telegramId } = req.body;
+
+  if (!telegramId || telegramId.length < 5) {
+  return res.json({ success: false });
+  }
+  
   const user = await User.findOne({ telegramId });
   if (!user) return res.json({ success: false });
 
@@ -243,11 +275,22 @@ app.post("/upgrade-tap", async (req, res) => {
 
 app.post("/upgrade-profit", async (req, res) => {
   const { telegramId } = req.body;
+
+  if (!telegramId || telegramId.length < 5) {
+  return res.json({ success: false });
+  }
+  
   const user = await User.findOne({ telegramId });
   if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
 
+  // 🔒 Profit exploit protection
+  
+if (user.upgradeLevel >= 100) {
+  return res.json({ success: false, message: "Max level reached" });
+}
+  
   const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
   if (user.coins < cost)
@@ -342,6 +385,10 @@ app.post("/claim-league", async (req, res) => {
 app.post("/spin", async (req, res) => {
   const { telegramId } = req.body;
 
+  if (!telegramId || telegramId.length < 5) {
+  return res.json({ success: false });
+  }
+  
   const user = await User.findOne({ telegramId });
   if (!user) return res.json({ success: false });
 
@@ -356,6 +403,11 @@ app.post("/spin", async (req, res) => {
   const rewards = [100, 200, 300, 500, 800, 1000];
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
+  // 🔒 Cheat protection
+if (!rewards.includes(reward)) {
+  return res.json({ success: false });
+}
+  
   user.coins += reward;
   user.lastSpin = now;
   user.league = getLeague(user.coins);
@@ -370,6 +422,10 @@ app.post("/spin", async (req, res) => {
 app.post("/daily-reward", async (req, res) => {
   const { telegramId } = req.body;
 
+  if (!telegramId || telegramId.length < 5) {
+  return res.json({ success: false });
+  }
+  
   const user = await User.findOne({ telegramId });
   if (!user) return res.json({ success: false });
 
