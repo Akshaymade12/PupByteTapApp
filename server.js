@@ -185,6 +185,19 @@ app.get("/load/:id", async (req, res) => {
 
 /* ================= TAP ================= */
 
+app.post("/tap", async (req, res) => {
+
+  const { telegramId } = req.body;
+
+  if (!telegramId || telegramId.length < 5) {
+    return res.json({ success: false });
+  }
+
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ success: false });
+
+  await applyOfflineMining(user);
+
 // FAST TAP BLOCK
 if (Date.now() - user.lastTap < 400) {
   return res.json({ success: false });
