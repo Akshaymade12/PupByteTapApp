@@ -185,41 +185,28 @@ app.get("/load/:id", async (req, res) => {
 
 /* ================= TAP ================= */
 
-app.post("/tap", async (req, res) => {
-  const { telegramId } = req.body;
-
-  if (!telegramId || telegramId.length < 5) {
+// FAST TAP BLOCK
+if (Date.now() - user.lastTap < 400) {
   return res.json({ success: false });
-  }
-  
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ success: false });
+}
 
-  await applyOfflineMining(user);
+// ENERGY CHECK
+if (user.energy < user.tapPower) {
+  return res.json({ success: false });
+}
 
-  // Reset every 60 sec
+// RESET COUNTER
 if (Date.now() - user.tapResetTime > 60000) {
   user.tapCount = 0;
   user.tapResetTime = Date.now();
 }
 
-// Limit 200 taps per minute
-if (user.tapCount > 200) {
+// LIMIT
+if (user.tapCount >= 120) {
   return res.json({ success: false, message: "Too fast" });
 }
 
 user.tapCount += 1;
-
-if (user.energy <= 0) {
-  return res.json({ success: false, message: "No energy" });
-}
-  
-  if (user.energy < user.tapPower)
-    return res.json({ success: false, message: "No energy" });
-
-   if (Date.now() - user.lastTap < 400) {
-  return res.json({ success: false });
-   }
 
   user.coins += user.tapPower;
   user.energy -= user.tapPower;
