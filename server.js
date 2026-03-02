@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
   tapLevel: { type: Number, default: 1 },
   tapPower: { type: Number, default: 1 },
   tapCount: { type: Number, default: 0 },
-tapResetTime: { type: Number, default: Date.now }
+tapResetTime: { type: Number, default: Date.now },
   upgradeLevel: { type: Number, default: 0 },
   lastTap: { type: Number, default: 0 },
   referredBy: { type: String, default: null },
