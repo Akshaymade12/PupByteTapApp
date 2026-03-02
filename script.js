@@ -101,7 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  leagueNameEl.innerText = currentLeague.name + " League";
+  if (!currentLeague) return;
+leagueNameEl.innerText = currentLeague.name + " League";
 
   if (currentLeague.max === Infinity) {
     progressEl.style.width = "100%";
@@ -198,7 +199,6 @@ document.addEventListener("DOMContentLoaded", () => {
   
 /* ================= SPIN ================= */
   
-const spinBtn = document.getElementById("spinBtn");
 const wheel = document.getElementById("wheel");
 const wheelWrapper = document.getElementById("wheelWrapper");
 
