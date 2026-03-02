@@ -52,28 +52,28 @@ const User = mongoose.model("User", userSchema);
 /* ================= LEAGUE SYSTEM ================= */
 
 const leagues = [
-  { name: "Wood", min: 0 },
-  { name: "Bronze", min: 5000 },
-  { name: "Silver", min: 20000 },
-  { name: "Gold", min: 50000 },
-  { name: "Platinum", min: 250000 },
-  { name: "Diamond", min: 500000 },
-  { name: "Master", min: 1000000 },
-  { name: "Grandmaster", min: 2500000 },
-  { name: "Elite", min: 5000000 },
-  { name: "Legendary", min: 10000000 }
+  { name: "Wood", min: 0, max: 10000 },
+  { name: "Bronze", min: 10000, max: 30000 },
+  { name: "Silver", min: 30000, max: 70000 },
+  { name: "Golden", min: 70000, max: 150000 },
+  { name: "Platinum", min: 150000, max: 300000 },
+  { name: "Diamond", min: 300000, max: 600000 },
+  { name: "Master", min: 600000, max: 1200000 },
+  { name: "Grandmaster", min: 1200000, max: 2500000 },
+  { name: "Elite", min: 2500000, max: 5000000 },
+  { name: "Legendary", min: 5000000, max: 10000000 },
+  { name: "Mythic", min: 10000000, max: Infinity }
 ];
 
 function getLeague(coins) {
-  let currentLeague = leagues[0].name;
 
   for (let league of leagues) {
-    if (coins >= league.min) {
-      currentLeague = league.name;
+    if (coins >= league.min && coins < league.max) {
+      return league.name;
     }
   }
 
-  return currentLeague;
+  return "Wood";
 }
 
 /* ================= OFFLINE MINING ================= */
@@ -393,6 +393,53 @@ app.post("/daily-reward", async (req, res) => {
   await user.save();
 
   res.json({ success: true, reward });
+});
+
+/* ================= GLOBAL TOP ================= */
+
+app.get("/top-global", async (req, res) => {
+
+  const topUsers = await User.find({})
+    .sort({ coins: -1 })
+    .limit(10)
+    .select("telegramId coins league");
+
+  res.json(topUsers);
+});
+
+
+/* ================= LEAGUE TOP ================= */
+
+app.get("/top-league/:league", async (req, res) => {
+
+  const league = req.params.league;
+
+  const topUsers = await User.find({ league })
+    .sort({ coins: -1 })
+    .limit(10)
+    .select("telegramId coins");
+
+  res.json(topUsers);
+});
+
+
+/* ================= USER RANK ================= */
+
+app.get("/rank/:id", async (req, res) => {
+
+  const telegramId = req.params.id;
+
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({});
+
+  const rank =
+    await User.countDocuments({ coins: { $gt: user.coins } }) + 1;
+
+  res.json({
+    rank,
+    league: user.league,
+    coins: user.coins
+  });
 });
 
 /* ================= ROOT ================= */
