@@ -336,9 +336,14 @@ if (openLeague) {
     leagueSection.style.display = "block";
 
     loadGlobalTop();
-loadLeagueTop(document.getElementById("leagueName").innerText.replace(" League",""));
-loadMyRank();
-    
+
+    const leagueNameEl = document.getElementById("leagueName");
+    if (leagueNameEl) {
+      const leagueName = leagueNameEl.innerText.replace(" League", "");
+      loadLeagueTop(leagueName);
+    }
+
+    loadMyRank();
   };
 }
   
