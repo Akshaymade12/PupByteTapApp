@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = await res.json();
 
     coinsEl.innerText = Math.floor(data.coins);
+    updateLeagueProgress(data.coins);
     energyEl.innerText = data.energy;
     profitEl.innerText = data.profitPerHour;
 
@@ -68,7 +69,53 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   loadUser();
+  
+/* ================= LEAGUE PROGRESS ================= */
+  
+  function updateLeagueProgress(coins) {
 
+  const leagues = [
+    { name: "Wood", min: 0, max: 10000 },
+    { name: "Bronze", min: 10000, max: 30000 },
+    { name: "Silver", min: 30000, max: 70000 },
+    { name: "Golden", min: 70000, max: 150000 },
+    { name: "Platinum", min: 150000, max: 300000 },
+    { name: "Diamond", min: 300000, max: 600000 },
+    { name: "Master", min: 600000, max: 1200000 },
+    { name: "Grandmaster", min: 1200000, max: 2500000 },
+    { name: "Elite", min: 2500000, max: 5000000 },
+    { name: "Legendary", min: 5000000, max: 10000000 },
+    { name: "Mythic", min: 10000000, max: Infinity }
+  ];
+
+  const leagueNameEl = document.getElementById("leagueName");
+  const progressEl = document.getElementById("leagueProgress");
+
+  let currentLeague;
+
+  for (let league of leagues) {
+    if (coins >= league.min && coins < league.max) {
+      currentLeague = league;
+      break;
+    }
+  }
+
+  leagueNameEl.innerText = currentLeague.name + " League";
+
+  if (currentLeague.max === Infinity) {
+    progressEl.style.width = "100%";
+    return;
+  }
+
+  const progress =
+    ((coins - currentLeague.min) /
+      (currentLeague.max - currentLeague.min)) * 100;
+
+  progressEl.style.width = progress + "%";
+  }
+
+}
+                          
   /* ================= TAP ================= */
 
   if (tapBtn) {
@@ -277,6 +324,11 @@ if (openLeague) {
   openLeague.onclick = () => {
     earnSection.style.display = "none";
     leagueSection.style.display = "block";
+
+    loadGlobalTop();
+loadLeagueTop(document.getElementById("leagueName").innerText.replace(" League",""));
+loadMyRank();
+    
   };
 }
   
@@ -305,6 +357,76 @@ navItems.forEach((item, index) => {
     if (index === 4) alert("Cashier coming soon");
   };
 });
+
+  /* ================= GLOBAL TOP ================= */
+
+async function loadGlobalTop() {
+
+  const res = await fetch("/top-global");
+  const users = await res.json();
+
+  const el = document.getElementById("globalTop");
+  el.innerHTML = "";
+
+  users.forEach((u, i) => {
+
+    const row = document.createElement("div");
+    row.className = "user-row";
+
+    row.innerHTML = `
+      <span>#${i + 1}</span>
+      <span>${u.telegramId}</span>
+      <span>${Math.floor(u.coins)}</span>
+    `;
+
+    el.appendChild(row);
+  });
+}
+
+
+/* ================= LEAGUE TOP ================= */
+
+async function loadLeagueTop(league) {
+
+  const res = await fetch(`/top-league/${league}`);
+  const users = await res.json();
+
+  const el = document.getElementById("leagueTop");
+  el.innerHTML = "";
+
+  users.forEach((u, i) => {
+
+    const row = document.createElement("div");
+    row.className = "user-row";
+
+    row.innerHTML = `
+      <span>#${i + 1}</span>
+      <span>${u.telegramId}</span>
+      <span>${Math.floor(u.coins)}</span>
+    `;
+
+    el.appendChild(row);
+  });
+}
+
+
+/* ================= MY RANK ================= */
+
+async function loadMyRank() {
+
+  const res = await fetch(`/rank/${telegramId}`);
+  const data = await res.json();
+
+  const el = document.getElementById("myRank");
+
+  el.innerHTML = `
+    <div class="user-row" style="background:#00f7ff22;">
+      <span>#${data.rank}</span>
+      <span>You</span>
+      <span>${Math.floor(data.coins)}</span>
+    </div>
+  `;
+}
   
   /* ================= +1 Animation ================= */
 
