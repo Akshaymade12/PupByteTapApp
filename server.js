@@ -382,7 +382,7 @@ app.post("/claim-league", async (req, res) => {
 
   if (league === "Bronze") reward = 2000;
   if (league === "Silver") reward = 5000;
-  if (league === "Gold") reward = 10000;
+  if (league === "Golden") reward = 10000;
 
   if (reward === 0) return res.json({ success: false });
 
