@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const skillsSection = document.getElementById("skillsSection");
   
   const dailyRewardBtn = document.getElementById("dailyRewardBtn");
+  const spinBtn = document.getElementById("spinBtn");
 
   const accountUserId = document.getElementById("accountUserId");
   const accountCoins = document.getElementById("accountCoins");
@@ -112,9 +113,8 @@ document.addEventListener("DOMContentLoaded", () => {
       (currentLeague.max - currentLeague.min)) * 100;
 
   progressEl.style.width = progress + "%";
+    
   }
-
-}
                           
   /* ================= TAP ================= */
 
