@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const TelegramBot = require("node-telegram-bot-api");
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(express.json());
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
