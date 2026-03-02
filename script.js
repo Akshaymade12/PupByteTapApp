@@ -447,5 +447,46 @@ async function loadMyRank() {
     document.querySelector(".coin-wrapper").appendChild(plus);
     setTimeout(() => plus.remove(), 800);
   }
+  
+/* ================= COMPLETE TASK ================= */
+
+  async function completeTask(taskId) {
+
+    const res = await fetch("/complete-task", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, taskId })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("You received " + data.reward + " coins!");
+      loadUser();
+    } else {
+      alert(data.message || "Task already completed");
+    }
+  }
+
+
+  /* ================= CLAIM LEAGUE REWARD ================= */
+
+  async function claimLeagueReward() {
+
+    const res = await fetch("/claim-league", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("League reward claimed! +" + data.reward);
+      loadUser();
+    } else {
+      alert("Reward already claimed or not eligible");
+    }
+  }
 
 });
