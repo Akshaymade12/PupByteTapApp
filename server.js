@@ -7,6 +7,16 @@ const TelegramBot = require("node-telegram-bot-api");
 const app = express();
 app.use(express.json());
 
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const MONGO_URI = process.env.MONGO_URI;
+
+const bot = new TelegramBot(BOT_TOKEN);
+
+app.post(`/bot${BOT_TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 120, // 120 requests per minute per IP
@@ -19,9 +29,6 @@ app.use(express.static(__dirname));
 
 /* ================= ENV ================= */
 
-const BOT_TOKEN = process.env.BOT_TOKEN;
-const MONGO_URI = process.env.MONGO_URI;
-
 if (!BOT_TOKEN) {
   console.error("BOT_TOKEN missing ❌");
   process.exit(1);
@@ -30,10 +37,6 @@ if (!BOT_TOKEN) {
 mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log("Mongo Error ❌", err));
-
-/* ================= TELEGRAM BOT ================= */
-
-const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
 /* ================= SCHEMA ================= */
 
