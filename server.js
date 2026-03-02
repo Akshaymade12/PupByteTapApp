@@ -1,9 +1,20 @@
+const rateLimit = require("express-rate-limit");
+
 const express = require("express");
 const mongoose = require("mongoose");
 const TelegramBot = require("node-telegram-bot-api");
 
 const app = express();
 app.use(express.json());
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 120, // 120 requests per minute per IP
+  message: { success: false, message: "Too many requests" }
+});
+
+app.use(apiLimiter);
+
 app.use(express.static(__dirname));
 
 /* ================= ENV ================= */
