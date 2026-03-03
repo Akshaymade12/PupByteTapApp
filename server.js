@@ -72,13 +72,7 @@ const User = mongoose.model("User", userSchema);
 /* ================= TELEGRAM VERIFY ================= */
 
 function verifyTelegram(initData) {
-
   if (!initData) return false;
-
-  const secret = crypto
-    .createHash("sha256")
-    .update(BOT_TOKEN)
-    .digest();
 
   const urlParams = new URLSearchParams(initData);
   const hash = urlParams.get("hash");
@@ -89,8 +83,13 @@ function verifyTelegram(initData) {
     .map(([key, value]) => `${key}=${value}`)
     .join("\n");
 
+  const secretKey = crypto
+    .createHmac("sha256", "WebAppData")
+    .update(BOT_TOKEN)
+    .digest();
+
   const hmac = crypto
-    .createHmac("sha256", secret)
+    .createHmac("sha256", secretKey)
     .update(dataCheckString)
     .digest("hex");
 
