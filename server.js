@@ -1,6 +1,6 @@
 const rateLimit = require("express-rate-limit");
-
 const express = require("express");
+const crypto = require("crypto");
 const mongoose = require("mongoose");
 const TelegramBot = require("node-telegram-bot-api");
 
@@ -69,9 +69,41 @@ leagueRewardsClaimed: { type: [String], default: [] },
 
 const User = mongoose.model("User", userSchema);
 
+/* ================= TELEGRAM VERIFY ================= */
+
+function verifyTelegram(initData) {
+
+  if (!initData) return false;
+
+  const secret = crypto
+    .createHash("sha256")
+    .update(BOT_TOKEN)
+    .digest();
+
+  const urlParams = new URLSearchParams(initData);
+  const hash = urlParams.get("hash");
+  urlParams.delete("hash");
+
+  const dataCheckString = [...urlParams.entries()]
+    .sort()
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+
+  const hmac = crypto
+    .createHmac("sha256", secret)
+    .update(dataCheckString)
+    .digest("hex");
+
+  return hmac === hash;
+}
+
 /* ================= COMMON USER VALIDATION ================= */
 
-async function getValidUser(telegramId) {
+async function getValidUser(telegramId, initData) {
+
+  if (!verifyTelegram(initData)) {
+    return null;
+  }
 
   if (!telegramId || telegramId.length < 5) {
     return null;
@@ -224,9 +256,8 @@ app.get("/load/:id", async (req, res) => {
 
 app.post("/tap", async (req, res) => {
 
-  const { telegramId } = req.body;
-
-  const user = await getValidUser(telegramId);
+  const { telegramId, initData } = req.body;
+const user = await getValidUser(telegramId, initData);
 if (!user) return res.json({ success: false });
 
 
@@ -299,13 +330,8 @@ user.lastCoinUpdate = now;
 /* ================= TAP UPGRADE ================= */
 
 app.post("/upgrade-tap", async (req, res) => {
-  const { telegramId } = req.body;
-
-  if (!telegramId || telegramId.length < 5) {
-  return res.json({ success: false });
-  }
-  
-  const user = await getValidUser(telegramId);
+  const { telegramId, initData } = req.body;
+const user = await getValidUser(telegramId, initData);
 if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
@@ -333,13 +359,8 @@ if (!user) return res.json({ success: false });
 /* ================= PROFIT UPGRADE ================= */
 
 app.post("/upgrade-profit", async (req, res) => {
-  const { telegramId } = req.body;
-
-  if (!telegramId || telegramId.length < 5) {
-  return res.json({ success: false });
-  }
-  
-  const user = await getValidUser(telegramId);
+  const { telegramId, initData } = req.body;
+const user = await getValidUser(telegramId, initData);
 if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
@@ -385,9 +406,8 @@ app.get("/top/:league", async (req, res) => {
 /* ================= SPECIAL TASK ================= */
 
 app.post("/complete-task", async (req, res) => {
-  const { telegramId, taskId } = req.body;
-
-  const user = await getValidUser(telegramId);
+  const { telegramId, initData } = req.body;
+const user = await getValidUser(telegramId, initData);
 if (!user) return res.json({ success: false });
 
   if (user.completedTasks.includes(taskId)) {
@@ -412,9 +432,8 @@ if (!user) return res.json({ success: false });
 /* ================= LEAGUE REWARD ================= */
 
 app.post("/claim-league", async (req, res) => {
-  const { telegramId } = req.body;
-
-  const user = await getValidUser(telegramId);
+  const { telegramId, initData } = req.body;
+const user = await getValidUser(telegramId, initData);
 if (!user) return res.json({ success: false });
 
   const league = user.league;
@@ -442,13 +461,8 @@ if (!user) return res.json({ success: false });
 /* ================= SPIN ================= */
 
 app.post("/spin", async (req, res) => {
-  const { telegramId } = req.body;
-
-  if (!telegramId || telegramId.length < 5) {
-  return res.json({ success: false });
-  }
-  
-  const user = await getValidUser(telegramId);
+  const { telegramId, initData } = req.body;
+const user = await getValidUser(telegramId, initData);
 if (!user) return res.json({ success: false });
 
   const now = new Date();
@@ -479,13 +493,8 @@ if (!rewards.includes(reward)) {
 /* ================= DAILY REWARD ================= */
 
 app.post("/daily-reward", async (req, res) => {
-  const { telegramId } = req.body;
-
-  if (!telegramId || telegramId.length < 5) {
-  return res.json({ success: false });
-  }
-  
-  const user = await getValidUser(telegramId);
+  const { telegramId, initData } = req.body;
+const user = await getValidUser(telegramId, initData);
 if (!user) return res.json({ success: false });
 
   const now = new Date();
