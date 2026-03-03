@@ -66,6 +66,21 @@ leagueRewardsClaimed: { type: [String], default: [] },
 
 const User = mongoose.model("User", userSchema);
 
+/* ================= COMMON USER VALIDATION ================= */
+
+async function getValidUser(telegramId) {
+
+  if (!telegramId || telegramId.length < 5) {
+    return null;
+  }
+
+  const user = await User.findOne({ telegramId });
+
+  if (!user) return null;   // ✅ agar user nahi mila
+
+  return user;              // ✅ agar user mila
+}
+
 /* ================= LEAGUE SYSTEM ================= */
 
 const leagues = [
@@ -204,12 +219,9 @@ app.post("/tap", async (req, res) => {
 
   const { telegramId } = req.body;
 
-  if (!telegramId || telegramId.length < 5) {
-    return res.json({ success: false });
-  }
+  const user = await getValidUser(telegramId);
+if (!user) return res.json({ success: false });
 
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
 
@@ -261,8 +273,8 @@ app.post("/upgrade-tap", async (req, res) => {
   return res.json({ success: false });
   }
   
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId);
+if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
 
@@ -295,8 +307,8 @@ app.post("/upgrade-profit", async (req, res) => {
   return res.json({ success: false });
   }
   
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId);
+if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
 
@@ -343,8 +355,8 @@ app.get("/top/:league", async (req, res) => {
 app.post("/complete-task", async (req, res) => {
   const { telegramId, taskId } = req.body;
 
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId);
+if (!user) return res.json({ success: false });
 
   if (user.completedTasks.includes(taskId)) {
     return res.json({ success: false, message: "Already completed" });
@@ -370,8 +382,8 @@ app.post("/complete-task", async (req, res) => {
 app.post("/claim-league", async (req, res) => {
   const { telegramId } = req.body;
 
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId);
+if (!user) return res.json({ success: false });
 
   const league = user.league;
 
@@ -404,8 +416,8 @@ app.post("/spin", async (req, res) => {
   return res.json({ success: false });
   }
   
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId);
+if (!user) return res.json({ success: false });
 
   const now = new Date();
 
@@ -441,8 +453,8 @@ app.post("/daily-reward", async (req, res) => {
   return res.json({ success: false });
   }
   
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId);
+if (!user) return res.json({ success: false });
 
   const now = new Date();
 
