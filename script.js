@@ -359,17 +359,17 @@ if (openLeague) {
   /* ================= LEAGUE SLIDER SYSTEM ================= */
 
 const leagueData = [
-  { name: "Wood", img: "wood.png" },
-  { name: "Bronze", img: "bronze.png" },
-  { name: "Silver", img: "silver.png" },
-  { name: "Golden", img: "golden.png" },
-  { name: "Platinum", img: "platinum.png" },
-  { name: "Diamond", img: "diamond.png" },
-  { name: "Master", img: "master.png" },
-  { name: "Grandmaster", img: "grandmaster.png" },
-  { name: "Elite", img: "elite.png" },
-  { name: "Legendary", img: "legendary.png" },
-  { name: "Mythic", img: "mythic.png" }
+  { name: "Wood", img: "images/wood.png" },
+  { name: "Bronze", img: "images/bronze.png" },
+  { name: "Silver", img: "images/silver.png" },
+  { name: "Golden", img: "images/golden.png" },
+  { name: "Platinum", img: "images/platinum.png" },
+  { name: "Diamond", img: "images/diamond.png" },
+  { name: "Master", img: "images/master.png" },
+  { name: "Grandmaster", img: "images/grandmaster.png" },
+  { name: "Elite", img: "images/elite.png" },
+  { name: "Legendary", img: "images/legendary.png" },
+  { name: "Mythic", img: "images/mythic.png" }
 ];
 
 let currentLeagueIndex = 0;
