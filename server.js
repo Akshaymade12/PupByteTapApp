@@ -3,7 +3,7 @@ const express = require("express");
 const crypto = require("crypto");
 const mongoose = require("mongoose");
 const TelegramBot = require("node-telegram-bot-api");
-
+const cron = require("node-cron");
 const app = express();
 app.set("trust proxy", 1);
 app.use(express.json());
@@ -63,7 +63,8 @@ leagueRewardsClaimed: { type: [String], default: [] },
   league: { type: String, default: "Wood" },
   lastActive: { type: Date, default: Date.now },
   lastDailyClaim: { type: Date, default: null },
-  lastSpin: { type: Date, default: null }
+  lastSpin: { type: Date, default: null },
+  rewardClaimed: { type: Boolean, default: false }
   
 });
 
@@ -623,13 +624,49 @@ app.get("/top10/:leagueName", async (req, res) => {
   res.json(top);
 });
 
+/* ================= LEAGUE REWARD CLAIM ================= */
+
+app.post("/claim-reward", async (req, res) => {
+
+  const user = await User.findOne({
+    telegramId: req.body.telegramId
+  });
+
+  if (!user)
+    return res.status(404).json({ error: "User not found" });
+
+  if (user.rewardClaimed) {
+    return res.json({ error: "Already claimed" });
+  }
+
+  user.coins += 1000; // reward amount
+  user.rewardClaimed = true;
+
+  await user.save();
+
+  res.json({ success: true });
+});
+
 /* ================= ROOT ================= */
 
 app.get("/", (req, res) => {
   res.send("PupByte Server Running 🚀");
 });
 
+/* ================= WEEKLY LEAGUE RESET ================= */
+
+cron.schedule("0 0 * * 0", async () => {
+  console.log("Weekly reset running...");
+
+  await User.updateMany({}, {
+    tapCount: 0
+  });
+
+  console.log("Weekly reset completed");
+});
+
 const PORT = process.env.PORT || 3000;
+
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
