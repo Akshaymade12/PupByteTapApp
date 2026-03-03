@@ -332,21 +332,82 @@ if (referBtn) {
 const openLeague = document.getElementById("openLeague");
 
 if (openLeague) {
-  openLeague.onclick = () => {
+  openLeague.onclick = async () => {
+
     earnSection.style.display = "none";
     leagueSection.style.display = "block";
 
+    await loadUser();
+
+    const currentName =
+      document.getElementById("leagueName")
+      .innerText.replace(" League","");
+
+    currentLeagueIndex =
+      leagueData.findIndex(l => l.name === currentName);
+
+    if(currentLeagueIndex < 0)
+      currentLeagueIndex = 0;
+
+    loadLeagueByIndex(currentLeagueIndex);
+
     loadGlobalTop();
-
-    const leagueNameEl = document.getElementById("leagueName");
-    if (leagueNameEl) {
-      const leagueName = leagueNameEl.innerText.replace(" League", "");
-      loadLeagueTop(leagueName);
-    }
-
     loadMyRank();
   };
 }
+
+  /* ================= LEAGUE SLIDER SYSTEM ================= */
+
+const leagueData = [
+  { name: "Wood", img: "wood.png" },
+  { name: "Bronze", img: "bronze.png" },
+  { name: "Silver", img: "silver.png" },
+  { name: "Golden", img: "golden.png" },
+  { name: "Platinum", img: "platinum.png" },
+  { name: "Diamond", img: "diamond.png" },
+  { name: "Master", img: "master.png" },
+  { name: "Grandmaster", img: "grandmaster.png" },
+  { name: "Elite", img: "elite.png" },
+  { name: "Legendary", img: "legendary.png" },
+  { name: "Mythic", img: "mythic.png" }
+];
+
+let currentLeagueIndex = 0;
+
+function loadLeagueByIndex(index){
+
+  const league = leagueData[index];
+
+  document.getElementById("leagueName").innerText =
+    league.name + " League";
+
+  document.getElementById("leagueImage").src =
+    league.img;
+
+  loadLeagueTop(league.name);
+}
+
+const prevBtn = document.getElementById("prevLeague");
+const nextBtn = document.getElementById("nextLeague");
+
+if(prevBtn){
+  prevBtn.onclick = ()=>{
+    if(currentLeagueIndex > 0){
+      currentLeagueIndex--;
+      loadLeagueByIndex(currentLeagueIndex);
+    }
+  }
+}
+
+if(nextBtn){
+  nextBtn.onclick = ()=>{
+    if(currentLeagueIndex < leagueData.length -1){
+      currentLeagueIndex++;
+      loadLeagueByIndex(currentLeagueIndex);
+    }
+  }
+}
+  
   
 /* ================= NAVIGATION ================= */
 
@@ -495,4 +556,14 @@ async function loadMyRank() {
     }
   }
 
+  const closeLeagueBtn =
+  document.getElementById("closeLeagueBtn");
+
+if(closeLeagueBtn){
+  closeLeagueBtn.onclick = ()=>{
+    leagueSection.style.display = "none";
+    earnSection.style.display = "block";
+  }
+}
+  
 });
