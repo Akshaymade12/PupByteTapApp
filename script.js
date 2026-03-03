@@ -574,5 +574,15 @@ if(closeLeagueBtn){
     earnSection.style.display = "block";
   }
 }
+  /* ===== LOADING SCREEN HIDE ===== */
+  
+  window.addEventListener("load", () => {
+  setTimeout(() => {
+    const loader = document.getElementById("loadingScreen");
+    loader.style.opacity = "0";
+    loader.style.visibility = "hidden";
+  }, 1800); // 1.8 sec premium delay
   
 });
+
+  });
