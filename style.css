@@ -454,3 +454,104 @@ button {
 .league-img{
   width:160px;
 }
+
+/* ================= PREMIUM TAPSWAP UI ================= */
+
+body {
+  background: radial-gradient(circle at top, #1f1b3a, #0f0c29);
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Glass Card */
+.glass-card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  border-radius: 15px;
+  padding: 12px 20px;
+  box-shadow: 0 0 20px rgba(0,255,255,0.1);
+  transition: 0.3s;
+}
+
+.glass-card:hover {
+  transform: scale(1.05);
+}
+
+/* League Layout */
+.league-main{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:30px;
+  margin-top:25px;
+}
+
+/* Arrows */
+.arrow{
+  font-size:40px;
+  cursor:pointer;
+  color:#00f7ff;
+  transition:0.3s;
+}
+
+.arrow:hover{
+  transform:scale(1.2);
+  color:#00ffff;
+}
+
+/* Trophy */
+.league-img{
+  width:180px;
+  filter: drop-shadow(0 0 20px gold);
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  from { filter: drop-shadow(0 0 10px gold); }
+  to { filter: drop-shadow(0 0 25px orange); }
+}
+
+/* Progress Bar */
+.progress-bar{
+  width:220px;
+  height:10px;
+  background:rgba(255,255,255,0.1);
+  border-radius:10px;
+  margin-top:15px;
+  overflow:hidden;
+}
+
+#leagueProgress{
+  height:10px;
+  width:0%;
+  background:linear-gradient(90deg,#00f7ff,#ff00ff);
+  border-radius:10px;
+  transition:0.5s;
+}
+
+/* Buttons */
+button{
+  background:linear-gradient(90deg,#00f7ff,#ff00ff);
+  border:none;
+  padding:10px 20px;
+  border-radius:25px;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  transform:scale(1.05);
+}
+
+/* Top List */
+.user-row{
+  display:flex;
+  justify-content:space-between;
+  padding:12px;
+  margin:8px 0;
+  border-radius:12px;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(10px);
+}
