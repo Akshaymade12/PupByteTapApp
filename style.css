@@ -451,8 +451,12 @@ button {
   opacity:1;
 }
 
-.league-img{
-  width:160px;
+..league-img{
+  width:180px;
+  display:block;
+  margin:0 auto;
+  filter: drop-shadow(0 0 20px gold);
+  animation: glow 2s infinite alternate;
 }
 
 /* ================= PREMIUM TAPSWAP UI ================= */
@@ -479,19 +483,30 @@ body {
 
 /* League Layout */
 .league-main{
+  position:relative;
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:30px;
   margin-top:25px;
 }
 
-/* Arrows */
+/* arrows ko absolute bana rahe hain */
 .arrow{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
   font-size:40px;
   cursor:pointer;
   color:#00f7ff;
   transition:0.3s;
+}
+
+#prevLeague{
+  left:15px;
+}
+
+#nextLeague{
+  right:15px;
 }
 
 .arrow:hover{
@@ -519,6 +534,11 @@ body {
   border-radius:10px;
   margin-top:15px;
   overflow:hidden;
+}
+
+.league-center{
+  text-align:center;
+  width:100%;
 }
 
 #leagueProgress{
