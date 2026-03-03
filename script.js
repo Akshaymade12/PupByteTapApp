@@ -51,6 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = await res.json();
 
     coinsEl.innerText = Math.floor(data.coins);
+    const leagueText = document.getElementById("currentLeagueText");
+if(leagueText) leagueText.innerText = data.league;
+    
     updateLeagueProgress(data.coins);
     energyEl.innerText = data.energy;
     profitEl.innerText = data.profitPerHour;
@@ -378,11 +381,17 @@ function loadLeagueByIndex(index){
 
   const league = leagueData[index];
 
+  const img = document.getElementById("leagueImage");
+
+  img.style.opacity = 0;
+
+  setTimeout(()=>{
+    img.src = league.img;
+    img.style.opacity = 1;
+  },200);
+
   document.getElementById("leagueName").innerText =
     league.name + " League";
-
-  document.getElementById("leagueImage").src =
-    league.img;
 
   loadLeagueTop(league.name);
 }
