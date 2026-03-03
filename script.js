@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   const tg = window.Telegram?.WebApp;
+  const initData = tg.initData;
 
   if (!tg) {
     alert("Please open inside Telegram");
@@ -125,7 +126,7 @@ leagueNameEl.innerText = currentLeague.name + " League";
       const res = await fetch("/tap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegramId })
+        body: JSON.stringify({ telegramId, initData })
       });
 
       const data = await res.json();
@@ -147,7 +148,7 @@ leagueNameEl.innerText = currentLeague.name + " League";
       const res = await fetch("/upgrade-tap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegramId })
+        body: JSON.stringify({ telegramId, initData })
       });
 
       const data = await res.json();
@@ -165,7 +166,7 @@ leagueNameEl.innerText = currentLeague.name + " League";
       const res = await fetch("/upgrade-profit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegramId })
+        body: JSON.stringify({ telegramId, initData })
       });
 
       const data = await res.json();
@@ -183,7 +184,7 @@ leagueNameEl.innerText = currentLeague.name + " League";
       const res = await fetch("/daily-reward", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegramId })
+        body: JSON.stringify({ telegramId, initData })
       });
 
       const data = await res.json();
@@ -208,7 +209,7 @@ if (spinBtn) {
     const res = await fetch("/spin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId })
+      body: JSON.stringify({ telegramId, initData })
     });
 
     const data = await res.json();
@@ -460,7 +461,7 @@ async function loadMyRank() {
     const res = await fetch("/complete-task", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId, taskId })
+      body: JSON.stringify({ telegramId, initData })
     });
 
     const data = await res.json();
@@ -481,7 +482,7 @@ async function loadMyRank() {
     const res = await fetch("/claim-league", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId })
+      body: JSON.stringify({ telegramId, initData })
     });
 
     const data = await res.json();
