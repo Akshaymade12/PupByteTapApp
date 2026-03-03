@@ -44,6 +44,9 @@ mongoose.connect(MONGO_URI)
 const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true, unique: true },
   coins: { type: Number, default: 0 },
+  suspiciousCount: { type: Number, default: 0 },
+isBlocked: { type: Boolean, default: false },
+lastCoinUpdate: { type: Date, default: Date.now },
   profitPerHour: { type: Number, default: 10 },
   energy: { type: Number, default: 100 },
   maxEnergy: { type: Number, default: 100 },
@@ -76,9 +79,13 @@ async function getValidUser(telegramId) {
 
   const user = await User.findOne({ telegramId });
 
-  if (!user) return null;   // ✅ agar user nahi mila
+  if (!user) return null;
 
-  return user;              // ✅ agar user mila
+  if (user.isBlocked) {
+    return null;
+  }
+
+  return user;
 }
 
 /* ================= LEAGUE SYSTEM ================= */
@@ -225,6 +232,20 @@ if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
 
+  // 🛡 Suspicious Tap Detection
+
+if (Date.now() - user.lastTap < 200) {
+  user.suspiciousCount += 1;
+} else {
+  user.suspiciousCount = 0;
+}
+
+if (user.suspiciousCount >= 10) {
+  user.isBlocked = true;
+  await user.save();
+  return res.json({ success: false, message: "User blocked" });
+}
+  
 // FAST TAP BLOCK
 if (Date.now() - user.lastTap < 400) {
   return res.json({ success: false });
@@ -248,7 +269,18 @@ if (user.tapCount >= 120) {
 
 user.tapCount += 1;
 
-  user.coins += user.tapPower;
+  const now = new Date();
+
+// limit max coin gain per second (anti script spam)
+if (user.lastCoinUpdate) {
+  const diff = (now - user.lastCoinUpdate) / 1000;
+  if (diff < 1 && user.tapPower > 20) {
+    return res.json({ success: false });
+  }
+}
+
+user.coins += user.tapPower;
+user.lastCoinUpdate = now;
   user.energy -= user.tapPower;
   user.league = getLeague(user.coins);
   user.lastTap = Date.now();
