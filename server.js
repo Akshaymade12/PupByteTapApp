@@ -121,29 +121,29 @@ async function getValidUser(telegramId, initData) {
 
 /* ================= LEAGUE SYSTEM ================= */
 
-const leagues = [
-  { name: "Wood", min: 0, max: 10000 },
-  { name: "Bronze", min: 10000, max: 30000 },
-  { name: "Silver", min: 30000, max: 70000 },
-  { name: "Golden", min: 70000, max: 150000 },
-  { name: "Platinum", min: 150000, max: 300000 },
-  { name: "Diamond", min: 300000, max: 600000 },
-  { name: "Master", min: 600000, max: 1200000 },
-  { name: "Grandmaster", min: 1200000, max: 2500000 },
-  { name: "Elite", min: 2500000, max: 5000000 },
-  { name: "Legendary", min: 5000000, max: 10000000 },
-  { name: "Mythic", min: 10000000, max: Infinity }
+const LEAGUES = [
+  { name: "Bronze", min: 0, max: 5000 },
+  { name: "Silver", min: 5000, max: 15000 },
+  { name: "Gold", min: 15000, max: 50000 },
+  { name: "Platinum", min: 50000, max: 100000 },
+  { name: "Diamond", min: 100000, max: 250000 },
+  { name: "Master", min: 250000, max: 500000 },
+  { name: "Elite", min: 500000, max: 1000000 },
+  { name: "Champion", min: 1000000, max: 2500000 },
+  { name: "Legend", min: 2500000, max: 5000000 },
+  { name: "Grandmaster", min: 5000000, max: 10000000 },
+  { name: "Immortal", min: 10000000, max: Infinity }
 ];
 
+function getLeagueByTaps(taps) {
+  return LEAGUES.find(
+    league => taps >= league.min && taps < league.max
+  );
+}
+
 function getLeague(coins) {
-
-  for (let league of leagues) {
-    if (coins >= league.min && coins < league.max) {
-      return league.name;
-    }
-  }
-
-  return "Wood";
+  const league = getLeagueByTaps(coins);
+  return league ? league.name : "Bronze";
 }
 
 /* ================= OFFLINE MINING ================= */
@@ -262,22 +262,34 @@ if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
 
-  // 🛡 Suspicious Tap Detection
+ // ================= ULTRA SECURITY LAYER =================
 
-if (Date.now() - user.lastTap < 200) {
+const now = Date.now();
+const tapGap = now - user.lastTap;
+
+// Human tap speed detection
+if (tapGap < 120) {
+  user.suspiciousCount += 2;
+} else if (tapGap < 200) {
   user.suspiciousCount += 1;
 } else {
-  user.suspiciousCount = 0;
+  user.suspiciousCount = Math.max(0, user.suspiciousCount - 1);
 }
 
-if (user.suspiciousCount >= 10) {
+// Soft block
+if (user.suspiciousCount >= 20) {
+  return res.json({ success: false, message: "Slow down" });
+}
+
+// Hard block
+if (user.suspiciousCount >= 40) {
   user.isBlocked = true;
   await user.save();
   return res.json({ success: false, message: "User blocked" });
 }
   
 // FAST TAP BLOCK
-if (Date.now() - user.lastTap < 400) {
+if (tapGap < 150) {
   return res.json({ success: false });
 }
 
@@ -299,7 +311,6 @@ if (user.tapCount >= 120) {
 
 user.tapCount += 1;
 
-  const now = new Date();
 
 // limit max coin gain per second (anti script spam)
 if (user.lastCoinUpdate) {
@@ -310,10 +321,10 @@ if (user.lastCoinUpdate) {
 }
 
 user.coins += user.tapPower;
-user.lastCoinUpdate = now;
+user.lastCoinUpdate = new Date();
   user.energy -= user.tapPower;
   user.league = getLeague(user.coins);
-  user.lastTap = Date.now();
+  user.lastTap = now;
 
   await user.save();
 
@@ -566,6 +577,50 @@ app.get("/rank/:id", async (req, res) => {
     league: user.league,
     coins: user.coins
   });
+});
+
+/* ================= SECURE LEAGUE API ================= */
+
+app.get("/league/:telegramId", async (req, res) => {
+
+  const user = await User.findOne({
+    telegramId: req.params.telegramId
+  });
+
+  if (!user)
+    return res.status(404).json({ error: "Not found" });
+
+  const league = LEAGUES.find(
+    l => user.coins >= l.min && user.coins < l.max
+  );
+
+  res.json({
+    coins: user.coins,
+    league: league.name,
+    min: league.min,
+    max: league.max
+  });
+});
+
+/* ================= SECURE LEAGUE TOP 10 ================= */
+
+app.get("/top10/:leagueName", async (req, res) => {
+
+  const league = LEAGUES.find(
+    l => l.name === req.params.leagueName
+  );
+
+  if (!league)
+    return res.status(400).json({ error: "Invalid league" });
+
+  const top = await User.find({
+    coins: { $gte: league.min, $lt: league.max }
+  })
+    .sort({ coins: -1 })
+    .limit(10)
+    .select("telegramId coins");
+
+  res.json(top);
 });
 
 /* ================= ROOT ================= */
