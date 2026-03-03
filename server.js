@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema({
   coins: { type: Number, default: 0 },
   suspiciousCount: { type: Number, default: 0 },
 isBlocked: { type: Boolean, default: false },
-lastCoinUpdate: { type: Date, default: Date.now },
+lastCoinUpdate: { type: Date, default: null },
   profitPerHour: { type: Number, default: 10 },
   energy: { type: Number, default: 100 },
   maxEnergy: { type: Number, default: 100 },
@@ -406,9 +406,12 @@ app.get("/top/:league", async (req, res) => {
 /* ================= SPECIAL TASK ================= */
 
 app.post("/complete-task", async (req, res) => {
-  const { telegramId, initData } = req.body;
-const user = await getValidUser(telegramId, initData);
-if (!user) return res.json({ success: false });
+  const { telegramId, initData, taskId } = req.body;
+
+  const user = await getValidUser(telegramId, initData);
+  if (!user) return res.json({ success: false });
+
+  if (!taskId) return res.json({ success: false });
 
   if (user.completedTasks.includes(taskId)) {
     return res.json({ success: false, message: "Already completed" });
