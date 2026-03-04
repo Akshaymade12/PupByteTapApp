@@ -655,7 +655,7 @@ const { telegramId, taskId } = req.body;
 
 const user = await users.findOne({ telegramId });
 
-if(user.tasks?.includes(taskId)){
+if(user.tasks && user.tasks.includes(taskId)){
 return res.json({ success:false, message:"Task already completed"});
 }
 
