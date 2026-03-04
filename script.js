@@ -146,31 +146,37 @@ leagueNameEl.innerText = currentLeague.name + " League";
 /* ===== SOCIAL MISSIONS ===== */
   
   function openMission(){
-document.getElementById("tasksPage").classList.add("hidden");
-document.getElementById("missionPage").classList.remove("hidden");
+
+document.getElementById("tasksSection").style.display="none";
+document.getElementById("missionPage").style.display="block";
+
 }
 
 function closeMission(){
-document.getElementById("missionPage").classList.add("hidden");
-document.getElementById("tasksPage").classList.remove("hidden");
+
+document.getElementById("missionPage").style.display="none";
+document.getElementById("tasksSection").style.display="block";
+
 }
 
-function completeTask(reward, link){
+function openLink(url){
 
-window.open(link,"_blank");
+window.open(url,"_blank");
+
+}
+
+function finishMission(){
 
 let coins = parseInt(localStorage.getItem("coins")) || 0;
 
-coins += reward;
+coins += 5000;
 
-localStorage.setItem("coins", coins);
+localStorage.setItem("coins",coins);
 
 document.getElementById("coins").innerText = coins;
 
-alert("Task Completed +"+reward+" coins");
-  
-}:
-  
+alert("Mission Completed +5000 Coins");
+
 }
 
   /* ================= TAP UPGRADE ================= */
