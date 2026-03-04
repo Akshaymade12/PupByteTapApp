@@ -420,33 +420,37 @@ if(nextBtn){
   
 /* ================= NAVIGATION ================= */
 
- const mineSection = document.getElementById("mineSection");
+ const navEarn = document.getElementById("navEarn");
+const navMine = document.getElementById("navMine");
+const navTasks = document.getElementById("navTasks");
+const navAccount = document.getElementById("navAccount");
+const navSkills = document.getElementById("navSkills");
+const navCashier = document.getElementById("navCashier");
 
-const navItems = document.querySelectorAll(".nav-item");
+const sections = document.querySelectorAll(
+"#earnSection,#mineSection,#tasksSection,#accountSection,#skillsSection,#cashierSection"
+);
 
-navItems.forEach((item, index) => {
+function switchSection(sectionId, navBtn){
 
-  item.onclick = () => {
+sections.forEach(sec => sec.style.display="none");
 
-    navItems.forEach(nav => nav.classList.remove("active"));
-    item.classList.add("active");
+document.getElementById(sectionId).style.display="block";
 
-    if (earnSection) earnSection.style.display = "none";
-    if (mineSection) mineSection.style.display = "none";
-    if (boostSection) boostSection.style.display = "none";
-    if (tasksSection) tasksSection.style.display = "none";
-    if (leagueSection) leagueSection.style.display = "none";
-    if (accountSection) accountSection.style.display = "none";
-    if (skillsSection) skillsSection.style.display = "none";
+document.querySelectorAll(".nav-item")
+.forEach(btn=>btn.classList.remove("active"));
 
-    if (index === 0 && earnSection) earnSection.style.display = "block";
-    if (index === 1 && mineSection) mineSection.style.display = "block";
-    if (index === 2 && tasksSection) tasksSection.style.display = "block";
-    if (index === 3 && accountSection) accountSection.style.display = "block";
-    if (index === 4 && skillsSection) skillsSection.style.display = "block";
-    if (index === 5) alert("Cashier coming soon");
-  };
-});
+navBtn.classList.add("active");
+
+}
+
+navEarn.onclick = ()=>switchSection("earnSection",navEarn);
+navMine.onclick = ()=>switchSection("mineSection",navMine);
+navTasks.onclick = ()=>switchSection("tasksSection",navTasks);
+navAccount.onclick = ()=>switchSection("accountSection",navAccount);
+navSkills.onclick = ()=>switchSection("skillsSection",navSkills);
+navCashier.onclick = ()=>switchSection("cashierSection",navCashier);
+  
   
   /* ================= GLOBAL TOP ================= */
 
