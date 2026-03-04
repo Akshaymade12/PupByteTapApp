@@ -58,42 +58,9 @@
   
 <!-- =============== tasksSection ========================== -->
   
-  <div id="tasksSection" style="display:none;">   
-
-  <h2>Tasks</h2>
-
-  <button id="specialBtn">Special</button>
-<button id="leagueBtn">League</button>
-<button id="referBtn">Refer</button>
-    
-  <div id="specialTab">
-    <button onclick="completeTask('telegram_join')">
-      Join Telegram (1000 Coins)
-    </button>
-    <button onclick="completeTask('twitter_follow')">
-      Follow Twitter (500 Coins)
-    </button>
-  </div>
-
-  <div id="leagueTab" style="display:none;">
-    <button onclick="claimLeagueReward()">
-      Claim League Reward
-    </button>
-  </div>
-
-  <div id="referTab" style="display:none;">
-    <button id="inviteBtn">Invite Friends</button>
-    
-  </div>
-
-  </div>
-
-  <!-- TASKS PAGE -->
-<div id="tasksPage" class="page">
+  <div id="tasksSection" style="display:none;">
 
 <h2 class="page-title">📋 Tasks</h2>
-
-<div id="taskList">
 
 <div class="task-card" onclick="openMission()">
 
@@ -108,45 +75,41 @@
 
 </div>
 
-</div>
-
-</div>
+  </div>
 
 
 <!-- SOCIAL MISSION PAGE -->
 
-<div id="missionPage" class="page hidden">
+<div id="missionPage" style="display:none;">
 
-<h2 class="page-title">🌐 Social Missions</h2>
-
-<div class="mission-list">
+<h2>Social Missions</h2>
 
 <div class="mission-card">
-<span>📸 Follow Instagram</span>
-<button onclick="completeTask(1000,'https://www.instagram.com/pupbyte_official')">Go</button>
+Follow Instagram
+<button onclick="openLink('https://www.instagram.com/pupbyte_official')">Go</button>
 </div>
 
 <div class="mission-card">
-<span>🐦 Follow X</span>
-<button onclick="completeTask(1000,'https://x.com/PupByteCoin')">Go</button>
+Follow X
+<button onclick="openLink('https://x.com/PupByteCoin')">Go</button>
 </div>
 
 <div class="mission-card">
-<span>📢 Join Telegram Channel</span>
-<button onclick="completeTask(1000,'https://t.me/PupByteOfficial')">Go</button>
+Join Telegram Channel
+<button onclick="openLink('https://t.me/PupByteOfficial')">Go</button>
 </div>
 
 <div class="mission-card">
-<span>💬 Join Telegram Group</span>
-<button onclick="completeTask(1000,'https://t.me/+D_WSaoaTr2hmYTY1')">Go</button>
+Join Telegram Group
+<button onclick="openLink('https://t.me/+D_WSaoaTr2hmYTY1')">Go</button>
 </div>
 
 <div class="mission-card">
-<span>🎮 Join Discord</span>
-<button onclick="completeTask(1000,'https://discord.gg/BU8EazB2Q')">Go</button>
+Join Discord
+<button onclick="openLink('https://discord.gg/BU8EazB2Q')">Go</button>
 </div>
 
-</div>
+<button class="finish-btn" onclick="finishMission()">Finish Mission</button>
 
 <button class="back-btn" onclick="closeMission()">⬅ Back</button>
 
