@@ -584,7 +584,7 @@ method:"POST",
 headers:{ "Content-Type":"application/json"},
 body:JSON.stringify({
 telegramId: telegramId,
-taskId:"social"
+taskId: "join_socials"
 })
 });
 
@@ -598,10 +598,11 @@ loadUser();
 
 }else{
 
-alert(data.message || "Task already completed");
+alert(data.message);
 
 }
 
+}
                           }
   
 /* ================= COMPLETE TASK ================= */
