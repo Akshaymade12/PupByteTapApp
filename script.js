@@ -142,6 +142,36 @@ leagueNameEl.innerText = currentLeague.name + " League";
       }
     };
   }
+  
+/* ===== SOCIAL MISSIONS ===== */
+  
+  function openMission(){
+document.getElementById("tasksPage").classList.add("hidden");
+document.getElementById("missionPage").classList.remove("hidden");
+}
+
+function closeMission(){
+document.getElementById("missionPage").classList.add("hidden");
+document.getElementById("tasksPage").classList.remove("hidden");
+}
+
+function completeTask(reward, link){
+
+window.open(link,"_blank");
+
+let coins = parseInt(localStorage.getItem("coins")) || 0;
+
+coins += reward;
+
+localStorage.setItem("coins", coins);
+
+document.getElementById("coins").innerText = coins;
+
+alert("Task Completed +"+reward+" coins");
+  
+}:
+  
+}
 
   /* ================= TAP UPGRADE ================= */
 
