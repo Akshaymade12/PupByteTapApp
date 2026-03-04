@@ -659,13 +659,9 @@ if(!user){
 return res.json({ success:false });
 }
 
-/* check already completed */
-
 if(user.completedTasks && user.completedTasks.includes(taskId)){
 return res.json({ success:false, message:"Task already completed"});
 }
-
-/* add coins + save task */
 
 await users.updateOne(
 { telegramId },
@@ -679,10 +675,9 @@ res.json({
 success:true,
 reward:5000,
 message:"Task completed"
-  
 });
 
-  });
+});
 
 /* ================= ROOT ================= */
 
