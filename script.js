@@ -577,27 +577,42 @@ async function loadMyRank() {
 
   /* ================= VERIFY TASK ================= */
 
-  function verifyTask(){
+  window.verifyTask = async function(){
 
-let completed = localStorage.getItem("socialTaskDone");
+try{
 
-if(completed){
-document.getElementById("taskStatus").innerText = "✔ Task Already Completed";
-return;
+const res = await fetch("/complete-task",{
+method:"POST",
+headers:{ "Content-Type":"application/json"},
+body:JSON.stringify({
+telegramId: telegramId,
+initData: initData,
+taskId: "social"
+})
+});
+
+const data = await res.json();
+
+if(data.success){
+
+alert("Task completed +" + data.reward + " coins");
+
+loadUser();
+
+}else{
+
+alert(data.message || "Task already completed");
+
 }
 
-let coins = localStorage.getItem("coins");
-coins = coins ? parseInt(coins) : 0;
+}catch(e){
 
-coins += 5000;
+console.log(e);
+alert("Server error");
 
-localStorage.setItem("coins", coins);
-localStorage.setItem("socialTaskDone", "true");
+}
 
-document.getElementById("coins").innerText = coins;
-document.getElementById("taskStatus").innerText = "✔ Task Completed +5000";
-
-  }
+}
   
 /* ================= COMPLETE TASK ================= */
 
