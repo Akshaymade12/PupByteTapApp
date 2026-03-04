@@ -167,11 +167,18 @@ window.open(url,"_blank");
 
 window.finishMission = function(){
 
+if(localStorage.getItem("socialTaskDone")){
+alert("Mission already completed");
+return;
+}
+
 let coins = parseInt(localStorage.getItem("coins")) || 0;
 
 coins += 5000;
 
 localStorage.setItem("coins",coins);
+
+localStorage.setItem("socialTaskDone","true");
 
 document.getElementById("coins").innerText = coins;
 
@@ -567,6 +574,30 @@ async function loadMyRank() {
     document.querySelector(".coin-wrapper").appendChild(plus);
     setTimeout(() => plus.remove(), 800);
   }
+
+  /* ================= VERIFY TASK ================= */
+
+  function verifyTask(){
+
+let completed = localStorage.getItem("socialTaskDone");
+
+if(completed){
+document.getElementById("taskStatus").innerText = "✔ Task Already Completed";
+return;
+}
+
+let coins = localStorage.getItem("coins");
+coins = coins ? parseInt(coins) : 0;
+
+coins += 5000;
+
+localStorage.setItem("coins", coins);
+localStorage.setItem("socialTaskDone", "true");
+
+document.getElementById("coins").innerText = coins;
+document.getElementById("taskStatus").innerText = "✔ Task Completed +5000";
+
+  }
   
 /* ================= COMPLETE TASK ================= */
 
@@ -619,4 +650,14 @@ if(closeLeagueBtn){
   }
 }
 
+  window.onload = function(){
+
+let completed = localStorage.getItem("socialTaskDone");
+
+if(completed){
+document.getElementById("taskStatus").innerText = "✔ Task Completed";
+}
+
+  }
+  
   });
