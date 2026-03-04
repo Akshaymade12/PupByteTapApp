@@ -647,36 +647,6 @@ app.post("/claim-reward", async (req, res) => {
   res.json({ success: true });
 });
 
-/* ================= COMPLETE TASK ================= */
-
-app.post("/complete-task", async (req,res)=>{
-
-const { telegramId, taskId } = req.body;
-
-const user = await users.findOne({ telegramId });
-
-if(!user){
-return res.json({ success:false });
-}
-
-if(user.completedTasks && user.completedTasks.includes(taskId)){
-return res.json({ success:false, message:"Task already completed"});
-}
-
-await users.updateOne(
-{ telegramId },
-{
-$inc:{ coins:5000 },
-$push:{ completedTasks: taskId }
-}
-);
-
-res.json({
-success:true,
-reward:5000,
-message:"Task completed"
-});
-
 });
 
 /* ================= ROOT ================= */
