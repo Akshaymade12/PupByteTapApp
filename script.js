@@ -420,6 +420,8 @@ if(nextBtn){
   
 /* ================= NAVIGATION ================= */
 
+ const mineSection = document.getElementById("mineSection");
+
 const navItems = document.querySelectorAll(".nav-item");
 
 navItems.forEach((item, index) => {
@@ -430,6 +432,7 @@ navItems.forEach((item, index) => {
     item.classList.add("active");
 
     if (earnSection) earnSection.style.display = "none";
+    if (mineSection) mineSection.style.display = "none";
     if (boostSection) boostSection.style.display = "none";
     if (tasksSection) tasksSection.style.display = "none";
     if (leagueSection) leagueSection.style.display = "none";
@@ -437,13 +440,14 @@ navItems.forEach((item, index) => {
     if (skillsSection) skillsSection.style.display = "none";
 
     if (index === 0 && earnSection) earnSection.style.display = "block";
-    if (index === 1 && tasksSection) tasksSection.style.display = "block";
-    if (index === 2 && accountSection) accountSection.style.display = "block";
-    if (index === 3 && skillsSection) skillsSection.style.display = "block";
-    if (index === 4) alert("Cashier coming soon");
+    if (index === 1 && mineSection) mineSection.style.display = "block";
+    if (index === 2 && tasksSection) tasksSection.style.display = "block";
+    if (index === 3 && accountSection) accountSection.style.display = "block";
+    if (index === 4 && skillsSection) skillsSection.style.display = "block";
+    if (index === 5) alert("Cashier coming soon");
   };
 });
-
+  
   /* ================= GLOBAL TOP ================= */
 
 async function loadGlobalTop() {
