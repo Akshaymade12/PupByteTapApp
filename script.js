@@ -165,27 +165,6 @@ window.open(url,"_blank");
 
 }
 
-window.finishMission = function(){
-
-if(localStorage.getItem("socialTaskDone")){
-alert("Mission already completed");
-return;
-}
-
-let coins = parseInt(localStorage.getItem("coins")) || 0;
-
-coins += 5000;
-
-localStorage.setItem("coins",coins);
-
-localStorage.setItem("socialTaskDone","true");
-
-document.getElementById("coins").innerText = coins;
-
-alert("Mission Completed +5000 Coins");
-
-}
-
   /* ================= TAP UPGRADE ================= */
 
   if (upgradeTapBtn) {
@@ -584,7 +563,8 @@ method:"POST",
 headers:{ "Content-Type":"application/json"},
 body:JSON.stringify({
 telegramId: telegramId,
-taskId: "join_socials"
+initData: initData,
+taskId: "telegram_join"
 })
 });
 
@@ -656,14 +636,4 @@ if(closeLeagueBtn){
   }
 }
 
-  window.onload = function(){
-
-let completed = localStorage.getItem("socialTaskDone");
-
-if(completed){
-document.getElementById("taskStatus").innerText = "✔ Task Completed";
-}
-
-  }
-  
   });
