@@ -579,15 +579,13 @@ async function loadMyRank() {
 
   window.verifyTask = async function(){
 
-try{
-
 const res = await fetch("/complete-task",{
 method:"POST",
 headers:{ "Content-Type":"application/json"},
 body:JSON.stringify({
 telegramId: telegramId,
 initData: initData,
-taskId: "social"
+taskId:"social"
 })
 });
 
@@ -595,20 +593,13 @@ const data = await res.json();
 
 if(data.success){
 
-alert("Task completed +" + data.reward + " coins");
+alert("Task completed +" + data.reward);
 
 loadUser();
 
 }else{
 
-alert(data.message || "Task already completed");
-
-}
-
-}catch(e){
-
-console.log(e);
-alert("Server error");
+alert(data.message);
 
 }
 
