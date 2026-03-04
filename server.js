@@ -655,15 +655,23 @@ const { telegramId, taskId } = req.body;
 
 const user = await users.findOne({ telegramId });
 
-if(user.tasks && user.tasks.includes(taskId)){
+if(!user){
+return res.json({ success:false });
+}
+
+/* check already completed */
+
+if(user.completedTasks && user.completedTasks.includes(taskId)){
 return res.json({ success:false, message:"Task already completed"});
 }
+
+/* add coins + save task */
 
 await users.updateOne(
 { telegramId },
 {
 $inc:{ coins:5000 },
-$push:{ tasks:taskId }
+$push:{ completedTasks: taskId }
 }
 );
 
