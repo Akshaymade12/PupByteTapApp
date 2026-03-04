@@ -622,6 +622,7 @@ app.get("/top10/:leagueName", async (req, res) => {
     .select("telegramId coins");
 
   res.json(top);
+  
 });
 
 /* ================= LEAGUE REWARD CLAIM ================= */
@@ -645,8 +646,6 @@ app.post("/claim-reward", async (req, res) => {
   await user.save();
 
   res.json({ success: true });
-});
-
 });
 
 /* ================= ROOT ================= */
