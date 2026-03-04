@@ -584,7 +584,6 @@ method:"POST",
 headers:{ "Content-Type":"application/json"},
 body:JSON.stringify({
 telegramId: telegramId,
-initData: initData,
 taskId:"social"
 })
 });
@@ -593,17 +592,17 @@ const data = await res.json();
 
 if(data.success){
 
-alert("Task completed +" + data.reward);
+alert("Task completed +" + data.reward + " coins");
 
 loadUser();
 
 }else{
 
-alert(data.message);
+alert(data.message || "Task already completed");
 
 }
 
-}
+                          }
   
 /* ================= COMPLETE TASK ================= */
 
