@@ -675,8 +675,10 @@ $push:{ completedTasks: taskId }
 }
 );
 
-res.json({ success:true, reward:5000 });
-
+res.json({
+success:true,
+reward:5000,
+message:"Task completed"
 });
 
 /* ================= ROOT ================= */
