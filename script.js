@@ -145,27 +145,27 @@ leagueNameEl.innerText = currentLeague.name + " League";
   
 /* ===== SOCIAL MISSIONS ===== */
   
-  function openMission(){
+  window.openMission = function(){
 
 document.getElementById("tasksSection").style.display="none";
 document.getElementById("missionPage").style.display="block";
 
 }
 
-function closeMission(){
+window.closeMission = function(){
 
 document.getElementById("missionPage").style.display="none";
 document.getElementById("tasksSection").style.display="block";
 
 }
 
-function openLink(url){
+window.openLink = function(url){
 
 window.open(url,"_blank");
 
 }
 
-function finishMission(){
+window.finishMission = function(){
 
 let coins = parseInt(localStorage.getItem("coins")) || 0;
 
