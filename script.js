@@ -661,40 +661,57 @@ if(closeLeagueBtn){
     earnSection.style.display = "block";
   }
 }
-  
+ 
 /* ================= MINE CARDS ================= */
 
 let coins = parseInt(document.getElementById("coins").innerText);
-let profit = 10;
+let profit = parseInt(document.getElementById("profit").innerText);
 
 let cards = {
-  gpu: {
-    level: 1,
-    cost: 1000,
-    profit: 10
+
+  gpu:{
+    level:1,
+    cost:1000,
+    profit:10,
+    max:20
+  },
+
+  marketing:{
+    level:1,
+    cost:1500,
+    profit:15,
+    max:20
   }
+
 };
 
 window.upgradeCard = function(card){
 
   let c = cards[card];
 
-  if(coins >= c.cost){
-
-    coins -= c.cost;
-    c.level += 1;
-    profit += c.profit;
-    c.cost = Math.floor(c.cost * 1.5);
-
-    document.getElementById("coins").innerText = coins;
-    document.getElementById("profit").innerText = profit + " P/H";
-    document.getElementById("gpuLevel").innerText = "Level " + c.level + "/20";
-    document.getElementById("gpuCost").innerText = "Cost " + c.cost;
-
-  }else{
-    alert("Not enough coins");
+  if(c.level >= c.max){
+    alert("Max Level Reached");
+    return;
   }
 
-}
+  if(coins < c.cost){
+    alert("Not enough coins");
+    return;
+  }
+
+  coins -= c.cost;
+  c.level++;
+
+  profit += c.profit;
+
+  c.cost = Math.floor(c.cost * 1.6);
+
+  document.getElementById("coins").innerText = coins;
+  document.getElementById("profit").innerText = profit;
+
+  document.getElementById(card+"Level").innerText = c.level;
+  document.getElementById(card+"Cost").innerText = c.cost;
+
+};
 
   });
