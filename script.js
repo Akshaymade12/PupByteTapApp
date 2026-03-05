@@ -124,25 +124,51 @@ leagueNameEl.innerText = currentLeague.name + " League";
   /* ================= TAP ================= */
 
 if (tapBtn) {
-  tapBtn.onclick = async () => {
 
-    const res = await fetch("/tap", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId, initData })
-    });
+let tapping = false;
 
-    const data = await res.json();
+tapBtn.onclick = async () => {
 
-    if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins);
-      energyEl.innerText = data.energy;
-      profitEl.innerText = data.profitPerHour;
-      showPlusOne(data.tapPower);
-    } else {
-      console.log("Tap blocked", data);
-    }
-  };
+if(tapping) return;
+tapping = true;
+
+try{
+
+const res = await fetch("/tap",{
+method:"POST",
+headers:{ "Content-Type":"application/json"},
+body: JSON.stringify({
+telegramId: telegramId,
+initData: initData
+})
+});
+
+const data = await res.json();
+
+if(data.success){
+
+coinsEl.innerText = Math.floor(data.coins);
+energyEl.innerText = data.energy;
+profitEl.innerText = data.profitPerHour;
+
+showPlusOne(data.tapPower);
+
+}else{
+
+console.log("Tap rejected");
+
+}
+
+}catch(e){
+
+console.log("Tap error",e);
+
+}
+
+setTimeout(()=>{ tapping=false },120);
+
+};
+
 }
   
 /* ===== SOCIAL MISSIONS ===== */
