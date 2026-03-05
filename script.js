@@ -661,5 +661,59 @@ if(closeLeagueBtn){
     earnSection.style.display = "block";
   }
 }
+  
+/* ================= MINE CARDS ================= */
+
+  let gpuLevel = 1;
+
+function gpuCost(level){
+return Math.floor(1000 * Math.pow(1.7, level-1));
+}
+
+function gpuProfit(level){
+return Math.floor(10 * Math.pow(2, level-1));
+}
+
+function loadGPU(){
+
+document.getElementById("gpuLevel").innerText = gpuLevel;
+document.getElementById("gpuCost").innerText = gpuCost(gpuLevel);
+document.getElementById("gpuProfit").innerText = gpuProfit(gpuLevel);
+
+}
+
+function upgradeGPU(){
+
+let coins = parseInt(localStorage.getItem("coins") || 0);
+let profit = parseInt(localStorage.getItem("profit") || 10);
+
+let cost = gpuCost(gpuLevel);
+
+if(coins < cost){
+alert("Not enough coins");
+return;
+}
+
+if(gpuLevel >= 20){
+alert("Max Level");
+return;
+}
+
+coins -= cost;
+profit += gpuProfit(gpuLevel);
+
+gpuLevel++;
+
+localStorage.setItem("coins",coins);
+localStorage.setItem("profit",profit);
+
+document.getElementById("coins").innerText = coins;
+document.getElementById("profit").innerText = profit;
+
+loadGPU();
+
+}
+
+loadGPU();
 
   });
