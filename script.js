@@ -664,7 +664,7 @@ if(closeLeagueBtn){
   
 /* ================= MINE CARDS ================= */
 
-let coins = 3063;
+let coins = parseInt(document.getElementById("coins").innerText);
 let profit = 10;
 
 let cards = {
@@ -675,7 +675,7 @@ let cards = {
   }
 };
 
-function upgradeCard(card){
+window.upgradeCard = function(card){
 
   let c = cards[card];
 
