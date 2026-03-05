@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   const tg = window.Telegram?.WebApp;
-  const initData = tg.initData || tg.initDataUnsafe;
+  const initData = tg.initData;
 
   if (!tg) {
     alert("Please open inside Telegram");
@@ -154,11 +154,10 @@ profitEl.innerText = data.profitPerHour;
 showPlusOne(data.tapPower);
 
 }else{
-
-console.log("Tap rejected");
-
+console.log(data);
+alert(data.message || "Tap rejected");
 }
-
+  
 }catch(e){
 
 console.log("Tap error",e);
