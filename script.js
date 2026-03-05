@@ -191,6 +191,37 @@ window.openLink = function(url){
 window.open(url,"_blank");
 
 }
+/* =========== UPGRADE CARD ============= */
+  
+  function upgradeCard(type){
+
+let coins = parseInt(localStorage.getItem("coins")) || 0;
+
+let level = parseInt(localStorage.getItem(type+"Level")) || 1;
+let cost = parseInt(localStorage.getItem(type+"Cost")) || 1000;
+let profit = parseInt(localStorage.getItem(type+"Profit")) || 10;
+
+if(coins < cost){
+alert("Not enough coins");
+return;
+}
+
+coins -= cost;
+level += 1;
+profit += 10;
+cost = Math.floor(cost * 1.5);
+
+localStorage.setItem("coins", coins);
+localStorage.setItem(type+"Level", level);
+localStorage.setItem(type+"Profit", profit);
+localStorage.setItem(type+"Cost", cost);
+
+document.getElementById("coins").innerText = coins;
+document.getElementById(type+"Level").innerText = level;
+document.getElementById(type+"Profit").innerText = profit;
+document.getElementById(type+"Cost").innerText = cost;
+
+  }
 
   /* ================= TAP UPGRADE ================= */
 
@@ -661,7 +692,21 @@ if(closeLeagueBtn){
     earnSection.style.display = "block";
   }
 }
- 
+  
+/* ========== LOAD CARD =========== */
+  
+  function loadCard(type){
+
+let level = localStorage.getItem(type+"Level") || 1;
+let profit = localStorage.getItem(type+"Profit") || 10;
+let cost = localStorage.getItem(type+"Cost") || 1000;
+
+document.getElementById(type+"Level").innerText = level;
+document.getElementById(type+"Profit").innerText = profit;
+document.getElementById(type+"Cost").innerText = cost;
+
+  }
+  
 /* ================= MINE CARDS ================= */
 
 let coins = parseInt(document.getElementById("coins").innerText);
@@ -715,3 +760,13 @@ window.upgradeCard = function(card){
 };
 
   });
+
+window.onload = function(){
+
+let coins = localStorage.getItem("coins") || 3067;
+document.getElementById("coins").innerText = coins;
+
+loadCard("gpu");
+loadCard("marketing");
+
+}
