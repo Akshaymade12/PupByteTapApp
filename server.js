@@ -269,8 +269,9 @@ const now = Date.now();
 const tapGap = now - user.lastTap;
 
 // Human tap speed detection
-if (tapGap < 120) {
-  user.suspiciousCount += 2;
+if (tapGap < 90) {
+user.suspiciousCount += 1;
+}
 } else if (tapGap < 200) {
   user.suspiciousCount += 1;
 } else {
@@ -290,8 +291,9 @@ if (user.suspiciousCount >= 40) {
 }
   
 // FAST TAP BLOCK
-if (tapGap < 150) {
-  return res.json({ success: false });
+if (tapGap < 90) {
+return res.json({ success:false });
+}
 }
 
 // ENERGY CHECK
