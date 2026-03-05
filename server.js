@@ -270,14 +270,12 @@ const tapGap = now - user.lastTap;
 
 // Human tap speed detection
 if (tapGap < 90) {
-user.suspiciousCount += 1;
-}
-} else if (tapGap < 200) {
   user.suspiciousCount += 1;
+} else if (tapGap < 280) {
+  user.suspiciousCount += 0;
 } else {
   user.suspiciousCount = Math.max(0, user.suspiciousCount - 1);
 }
-
 // Soft block
 if (user.suspiciousCount >= 20) {
   return res.json({ success: false, message: "Slow down" });
