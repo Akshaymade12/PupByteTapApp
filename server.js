@@ -257,85 +257,78 @@ app.get("/load/:id", async (req, res) => {
 app.post("/tap", async (req, res) => {
 
   const { telegramId, initData } = req.body;
-const user = await getValidUser(telegramId, initData);
-if (!user) return res.json({ success: false });
 
+  const user = await getValidUser(telegramId, initData);
+  if (!user) return res.json({ success:false });
 
   await applyOfflineMining(user);
 
- // ================= ULTRA SECURITY LAYER =================
+  const now = Date.now();
+  const tapGap = now - user.lastTap;
 
-const now = Date.now();
-const tapGap = now - user.lastTap;
+  /* ===== ANTI AUTO CLICK ===== */
 
-// Human tap speed detection
-if (tapGap < 90) {
-  user.suspiciousCount += 1;
-} else if (tapGap < 280) {
-  user.suspiciousCount += 0;
-} else {
-  user.suspiciousCount = Math.max(0, user.suspiciousCount - 1);
-}
-// Soft block
-if (user.suspiciousCount >= 20) {
-  return res.json({ success: false, message: "Slow down" });
-}
-
-// Hard block
-if (user.suspiciousCount >= 40) {
-  user.isBlocked = true;
-  await user.save();
-  return res.json({ success: false, message: "User blocked" });
-}
-  
-// FAST TAP BLOCK
-if (tapGap < 90) {
-return res.json({ success:false });
-}
-}
-
-// ENERGY CHECK
-if (user.energy < user.tapPower) {
-  return res.json({ success: false });
-}
-
-// RESET COUNTER
-if (Date.now() - user.tapResetTime > 60000) {
-  user.tapCount = 0;
-  user.tapResetTime = Date.now();
-}
-
-// LIMIT
-if (user.tapCount >= 120) {
-  return res.json({ success: false, message: "Too fast" });
-}
-
-user.tapCount += 1;
-
-
-// limit max coin gain per second (anti script spam)
-if (user.lastCoinUpdate) {
-  const diff = (now - user.lastCoinUpdate) / 1000;
-  if (diff < 1 && user.tapPower > 20) {
-    return res.json({ success: false });
+  if (tapGap < 80) {
+    user.suspiciousCount += 2;
+  } else if (tapGap < 150) {
+    user.suspiciousCount += 1;
+  } else {
+    user.suspiciousCount = Math.max(0, user.suspiciousCount - 1);
   }
-}
 
-user.coins += user.tapPower;
-user.lastCoinUpdate = new Date();
+  /* ===== SOFT BLOCK ===== */
+
+  if (user.suspiciousCount >= 20) {
+    return res.json({ success:false, message:"Slow down" });
+  }
+
+  /* ===== HARD BLOCK ===== */
+
+  if (user.suspiciousCount >= 40) {
+    user.isBlocked = true;
+    await user.save();
+    return res.json({ success:false, message:"User blocked" });
+  }
+
+  /* ===== ENERGY CHECK ===== */
+
+  if (user.energy < user.tapPower) {
+    return res.json({ success:false });
+  }
+
+  /* ===== TAP LIMIT PER MINUTE ===== */
+
+  if (Date.now() - user.tapResetTime > 60000) {
+    user.tapCount = 0;
+    user.tapResetTime = Date.now();
+  }
+
+  if (user.tapCount >= 120) {
+    return res.json({ success:false, message:"Too fast" });
+  }
+
+  user.tapCount += 1;
+
+  /* ===== COIN ADD ===== */
+
+  user.coins += user.tapPower;
   user.energy -= user.tapPower;
-  user.league = getLeague(user.coins);
+
   user.lastTap = now;
+  user.lastCoinUpdate = new Date();
+
+  user.league = getLeague(user.coins);
 
   await user.save();
 
   res.json({
-    success: true,
-    coins: user.coins,
-    energy: user.energy,
-    tapPower: user.tapPower,
-    profitPerHour: user.profitPerHour
+    success:true,
+    coins:user.coins,
+    energy:user.energy,
+    tapPower:user.tapPower,
+    profitPerHour:user.profitPerHour
   });
+
 });
 
 /* ================= TAP UPGRADE ================= */
