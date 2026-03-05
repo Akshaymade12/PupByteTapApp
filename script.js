@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   const tg = window.Telegram?.WebApp;
-  const initData = tg.initData;
+  const initData = tg.initData || tg.initDataUnsafe;
 
   if (!tg) {
     alert("Please open inside Telegram");
@@ -123,25 +123,27 @@ leagueNameEl.innerText = currentLeague.name + " League";
                           
   /* ================= TAP ================= */
 
-  if (tapBtn) {
-    tapBtn.onclick = async () => {
+if (tapBtn) {
+  tapBtn.onclick = async () => {
 
-      const res = await fetch("/tap", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegramId, initData })
-      });
+    const res = await fetch("/tap", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (data.success) {
-        coinsEl.innerText = Math.floor(data.coins);
-        energyEl.innerText = data.energy;
-        profitEl.innerText = data.profitPerHour;
-        showPlusOne(data.tapPower);
-      }
-    };
-  }
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins);
+      energyEl.innerText = data.energy;
+      profitEl.innerText = data.profitPerHour;
+      showPlusOne(data.tapPower);
+    } else {
+      console.log("Tap blocked", data);
+    }
+  };
+}
   
 /* ===== SOCIAL MISSIONS ===== */
   
