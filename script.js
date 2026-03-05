@@ -664,56 +664,37 @@ if(closeLeagueBtn){
   
 /* ================= MINE CARDS ================= */
 
-  let gpuLevel = 1;
+let coins = 3063;
+let profit = 10;
 
-function gpuCost(level){
-return Math.floor(1000 * Math.pow(1.7, level-1));
-}
+let cards = {
+  gpu: {
+    level: 1,
+    cost: 1000,
+    profit: 10
+  }
+};
 
-function gpuProfit(level){
-return Math.floor(10 * Math.pow(2, level-1));
-}
+function upgradeCard(card){
 
-function loadGPU(){
+  let c = cards[card];
 
-document.getElementById("gpuLevel").innerText = gpuLevel;
-document.getElementById("gpuCost").innerText = gpuCost(gpuLevel);
-document.getElementById("gpuProfit").innerText = gpuProfit(gpuLevel);
+  if(coins >= c.cost){
 
-}
+    coins -= c.cost;
+    c.level += 1;
+    profit += c.profit;
+    c.cost = Math.floor(c.cost * 1.5);
 
-function upgradeGPU(){
+    document.getElementById("coins").innerText = coins;
+    document.getElementById("profit").innerText = profit + " P/H";
+    document.getElementById("gpuLevel").innerText = "Level " + c.level + "/20";
+    document.getElementById("gpuCost").innerText = "Cost " + c.cost;
 
-let coins = parseInt(localStorage.getItem("coins") || 0);
-let profit = parseInt(localStorage.getItem("profit") || 10);
-
-let cost = gpuCost(gpuLevel);
-
-if(coins < cost){
-alert("Not enough coins");
-return;
-}
-
-if(gpuLevel >= 20){
-alert("Max Level");
-return;
-}
-
-coins -= cost;
-profit += gpuProfit(gpuLevel);
-
-gpuLevel++;
-
-localStorage.setItem("coins",coins);
-localStorage.setItem("profit",profit);
-
-document.getElementById("coins").innerText = coins;
-document.getElementById("profit").innerText = profit;
-
-loadGPU();
+  }else{
+    alert("Not enough coins");
+  }
 
 }
-
-loadGPU();
 
   });
