@@ -165,7 +165,7 @@ console.log("Tap error",e);
 
 }
 
-setTimeout(()=>{ tapping=false },120);
+setTimeout(()=>{ tapping=false },150);
 
 };
 
@@ -610,8 +610,7 @@ alert(data.message);
 
 }
 
-}
-                          }
+  }
   
 /* ================= COMPLETE TASK ================= */
 
