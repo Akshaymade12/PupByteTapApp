@@ -50,11 +50,31 @@
   
   <div id="mineSection" style="display:none;">
 
-<h2 style="text-align:center;color:white;">⛏ Mining Center</h2>
+<h2 class="page-title">⛏ Mining Center</h2>
+
+<!-- CATEGORY -->
+<h3 class="mine-category">Mining Hardware</h3>
+
+<div class="mine-grid">
 
 <div class="mine-card">
-  <p>Mining Power</p>
-  <button id="startMining">Start Mining</button>
+
+<img src="logo.png" class="mine-img">
+
+<h3>GPU Mining</h3>
+
+<p>Level <span id="gpuLevel">1</span>/20</p>
+
+<p>Profit +<span id="gpuProfit">10</span> P/H</p>
+
+<p>Cost <span id="gpuCost">1000</span></p>
+
+<button onclick="upgradeGPU()" class="upgrade-btn">
+Upgrade
+</button>
+
+</div>
+
 </div>
 
   </div>
