@@ -106,11 +106,7 @@ function verifyTelegram(initData) {
 
 /* ================= COMMON USER VALIDATION ================= */
 
-async function getValidUser(telegramId, initData) {
-
-  if (!verifyTelegram(initData)) {
-    return null;
-  }
+async function getValidUser(telegramId) {
 
   if (!telegramId || telegramId.length < 5) {
     return null;
@@ -120,9 +116,7 @@ async function getValidUser(telegramId, initData) {
 
   if (!user) return null;
 
-  if (user.isBlocked) {
-    return null;
-  }
+  if (user.isBlocked) return null;
 
   return user;
 }
@@ -274,7 +268,7 @@ app.post("/tap", async (req, res) => {
 
   const { telegramId, initData } = req.body;
 
-  const user = await getValidUser(telegramId, initData);
+  const user = await getValidUser(telegramId);
   if (!user) return res.json({ success:false });
 
   await applyOfflineMining(user);
@@ -351,7 +345,7 @@ app.post("/tap", async (req, res) => {
 
 app.post("/upgrade-tap", async (req, res) => {
   const { telegramId, initData } = req.body;
-const user = await getValidUser(telegramId, initData);
+const user = await getValidUser(telegramId);
 if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
