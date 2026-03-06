@@ -1,29 +1,15 @@
-/* RESET */
-
-*{
+body{
 margin:0;
 padding:0;
-box-sizing:border-box;
-}
-
-body{
-font-family:Inter,Arial,sans-serif;
-background:#0a0d1a;
+font-family:Arial,Helvetica,sans-serif;
+background:#0f172a;
 color:white;
-display:flex;
-justify-content:center;
 }
-
-/* APP */
 
 .app{
-width:100%;
-max-width:420px;
-min-height:100vh;
-background:#0f1326;
-display:flex;
-flex-direction:column;
-overflow:hidden;
+max-width:500px;
+margin:auto;
+padding-bottom:100px;
 }
 
 /* TOP BAR */
@@ -31,301 +17,213 @@ overflow:hidden;
 .top-bar{
 display:flex;
 justify-content:space-between;
-align-items:center;
-padding:12px 16px;
-background:linear-gradient(180deg,#141938,#0f1326);
-border-bottom:1px solid rgba(255,255,255,0.05);
-font-weight:600;
+padding:15px;
+background:#111827;
+font-size:18px;
 }
 
-.top-bar div{
-font-size:14px;
-letter-spacing:.3px;
-}
+/* TOP BUTTONS */
 
-/* GLASS CARDS */
-
-.card-row{
+.top-buttons{
 display:flex;
-gap:10px;
+justify-content:space-between;
 padding:10px;
 }
 
-.glass-card{
-flex:1;
-padding:10px;
-border-radius:14px;
-background:rgba(255,255,255,0.05);
-backdrop-filter:blur(8px);
-border:1px solid rgba(255,255,255,0.08);
-text-align:center;
-font-weight:600;
-transition:.2s;
+.top-buttons button{
+background:#1f2937;
+border:none;
+color:white;
+padding:10px 15px;
+border-radius:10px;
+font-size:14px;
 }
 
-.glass-card:hover{
-transform:scale(1.03);
+/* SECTIONS */
+
+.section{
+padding:20px;
 }
 
-
-/* COIN AREA */
+/* TAP BUTTON */
 
 .coin-wrapper{
 display:flex;
 justify-content:center;
 align-items:center;
-padding:40px 0;
-position:relative;
+margin-top:30px;
 }
 
-.coin-circle{
-width:220px;
-height:220px;
-border-radius:50%;
-background:radial-gradient(circle,#ffd800,#ff9f00);
-display:flex;
-align-items:center;
-justify-content:center;
-box-shadow:
-
-0 0 20px rgba(255,215,0,0.6),
-0 0 60px rgba(255,215,0,0.4),
-0 0 100px rgba(255,215,0,0.2);
-
-animation:coinGlow 2s infinite alternate;
-}
-
-@keyframes coinGlow{
-
-0%{
-box-shadow:
-0 0 20px rgba(255,215,0,0.5),
-0 0 60px rgba(255,215,0,0.2);
-}
-
-100%{
-box-shadow:
-0 0 40px rgba(255,215,0,0.9),
-0 0 120px rgba(255,215,0,0.4);
-}
-
-}
-
-.tap-button{
-border:none;
-background:none;
+.tap-btn{
+width:180px;
+height:180px;
 cursor:pointer;
+transition:transform .1s;
 }
 
-.main-coin{
-width:160px;
-transition:.1s;
-}
-
-.tap-button:active .main-coin{
-transform:scale(.9);
+.tap-btn:active{
+transform:scale(0.9);
 }
 
 /* ENERGY */
 
-.energy-row{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:14px 16px;
+.energy-wrapper{
+margin-top:30px;
+text-align:center;
 }
 
 .energy-bar{
 width:100%;
-height:10px;
-background:#1b2145;
+height:12px;
+background:#1f2937;
 border-radius:20px;
 overflow:hidden;
-margin-right:10px;
 }
 
-.energy-fill{
+#energyFill{
 height:100%;
-background:linear-gradient(90deg,#00f2ff,#008cff);
-width:70%;
-transition:.3s;
+width:100%;
+background:#22c55e;
+transition:width .3s;
 }
 
-.boost-btn{
-background:linear-gradient(90deg,#ffcc00,#ff9f00);
+.energy-text{
+margin-top:10px;
+}
+
+#boostBtn{
+margin-top:10px;
+background:#ef4444;
 border:none;
-padding:8px 14px;
+padding:10px 20px;
+color:white;
 border-radius:10px;
-font-weight:700;
-cursor:pointer;
-color:black;
 }
 
-/* MINING */
+/* MINE CARDS */
 
-.page-title{
-font-size:20px;
-padding:14px;
-font-weight:700;
-}
-
-.mine-category{
-padding-left:14px;
-color:#8e95c7;
-font-size:14px;
-}
-
-.mine-grid{
+.mine-container{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:12px;
-padding:12px;
+gap:15px;
+margin-top:20px;
 }
 
 .mine-card{
-
-background:linear-gradient(180deg,#161c3f,#101433);
-
-border-radius:16px;
-
-padding:14px;
-
-border:1px solid rgba(255,255,255,0.05);
-
+background:#1f2937;
+padding:15px;
+border-radius:15px;
 text-align:center;
-
-transition:.25s;
-
-}
-
-.mine-card:hover{
-transform:translateY(-4px);
 }
 
 .mine-img{
 width:60px;
-margin-bottom:8px;
+margin-bottom:10px;
 }
 
-.upgrade-btn{
-
-margin-top:8px;
-
-background:linear-gradient(90deg,#ffd800,#ff9f00);
-
+.mine-card button{
+background:#22c55e;
 border:none;
-
-padding:6px 12px;
-
+padding:8px 12px;
 border-radius:8px;
+margin-top:8px;
+}
 
-font-weight:700;
+/* TASKS */
 
+.task-card{
+background:#1f2937;
+padding:15px;
+border-radius:10px;
+margin-top:10px;
 cursor:pointer;
-
-color:black;
-
 }
 
-/* SPIN WHEEL */
+/* MISSIONS */
 
-.wheel-wrapper{
+.mission-card{
 display:flex;
-justify-content:center;
-padding:20px;
+justify-content:space-between;
+align-items:center;
+background:#1f2937;
+padding:15px;
+border-radius:10px;
+margin-top:10px;
 }
 
-.wheel{
-width:220px;
-height:220px;
-border-radius:50%;
-
-background:conic-gradient(
-
-#ffd800 0deg 60deg,
-#ffb700 60deg 120deg,
-#ffa000 120deg 180deg,
-#ffd800 180deg 240deg,
-#ffb700 240deg 300deg,
-#ffa000 300deg 360deg
-
-);
-
-transition:transform 4s ease;
+.mission-card button{
+background:#3b82f6;
+border:none;
+padding:8px 12px;
+border-radius:8px;
+color:white;
 }
 
-.pointer{
+/* VERIFY */
 
-width:0;
-height:0;
-
-border-left:12px solid transparent;
-border-right:12px solid transparent;
-border-bottom:22px solid white;
-
-margin:auto;
-
+.verify-btn{
+margin-top:20px;
+width:100%;
+padding:12px;
+background:#22c55e;
+border:none;
+border-radius:10px;
+font-size:16px;
 }
 
-/* NAV */
+.back-btn{
+margin-top:10px;
+width:100%;
+padding:10px;
+background:#374151;
+border:none;
+border-radius:10px;
+}
 
-.bottom-nav{
+/* SKILLS */
 
+.skill-card{
+background:#1f2937;
+padding:15px;
+border-radius:10px;
+margin-top:15px;
+text-align:center;
+}
+
+.skill-card button{
+margin-top:10px;
+background:#22c55e;
+border:none;
+padding:10px 15px;
+border-radius:8px;
+}
+
+/* ACCOUNT */
+
+#accountSection input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+border:none;
+}
+
+/* NAV BAR */
+
+.nav-bar{
 position:fixed;
 bottom:0;
-
 width:100%;
-max-width:420px;
-
+max-width:500px;
 display:flex;
-
 justify-content:space-around;
-
-background:#0f1326;
-
+background:#111827;
 padding:10px 0;
-
-border-top:1px solid rgba(255,255,255,0.05);
-
 }
 
-.nav-item{
-
-font-size:13px;
-
-color:#8e95c7;
-
-cursor:pointer;
-
-transition:.2s;
-
-}
-
-.nav-item.active{
-
-color:#ffd800;
-
-}
-
-/* TAP +1 */
-
-.plus-one{
-
-position:absolute;
-
-font-size:20px;
-
-font-weight:700;
-
-color:#ffd800;
-
-animation:rise .8s forwards;
-
-}
-
-@keyframes rise{
-
-0%{opacity:1; transform:translateY(0);}
-100%{opacity:0; transform:translateY(-40px);}
-
+.nav-bar button{
+background:none;
+border:none;
+color:white;
+font-size:14px;
 }
