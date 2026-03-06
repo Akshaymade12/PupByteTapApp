@@ -1,6 +1,12 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
 const tg = window.Telegram.WebApp;
+
+if(!tg){
+alert("Open inside Telegram");
+return;
+}
+
 tg.expand();
 
 const telegramId = tg.initDataUnsafe.user.id.toString();
@@ -35,7 +41,7 @@ async function loadUser(){
 const res = await fetch("/load/" + telegramId);
 const data = await res.json();
 
-coinsEl.innerText = data.coins;
+coinsEl.innerText = Math.floor(data.coins);
 energyEl.innerText = data.energy;
 profitEl.innerText = data.profitPerHour;
 
@@ -63,9 +69,17 @@ data.marketingCost;
 
 await loadUser();
 
-/* TAP SYSTEM */
+/* TAP ENGINE */
+
+let tapping = false;
 
 tapBtn.onclick = async () => {
+
+if(tapping) return;
+
+tapping = true;
+
+try{
 
 const res = await fetch("/tap",{
 method:"POST",
@@ -87,6 +101,14 @@ showPlus(data.tapPower);
 
 }
 
+}catch(e){
+
+console.log("Tap error",e);
+
+}
+
+setTimeout(()=>{ tapping=false },120);
+
 };
 
 /* PLUS ANIMATION */
@@ -96,13 +118,16 @@ function showPlus(amount){
 const el = document.createElement("div");
 
 el.innerText = "+" + amount;
+
 el.className = "plus-one";
 
 document.querySelector(".coin-wrapper")
 .appendChild(el);
 
 setTimeout(()=>{
+
 el.remove();
+
 },800);
 
 }
@@ -271,5 +296,32 @@ alert(data.message);
 }
 
 };
+
+/* GLOBAL TOP */
+
+async function loadGlobalTop(){
+
+const res = await fetch("/top-global");
+
+const users = await res.json();
+
+console.log("Global Top", users);
+
+}
+
+/* MY RANK */
+
+async function loadMyRank(){
+
+const res = await fetch("/rank/" + telegramId);
+
+const data = await res.json();
+
+console.log("My rank", data);
+
+}
+
+loadGlobalTop();
+loadMyRank();
 
 });
