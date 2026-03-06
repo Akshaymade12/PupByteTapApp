@@ -63,9 +63,7 @@ data.marketingCost;
 
 await loadUser();
 
-/* TAP */
-
-if(tapBtn){
+/* TAP SYSTEM */
 
 tapBtn.onclick = async () => {
 
@@ -75,8 +73,7 @@ headers:{ "Content-Type":"application/json"},
 body: JSON.stringify({
 telegramId,
 initData
-  
-}
+})
 });
 
 const data = await res.json();
@@ -89,6 +86,7 @@ energyEl.innerText = data.energy;
 showPlus(data.tapPower);
 
 }
+
 };
 
 /* PLUS ANIMATION */
@@ -124,12 +122,12 @@ section.style.display="block";
 
 }
 
-if(navEarn) navEarn.onclick = ()=>showSection(earnSection);
-if(navMine) navMine.onclick = ()=>showSection(mineSection);
-if(navTasks) navTasks.onclick = ()=>showSection(tasksSection);
-if(navAccount) navAccount.onclick = ()=>showSection(accountSection);
-if(navSkills) navSkills.onclick = ()=>showSection(skillsSection);
-if(navCashier) navCashier.onclick = ()=>showSection(cashierSection);
+navEarn.onclick = ()=>showSection(earnSection);
+navMine.onclick = ()=>showSection(mineSection);
+navTasks.onclick = ()=>showSection(tasksSection);
+navAccount.onclick = ()=>showSection(accountSection);
+navSkills.onclick = ()=>showSection(skillsSection);
+navCashier.onclick = ()=>showSection(cashierSection);
 
 /* CARD UPGRADE */
 
@@ -207,36 +205,6 @@ alert(data.message);
 
 }
 
-  window.verifyTask = async function(){
-
-const res = await fetch("/complete-task",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-telegramId: telegramId,
-initData: initData,
-taskId: "telegram_join"
-})
-});
-
-const data = await res.json();
-
-if(data.success){
-
-alert("Task completed +" + data.reward + " coins");
-
-await loadUser();
-
-}else{
-
-alert(data.message);
-
-}
-  };
- 
-  
 /* DAILY REWARD */
 
 const dailyBtn = document.getElementById("dailyRewardBtn");
@@ -258,7 +226,7 @@ const data = await res.json();
 
 if(data.success){
 
-alert("Reward +"+data.reward);
+alert("Reward +" + data.reward);
 
 await loadUser();
 
@@ -272,27 +240,36 @@ alert(data.message);
 
 }
 
-  /* ================= SOCIAL MISSIONS ================= */
+/* TASK VERIFY */
 
-window.openMission = function(){
+window.verifyTask = async function(){
 
-document.getElementById("tasksSection").style.display="none";
-document.getElementById("missionPage").style.display="block";
+const res = await fetch("/complete-task",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+telegramId,
+initData,
+taskId:"telegram_join"
+})
+});
+
+const data = await res.json();
+
+if(data.success){
+
+alert("Task completed +" + data.reward + " coins");
+
+await loadUser();
+
+}else{
+
+alert(data.message);
 
 }
 
-window.closeMission = function(){
+};
 
-document.getElementById("missionPage").style.display="none";
-document.getElementById("tasksSection").style.display="block";
-
-}
-
-window.openLink = function(url){
-
-window.open(url,"_blank");
-
-}
-  }
-  
 });
