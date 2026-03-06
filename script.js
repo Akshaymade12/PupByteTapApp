@@ -240,4 +240,28 @@ alert(data.message);
 
 }
 
+  /* ================= SOCIAL MISSIONS ================= */
+
+window.openMission = function(){
+
+document.getElementById("tasksSection").style.display="none";
+document.getElementById("missionPage").style.display="block";
+
+}
+
+window.closeMission = function(){
+
+document.getElementById("missionPage").style.display="none";
+document.getElementById("tasksSection").style.display="block";
+
+}
+
+window.openLink = function(url){
+
+window.open(url,"_blank");
+
+}
+  
+};
+  
 });
