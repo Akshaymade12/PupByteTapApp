@@ -84,6 +84,8 @@ document.getElementById("marketingCost").innerText = data.marketingCost;
   loadUser();
 
   loadCards();
+
+  });
   
 /* ================= LEAGUE PROGRESS ================= */
   
@@ -734,4 +736,4 @@ alert(data.message);
 }
 }
 
-};
+});
