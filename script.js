@@ -75,7 +75,8 @@ headers:{ "Content-Type":"application/json"},
 body: JSON.stringify({
 telegramId,
 initData
-})
+  
+}
 });
 
 const data = await res.json();
@@ -88,10 +89,7 @@ energyEl.innerText = data.energy;
 showPlus(data.tapPower);
 
 }
-
 };
-
-}
 
 /* PLUS ANIMATION */
 
@@ -126,12 +124,12 @@ section.style.display="block";
 
 }
 
-navEarn.onclick = ()=>showSection(earnSection);
-navMine.onclick = ()=>showSection(mineSection);
-navTasks.onclick = ()=>showSection(tasksSection);
-navAccount.onclick = ()=>showSection(accountSection);
-navSkills.onclick = ()=>showSection(skillsSection);
-navCashier.onclick = ()=>showSection(cashierSection);
+if(navEarn) navEarn.onclick = ()=>showSection(earnSection);
+if(navMine) navMine.onclick = ()=>showSection(mineSection);
+if(navTasks) navTasks.onclick = ()=>showSection(tasksSection);
+if(navAccount) navAccount.onclick = ()=>showSection(accountSection);
+if(navSkills) navSkills.onclick = ()=>showSection(skillsSection);
+if(navCashier) navCashier.onclick = ()=>showSection(cashierSection);
 
 /* CARD UPGRADE */
 
