@@ -65,6 +65,8 @@ await loadUser();
 
 /* TAP */
 
+if(tapBtn){
+
 tapBtn.onclick = async () => {
 
 const res = await fetch("/tap",{
@@ -88,6 +90,8 @@ showPlus(data.tapPower);
 }
 
 };
+
+}
 
 /* PLUS ANIMATION */
 
