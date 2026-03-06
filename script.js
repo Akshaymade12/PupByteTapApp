@@ -726,6 +726,10 @@ return;
 coins -= cost;
 level += 1;
 profit += 10;
+
+let totalProfit = parseInt(document.getElementById("profit").innerText) || 0;
+totalProfit += 10;
+
 cost = Math.floor(cost * 1.6);
 
 localStorage.setItem("coins", coins);
@@ -734,6 +738,7 @@ localStorage.setItem(type+"Profit", profit);
 localStorage.setItem(type+"Cost", cost);
 
 document.getElementById("coins").innerText = coins;
+document.getElementById("profit").innerText = totalProfit;
 
 loadCard(type);
 
