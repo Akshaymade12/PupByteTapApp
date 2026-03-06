@@ -703,61 +703,69 @@ if(closeLeagueBtn){
   
 /* ========== LOAD CARD =========== */
   
-  function loadCard(type){
+  async function loadCards(){
 
-let level = parseInt(localStorage.getItem(type+"Level")) || 1;
-let profit = parseInt(localStorage.getItem(type+"Profit")) || 10;
-let cost = parseInt(localStorage.getItem(type+"Cost")) || 1000;
+const tg = window.Telegram.WebApp;
 
-document.getElementById(type+"Level").innerText = level + "/20";
-document.getElementById(type+"Profit").innerText = profit;
-document.getElementById(type+"Cost").innerText = cost;
+const res = await fetch("/load/" + tg.initDataUnsafe.user.id);
+
+const data = await res.json();
+
+document.getElementById("coins").innerText = data.coins;
+document.getElementById("profit").innerText = data.profitPerHour;
+
+document.getElementById("gpuLevel").innerText = data.gpuLevel + "/20";
+document.getElementById("gpuProfit").innerText = data.gpuProfit;
+document.getElementById("gpuCost").innerText = data.gpuCost;
+
+document.getElementById("marketingLevel").innerText = data.marketingLevel + "/20";
+document.getElementById("marketingProfit").innerText = data.marketingProfit;
+document.getElementById("marketingCost").innerText = data.marketingCost;
 
 }
-
   
 /* ================= MINE CARDS ================= */
 
-window.upgradeCard = function(type){
+window.upgradeCard = async function(type){
 
-let coins = parseInt(document.getElementById("coins").innerText);
+const tg = window.Telegram.WebApp;
 
-let level = parseInt(localStorage.getItem(type+"Level")) || 1;
-let profit = parseInt(localStorage.getItem(type+"Profit")) || 10;
-let cost = parseInt(localStorage.getItem(type+"Cost")) || 1000;
+const res = await fetch("/upgrade-card",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+telegramId: tg.initDataUnsafe.user.id.toString(),
+type: type,
+initData: tg.initData
+})
+});
 
-if(coins < cost){
-alert("Not enough coins");
-return;
+const data = await res.json();
+
+if(data.success){
+
+document.getElementById("coins").innerText = data.coins;
+
+document.getElementById(type+"Level").innerText = data.level + "/20";
+
+document.getElementById(type+"Profit").innerText = data.profit;
+
+document.getElementById(type+"Cost").innerText = data.cost;
+
+document.getElementById("profit").innerText = data.totalProfit;
+
+}else{
+
+alert(data.message);
+
 }
-
-coins -= cost;
-level += 1;
-profit += 10;
-
-let totalProfit = parseInt(localStorage.getItem("totalProfit")) || 10;
-totalProfit += 10;
-
-localStorage.setItem("totalProfit", totalProfit);
-
-cost = Math.floor(cost * 1.6);
-
-localStorage.setItem("coins", coins);
-localStorage.setItem(type+"Level", level);
-localStorage.setItem(type+"Profit", profit);
-localStorage.setItem(type+"Cost", cost);
-
-document.getElementById("coins").innerText = coins;
-document.getElementById("profit").innerText = totalProfit;
-
-loadCard(type);
 
 }
 
 window.onload = function(){
 
-loadCard("gpu");
-loadCard("marketing");
+loadCards();
 
-}
-  });
+};
