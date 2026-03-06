@@ -697,73 +697,53 @@ if(closeLeagueBtn){
   
   function loadCard(type){
 
-let level = localStorage.getItem(type+"Level") || 1;
-let profit = localStorage.getItem(type+"Profit") || 10;
-let cost = localStorage.getItem(type+"Cost") || 1000;
+let level = parseInt(localStorage.getItem(type+"Level")) || 1;
+let profit = parseInt(localStorage.getItem(type+"Profit")) || 10;
+let cost = parseInt(localStorage.getItem(type+"Cost")) || 1000;
 
-document.getElementById(type+"Level").innerText = level;
+document.getElementById(type+"Level").innerText = level + "/20";
 document.getElementById(type+"Profit").innerText = profit;
 document.getElementById(type+"Cost").innerText = cost;
+
+}
 
   }
   
 /* ================= MINE CARDS ================= */
 
-let coins = parseInt(document.getElementById("coins").innerText);
-let profit = parseInt(document.getElementById("profit").innerText);
+function upgradeCard(type){
 
-let cards = {
+let coins = parseInt(localStorage.getItem("coins")) || 0;
 
-  gpu:{
-    level:1,
-    cost:1000,
-    profit:10,
-    max:20
-  },
+let level = parseInt(localStorage.getItem(type+"Level")) || 1;
+let profit = parseInt(localStorage.getItem(type+"Profit")) || 10;
+let cost = parseInt(localStorage.getItem(type+"Cost")) || 1000;
 
-  marketing:{
-    level:1,
-    cost:1500,
-    profit:15,
-    max:20
-  }
+if(coins < cost){
+alert("Not enough coins");
+return;
+}
 
-};
+coins -= cost;
+level += 1;
+profit += 10;
+cost = Math.floor(cost * 1.6);
 
-window.upgradeCard = function(card){
+localStorage.setItem("coins", coins);
+localStorage.setItem(type+"Level", level);
+localStorage.setItem(type+"Profit", profit);
+localStorage.setItem(type+"Cost", cost);
 
-  let c = cards[card];
+document.getElementById("coins").innerText = coins;
 
-  if(c.level >= c.max){
-    alert("Max Level Reached");
-    return;
-  }
+loadCard(type);
 
-  if(coins < c.cost){
-    alert("Not enough coins");
-    return;
-  }
-
-  coins -= c.cost;
-  c.level++;
-
-  profit += c.profit;
-
-  c.cost = Math.floor(c.cost * 1.6);
-
-  document.getElementById("coins").innerText = coins;
-  document.getElementById("profit").innerText = profit;
-
-  document.getElementById(card+"Level").innerText = c.level;
-  document.getElementById(card+"Cost").innerText = c.cost;
-
-};
-
-  });
+}
 
 window.onload = function(){
 
 let coins = localStorage.getItem("coins") || 3067;
+
 document.getElementById("coins").innerText = coins;
 
 loadCard("gpu");
