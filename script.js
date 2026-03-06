@@ -264,7 +264,29 @@ alert(data.message);
 };
 
 }
+  
+/* MISSION */
+  
+  window.openMission = function(){
 
+document.getElementById("tasksSection").style.display="none";
+document.getElementById("missionPage").style.display="block";
+
+}
+
+window.closeMission = function(){
+
+document.getElementById("missionPage").style.display="none";
+document.getElementById("tasksSection").style.display="block";
+
+}
+
+window.openLink = function(url){
+
+window.open(url,"_blank");
+
+}
+  
 /* TASK VERIFY */
 
 window.verifyTask = async function(){
@@ -275,9 +297,9 @@ headers:{
 "Content-Type":"application/json"
 },
 body:JSON.stringify({
-telegramId,
-initData,
-taskId:"telegram_join"
+telegramId: telegramId,
+initData: initData,
+taskId: "telegram_join"
 })
 });
 
