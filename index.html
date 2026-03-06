@@ -164,31 +164,118 @@ Upgrade
 
 <h2 class="page-title">📋 Tasks</h2>
 
-<div class="task-card">
+<div class="task-card" onclick="openMission()">
 
 <div class="task-icon">🚀</div>
 
 <div class="task-info">
-
 <h3>Join Our Socials</h3>
-
-<p>Reward 1000 Coins</p>
-
+<p>Reward 5000 Coins</p>
 </div>
 
 <div class="task-arrow">›</div>
 
 </div>
 
-<button onclick="verifyTask()" class="verify-btn">
+</div>
 
+  <!-- ================= MISSION PAGE ================= -->
+
+ <div id="missionPage" style="display:none;">
+
+<h2>Social Missions</h2>
+
+<div class="mission-card">
+Follow Instagram
+<button onclick="openLink('https://www.instagram.com/pupbyte_official')">
+Go
+</button>
+</div>
+
+<div class="mission-card">
+Follow X (Twitter)
+<button onclick="openLink('https://x.com/PupByteCoin')">
+Go
+</button>
+</div>
+
+<div class="mission-card">
+Join Telegram Channel
+<button onclick="openLink('https://t.me/PupByteOfficial')">
+Go
+</button>
+</div>
+
+<div class="mission-card">
+Join Telegram Group
+<button onclick="openLink('https://t.me/+D_WSaoaTr2hmYTY1')">
+Go
+</button>
+</div>
+
+<div class="mission-card">
+Join Discord
+<button onclick="openLink('https://discord.gg/BU8EazB2Q')">
+Go
+</button>
+</div>
+
+<button class="verify-btn" onclick="verifyTask()">
 Verify Task
+</button>
 
+<button class="back-btn" onclick="closeMission()">
+⬅ Back
+</button>
+
+ </div>
+
+ <!--- =================BOOST SECTION =============== --->
+
+<div id="boostSection" style="display:none">
+
+<div class="boost-card">
+
+<h3>Tap Level</h3>
+
+<button id="upgradeTapBtn">
+Upgrade Tap
 </button>
 
 </div>
 
+<div class="boost-card">
 
+<h3>Profit Level</h3>
+
+<button id="upgradeProfitBtn">
+Upgrade Profit
+</button>
+
+</div>
+
+</div>
+
+ <!-- ============ LEAGUE SECTION ================ -->
+
+<div id="leagueSection" style="display:none">
+
+<h2>League Ranking</h2>
+
+<h3>🌍 Global Top 10</h3>
+
+<div id="globalTop"></div>
+
+<h3>🏆 League Top 10</h3>
+
+<div id="leagueTop"></div>
+
+<h3>👤 Your Rank</h3>
+
+<div id="myRank"></div>
+
+</div>
+ 
 <!-- ================= SKILLS ================= -->
 
 <div id="skillsSection" style="display:none;">
@@ -224,20 +311,33 @@ Claim Reward
 
  <!-- ================= ACCOUNT ================= -->
 
-<div id="accountSection" style="display:none;">
+<!-- ACCOUNT -->
+
+<div id="accountSection" style="display:none">
 
 <div class="account-card">
 
 <h2>👤 My Account</h2>
 
-<p>User ID:</p>
+<p>User ID: <span id="accountUserId"></span></p>
 
-<span id="accountUserId"></span>
+<p>Total Coins: <span id="accountCoins"></span></p>
+
+<p>Total Referrals: <span id="accountReferrals"></span></p>
+
+<div class="ref-box">
+
+<input type="text" id="accountRefLink" readonly>
+
+<button id="copyRefBtn">
+Copy
+</button>
 
 </div>
 
 </div>
 
+</div>
 
 <!-- ================= CASHIER ================= -->
 
