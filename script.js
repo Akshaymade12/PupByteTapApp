@@ -58,6 +58,14 @@ if(leagueText) leagueText.innerText = data.league;
     energyEl.innerText = data.energy;
     profitEl.innerText = data.profitPerHour;
 
+    document.getElementById("gpuLevel").innerText = data.gpuLevel+"/20";
+document.getElementById("gpuProfit").innerText = data.gpuProfit;
+document.getElementById("gpuCost").innerText = data.gpuCost;
+
+document.getElementById("marketingLevel").innerText = data.marketingLevel+"/20";
+document.getElementById("marketingProfit").innerText = data.marketingProfit;
+document.getElementById("marketingCost").innerText = data.marketingCost;
+
     if (accountUserId) accountUserId.innerText = telegramId;
     if (accountCoins) accountCoins.innerText = Math.floor(data.coins);
     if (accountReferrals) accountReferrals.innerText = data.referrals || 0;
