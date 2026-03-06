@@ -707,7 +707,6 @@ document.getElementById(type+"Cost").innerText = cost;
 
 }
 
-  }
   
 /* ================= MINE CARDS ================= */
 
