@@ -727,8 +727,10 @@ coins -= cost;
 level += 1;
 profit += 10;
 
-let totalProfit = parseInt(document.getElementById("profit").innerText) || 0;
+let totalProfit = parseInt(localStorage.getItem("totalProfit")) || 10;
 totalProfit += 10;
+
+localStorage.setItem("totalProfit", totalProfit);
 
 cost = Math.floor(cost * 1.6);
 
@@ -747,8 +749,10 @@ loadCard(type);
 window.onload = function(){
 
 let coins = localStorage.getItem("coins") || 3067;
+let totalProfit = localStorage.getItem("totalProfit") || 10;
 
 document.getElementById("coins").innerText = coins;
+document.getElementById("profit").innerText = totalProfit;
 
 loadCard("gpu");
 loadCard("marketing");
