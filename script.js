@@ -205,6 +205,35 @@ alert(data.message);
 
 }
 
+  window.verifyTask = async function(){
+
+const res = await fetch("/complete-task",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+telegramId: telegramId,
+initData: initData,
+taskId: "telegram_join"
+})
+});
+
+const data = await res.json();
+
+if(data.success){
+
+alert("Task completed +" + data.reward + " coins");
+
+await loadUser();
+
+}else{
+
+alert(data.message);
+
+}
+ 
+  
 /* DAILY REWARD */
 
 const dailyBtn = document.getElementById("dailyRewardBtn");
@@ -261,5 +290,6 @@ window.openLink = function(url){
 window.open(url,"_blank");
 
 }
+  }
   
 });
