@@ -160,76 +160,107 @@ Upgrade
 
  <!-- ================= TASKS ================= -->
 
-<div id="tasksSection" style="display:none;">
+<div id="tasksSection" class="section" style="display:none">
 
-<h2 class="page-title">📋 Tasks</h2>
+<h2>📋 Tasks</h2>
 
 <div class="task-card" onclick="openMission()">
 
-<div class="task-icon">🚀</div>
+🚀 Join Our Socials
 
-<div class="task-info">
-<h3>Join Our Socials</h3>
 <p>Reward 5000 Coins</p>
-</div>
-
-<div class="task-arrow">›</div>
 
 </div>
 
 </div>
+
 
   <!-- ================= MISSION PAGE ================= -->
 
- <div id="missionPage" style="display:none;">
+ <div id="missionPage" class="section" style="display:none">
 
-<h2>Social Missions</h2>
+<h2>🚀 Social Missions</h2>
 
 <div class="mission-card">
-Follow Instagram
-<button onclick="openLink('https://www.instagram.com/pupbyte_official')">
-Go
-</button>
+
+<div class="mission-info">
+🐦 Follow on X (Twitter)
+<p>Reward 500 Coins</p>
 </div>
 
-<div class="mission-card">
-Follow X (Twitter)
 <button onclick="openLink('https://x.com/PupByteCoin')">
 Go
 </button>
+
 </div>
 
+
 <div class="mission-card">
-Join Telegram Channel
+
+<div class="mission-info">
+📢 Join Telegram Channel
+<p>Reward 1000 Coins</p>
+</div>
+
 <button onclick="openLink('https://t.me/PupByteOfficial')">
 Go
 </button>
+
 </div>
 
+
 <div class="mission-card">
-Join Telegram Group
+
+<div class="mission-info">
+👥 Join Telegram Group
+<p>Reward 1000 Coins</p>
+</div>
+
 <button onclick="openLink('https://t.me/+D_WSaoaTr2hmYTY1')">
 Go
 </button>
+
 </div>
 
+
 <div class="mission-card">
-Join Discord
+
+<div class="mission-info">
+📸 Follow Instagram
+<p>Reward 500 Coins</p>
+</div>
+
+<button onclick="openLink('https://instagram.com/pupbyte_official')">
+Go
+</button>
+
+</div>
+
+
+<div class="mission-card">
+
+<div class="mission-info">
+🎮 Join Discord
+<p>Reward 1000 Coins</p>
+</div>
+
 <button onclick="openLink('https://discord.gg/BU8EazB2Q')">
 Go
 </button>
+
 </div>
 
+
 <button class="verify-btn" onclick="verifyTask()">
-Verify Task
+✔ Verify Task
 </button>
 
 <button class="back-btn" onclick="closeMission()">
 ⬅ Back
 </button>
 
- </div>
-
+</div>
+ 
  <!--- =================BOOST SECTION =============== --->
 
 <div id="boostSection" style="display:none">
@@ -256,6 +287,33 @@ Upgrade Profit
 
 </div>
 
+ <!--- ============ LEADERBOARD SECTION ======== -->
+
+<div id="leaderboardSection" class="section" style="display:none">
+
+<h2>🏆 Leaderboard</h2>
+
+<div class="leaderboard-tabs">
+
+<button onclick="loadGlobalTop()">
+Global Top
+</button>
+
+<button onclick="loadLeagueTop()">
+League Top
+</button>
+
+</div>
+
+
+<div id="leaderboardList">
+
+<!-- leaderboard users will load here -->
+
+</div>
+
+</div>
+ 
  <!-- ============ LEAGUE SECTION ================ -->
 
 <div id="leagueSection" style="display:none">
@@ -278,67 +336,53 @@ Upgrade Profit
  
 <!-- ================= SKILLS ================= -->
 
-<div id="skillsSection" style="display:none;">
+<div id="skillsSection" class="section" style="display:none">
 
 <h2>🤖 Skills</h2>
 
-<div class="boost-card">
+<div class="skill-card">
 
-<h3>🎡 Daily Spin</h3>
+🎡 Daily Spin
 
 <button id="spinBtn">
-
 Spin Now
-
 </button>
 
 </div>
 
+<div class="skill-card">
 
-<div class="boost-card">
-
-<h3>🎁 Daily Reward</h3>
+🎁 Daily Reward
 
 <button id="dailyRewardBtn">
-
 Claim Reward
-
 </button>
 
 </div>
 
 </div>
-
+ 
  <!-- ================= ACCOUNT ================= -->
 
-<!-- ACCOUNT -->
-
-<div id="accountSection" style="display:none">
-
-<div class="account-card">
+<div id="accountSection" class="section" style="display:none">
 
 <h2>👤 My Account</h2>
 
-<p>User ID: <span id="accountUserId"></span></p>
+<p>User ID: <span id="userId"></span></p>
 
 <p>Total Coins: <span id="accountCoins"></span></p>
 
-<p>Total Referrals: <span id="accountReferrals"></span></p>
+<p>Total Referrals: <span id="referrals"></span></p>
 
-<div class="ref-box">
+<input id="refLink" readonly>
 
-<input type="text" id="accountRefLink" readonly>
-
-<button id="copyRefBtn">
+<button onclick="copyRef()">
 Copy
 </button>
 
 </div>
 
-</div>
-
-</div>
-
+ 
 <!-- ================= CASHIER ================= -->
 
 <div id="cashierSection" style="display:none;">
