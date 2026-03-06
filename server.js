@@ -131,7 +131,7 @@ async function getValidUser(telegramId, initData) {
 
 const LEAGUES = [
   { name: "Wood", min: 0, max: 1000 },
-  { name: "Bronze", min: 0, max: 5000 },
+  { name: "Bronze", min: 1000, max: 5000 },
   { name: "Silver", min: 5000, max: 15000 },
   { name: "Gold", min: 15000, max: 50000 },
   { name: "Platinum", min: 50000, max: 100000 },
