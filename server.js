@@ -64,7 +64,14 @@ leagueRewardsClaimed: { type: [String], default: [] },
   lastActive: { type: Date, default: Date.now },
   lastDailyClaim: { type: Date, default: null },
   lastSpin: { type: Date, default: null },
-  rewardClaimed: { type: Boolean, default: false }
+  rewardClaimed: { type: Boolean, default: false },
+  gpuLevel: { type: Number, default: 1 },
+gpuProfit: { type: Number, default: 10 },
+gpuCost: { type: Number, default: 1000 },
+
+marketingLevel: { type: Number, default: 1 },
+marketingProfit: { type: Number, default: 15 },
+marketingCost: { type: Number, default: 1500 }
   
 });
 
@@ -249,7 +256,15 @@ app.get("/load/:id", async (req, res) => {
     league: user.league,
     referrals: user.referrals,
     nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
-    nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
+    nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
+
+    gpuLevel:user.gpuLevel,
+gpuProfit:user.gpuProfit,
+gpuCost:user.gpuCost,
+
+marketingLevel:user.marketingLevel,
+marketingProfit:user.marketingProfit,
+marketingCost:user.marketingCost
   });
 });
 
@@ -554,6 +569,48 @@ app.get("/top-league/:league", async (req, res) => {
   res.json(topUsers);
 });
 
+/* ================= UPGRADE CARD ================= */
+
+app.post("/upgrade-card", async (req,res)=>{
+
+const { telegramId, type } = req.body;
+
+const user = await User.findOne({ telegramId });
+
+if(!user) return res.json({ success:false });
+
+let level = user[type+"Level"];
+let profit = user[type+"Profit"];
+let cost = user[type+"Cost"];
+
+if(user.coins < cost){
+return res.json({ success:false, message:"Not enough coins"});
+}
+
+user.coins -= cost;
+
+level += 1;
+profit += 10;
+cost = Math.floor(cost * 1.6);
+
+user[type+"Level"] = level;
+user[type+"Profit"] = profit;
+user[type+"Cost"] = cost;
+
+user.profitPerHour += 10;
+
+await user.save();
+
+res.json({
+success:true,
+coins:user.coins,
+level,
+profit,
+cost,
+totalProfit:user.profitPerHour
+});
+
+});
 
 /* ================= USER RANK ================= */
 
@@ -647,6 +704,7 @@ app.post("/claim-reward", async (req, res) => {
 app.get("/", (req, res) => {
   res.send("PupByte Server Running 🚀");
 });
+
 
 /* ================= WEEKLY LEAGUE RESET ================= */
 
