@@ -232,6 +232,7 @@ await loadUser();
 alert(data.message);
 
 }
+  };
  
   
 /* DAILY REWARD */
