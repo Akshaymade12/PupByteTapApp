@@ -712,7 +712,7 @@ document.getElementById(type+"Cost").innerText = cost;
 
 window.upgradeCard = function(type){
 
-let coins = parseInt(localStorage.getItem("coins")) || 0;
+let coins = parseInt(document.getElementById("coins").innerText);
 
 let level = parseInt(localStorage.getItem(type+"Level")) || 1;
 let profit = parseInt(localStorage.getItem(type+"Profit")) || 10;
@@ -747,12 +747,6 @@ loadCard(type);
 }
 
 window.onload = function(){
-
-let coins = localStorage.getItem("coins") || 3067;
-let totalProfit = localStorage.getItem("totalProfit") || 10;
-
-document.getElementById("coins").innerText = coins;
-document.getElementById("profit").innerText = totalProfit;
 
 loadCard("gpu");
 loadCard("marketing");
