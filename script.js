@@ -710,7 +710,7 @@ document.getElementById(type+"Cost").innerText = cost;
   
 /* ================= MINE CARDS ================= */
 
-function upgradeCard(type){
+window.upgradeCard = function(type){
 
 let coins = parseInt(localStorage.getItem("coins")) || 0;
 
