@@ -573,15 +573,18 @@ app.get("/top-league/:league", async (req, res) => {
 
 app.post("/upgrade-card", async (req,res)=>{
 
-const { telegramId, type } = req.body;
+const { telegramId, type, initData } = req.body;
 
-const user = await User.findOne({ telegramId });
-
+const user = await getValidUser(telegramId, initData);
 if(!user) return res.json({ success:false });
 
 let level = user[type+"Level"];
 let profit = user[type+"Profit"];
 let cost = user[type+"Cost"];
+
+if(level >= 20){
+return res.json({ success:false, message:"Max level reached"});
+}
 
 if(user.coins < cost){
 return res.json({ success:false, message:"Not enough coins"});
