@@ -20,16 +20,40 @@
 
 <div class="top-bar">
 
-<div>🪙 <span id="coins">0</span></div>
+<div class="top-item">
+🪙 <span id="coins">0</span>
+</div>
 
-<div>⛏ <span id="profit">10</span> P/H</div>
+<div class="top-item">
+⛏ <span id="profit">10</span> P/H
+</div>
 
-<div>⚡ <span id="energy">100</span></div>
+<div class="top-item">
+⚡ <span id="energy">100</span>
+</div>
 
 </div>
 
 
-<!-- ================= EARN SECTION ================= -->
+<!-- RANK + WALLET -->
+
+<div class="card-row">
+
+<div class="glass-card" id="openLeague">
+
+🏆 <span id="currentLeagueText">Wood</span>
+
+</div>
+
+<div class="glass-card">
+
+👛 Connect Wallet
+
+</div>
+
+</div>
+
+ <!-- ================= EARN ================= -->
 
 <div id="earnSection">
 
@@ -47,19 +71,45 @@
 
 </div>
 
+
+<div class="energy-row">
+
+<div class="energy-bar">
+
+<div class="energy-fill" id="energyBar"></div>
+
 </div>
 
- <!-- ================= MINE SECTION ================= -->
+<div class="energy-text">
+
+⚡ <span id="energy">100</span>/100
+
+</div>
+
+<button id="openBoost" class="boost-btn">
+
+🔥 Boost
+
+</button>
+
+</div>
+
+</div>
+
+ <!-- ================= MINE ================= -->
 
 <div id="mineSection" style="display:none;">
 
 <h2 class="page-title">⛏ Mining Center</h2>
+
 
 <h3 class="mine-category">Mining Hardware</h3>
 
 <div class="mine-grid">
 
 <div class="mine-card">
+
+<img src="images/cards/logo.png" class="mine-img">
 
 <h3>GPU Mining</h3>
 
@@ -70,7 +120,9 @@
 <p>Cost <span id="gpuCost">1000</span></p>
 
 <button onclick="upgradeCard('gpu')" class="upgrade-btn">
+
 Upgrade
+
 </button>
 
 </div>
@@ -84,6 +136,8 @@ Upgrade
 
 <div class="mine-card">
 
+<img src="images/cards/marketing.png" class="mine-img">
+
 <h3>Marketing</h3>
 
 <p>Level <span id="marketingLevel">1/20</span></p>
@@ -93,7 +147,9 @@ Upgrade
 <p>Cost <span id="marketingCost">1500</span></p>
 
 <button onclick="upgradeCard('marketing')" class="upgrade-btn">
+
 Upgrade
+
 </button>
 
 </div>
@@ -102,7 +158,7 @@ Upgrade
 
 </div>
 
-  <!-- ================= TASKS SECTION ================= -->
+ <!-- ================= TASKS ================= -->
 
 <div id="tasksSection" style="display:none;">
 
@@ -110,11 +166,25 @@ Upgrade
 
 <div class="task-card">
 
-<p>Join Telegram</p>
+<div class="task-icon">🚀</div>
 
-<button onclick="verifyTask()">Verify</button>
+<div class="task-info">
+
+<h3>Join Our Socials</h3>
+
+<p>Reward 1000 Coins</p>
 
 </div>
+
+<div class="task-arrow">›</div>
+
+</div>
+
+<button onclick="verifyTask()" class="verify-btn">
+
+Verify Task
+
+</button>
 
 </div>
 
@@ -123,13 +193,17 @@ Upgrade
 
 <div id="skillsSection" style="display:none;">
 
-<h2>Skills</h2>
+<h2>🤖 Skills</h2>
 
 <div class="boost-card">
 
 <h3>🎡 Daily Spin</h3>
 
-<button id="spinBtn">Spin</button>
+<button id="spinBtn">
+
+Spin Now
+
+</button>
 
 </div>
 
@@ -139,40 +213,22 @@ Upgrade
 <h3>🎁 Daily Reward</h3>
 
 <button id="dailyRewardBtn">
+
 Claim Reward
+
 </button>
 
 </div>
 
 </div>
 
-
-<!-- SPIN WHEEL -->
-
-<div class="wheel-wrapper" id="wheelWrapper" style="display:none;">
-
-<div class="pointer"></div>
-
-<div class="wheel" id="wheel">
-
-<div class="segment">100</div>
-<div class="segment">200</div>
-<div class="segment">300</div>
-<div class="segment">500</div>
-<div class="segment">800</div>
-<div class="segment">1000</div>
-
-</div>
-
-</div>
-
-  <!-- ================= ACCOUNT ================= -->
+ <!-- ================= ACCOUNT ================= -->
 
 <div id="accountSection" style="display:none;">
 
 <div class="account-card">
 
-<h2>👤 Account</h2>
+<h2>👤 My Account</h2>
 
 <p>User ID:</p>
 
@@ -189,7 +245,11 @@ Claim Reward
 
 <h2>💰 Cashier</h2>
 
+<div class="boost-card">
+
 <p>Withdraw coming soon</p>
+
+</div>
 
 </div>
 
@@ -198,29 +258,17 @@ Claim Reward
 
 <div class="bottom-nav">
 
-<div id="navEarn" class="nav-item active">
-💰 Earn
-</div>
+<div id="navEarn" class="nav-item active">💰 Earn</div>
 
-<div id="navMine" class="nav-item">
-⛏ Mine
-</div>
+<div id="navMine" class="nav-item">⛏ Mine</div>
 
-<div id="navTasks" class="nav-item">
-📋 Tasks
-</div>
+<div id="navTasks" class="nav-item">📋 Tasks</div>
 
-<div id="navAccount" class="nav-item">
-👤 Account
-</div>
+<div id="navAccount" class="nav-item">👤 Account</div>
 
-<div id="navSkills" class="nav-item">
-🎮 Skills
-</div>
+<div id="navSkills" class="nav-item">🤖 Skills</div>
 
-<div id="navCashier" class="nav-item">
-💰 Cashier
-</div>
+<div id="navCashier" class="nav-item">💰 Cashier</div>
 
 </div>
 
@@ -232,6 +280,6 @@ Claim Reward
 </div>
 
 </body>
-
 </html>
-  
+ 
+ 
