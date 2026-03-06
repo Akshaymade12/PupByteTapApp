@@ -84,9 +84,7 @@ document.getElementById("marketingCost").innerText = data.marketingCost;
   loadUser();
 
   loadCards();
-
-  });
-  
+ 
 /* ================= LEAGUE PROGRESS ================= */
   
   function updateLeagueProgress(coins) {
@@ -733,7 +731,6 @@ document.getElementById("profit").innerText = data.totalProfit;
 
 alert(data.message);
 
-}
 }
 
 });
