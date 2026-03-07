@@ -128,6 +128,8 @@ type:Boolean,
 default:false
 },
 
+userSchema.index({coins:-1});
+
 /* ===== REFERRAL ===== */
 
 referredBy:{
@@ -310,7 +312,7 @@ await user.save();
 
 setInterval(async ()=>{
 
-const users = await User.find({});
+const users = await User.find({energy:{$lt:100}});
 
 for(let user of users){
 
@@ -386,7 +388,11 @@ marketingCost:user.marketingCost
 
 app.post("/tap", async (req,res)=>{
 
-const { telegramId } = req.body;
+const { telegramId, initData } = req.body;
+
+if(!initData){
+return res.json({success:false});
+}
 
 if(!telegramId){
 
@@ -1242,38 +1248,6 @@ referrals:user.referrals
 
 });
 
-/* ================= ENERGY REGEN SYSTEM ================= */
-
-setInterval(async ()=>{
-
-try{
-
-const users = await User.find({});
-
-for(let user of users){
-
-if(user.energy < user.maxEnergy){
-
-user.energy += 2;
-
-if(user.energy > user.maxEnergy){
-user.energy = user.maxEnergy;
-}
-
-await user.save();
-
-}
-
-}
-
-}catch(e){
-console.log("Energy error",e);
-}
-
-},3000);
-
-
-
 /* ================= WEEKLY TAP RESET ================= */
 
 cron.schedule("0 0 * * 0", async ()=>{
@@ -1308,12 +1282,12 @@ const users = await User.find({});
 
 for(let user of users){
 
-if(user.suspiciousCount > 0){
+if(user.suspicious > 0){
 
-user.suspiciousCount -= 1;
+user.suspicious -= 1;
 
-if(user.suspiciousCount < 0){
-user.suspiciousCount = 0;
+if(user.suspicious < 0){
+user.suspicious = 0;
 }
 
 await user.save();
