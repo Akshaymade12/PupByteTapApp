@@ -55,6 +55,8 @@ mongoose.connect(MONGO_URI)
 
 /* ================= USER SCHEMA ================= */
 
+userSchema.index({coins:-1});
+
 const userSchema = new mongoose.Schema({
 
 telegramId:{
@@ -127,8 +129,6 @@ isBlocked:{
 type:Boolean,
 default:false
 },
-
-userSchema.index({coins:-1});
 
 /* ===== REFERRAL ===== */
 
