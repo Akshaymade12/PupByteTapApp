@@ -55,8 +55,6 @@ mongoose.connect(MONGO_URI)
 
 /* ================= USER SCHEMA ================= */
 
-userSchema.index({coins:-1});
-
 const userSchema = new mongoose.Schema({
 
 telegramId:{
@@ -181,6 +179,8 @@ marketingProfit:{type:Number,default:15},
 marketingCost:{type:Number,default:1500}
 
 });
+
+userSchema.index({coins:-1});
 
 const User = mongoose.model("User",userSchema);
 
