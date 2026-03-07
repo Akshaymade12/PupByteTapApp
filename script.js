@@ -2,10 +2,6 @@ function qs(id){
 return document.getElementById(id);
 }
 
-function notify(msg){
-alert(msg);
-}
-
 /* ================================
 PUPBYTE TAP BOT
 MAIN SCRIPT
@@ -139,10 +135,10 @@ const dailyBtn = qs("dailyRewardBtn");
 
 /* ACCOUNT */
 
-const accountUserId = qs("accountUserId");
+const accountUserId = qs("userId");
 const accountCoins = qs("accountCoins");
 const accountReferrals = qs("accountReferrals");
-const refLinkInput = qs("accountRefLink");
+const refLinkInput = qs("refLink");
 const copyRefBtn = qs("copyRefBtn");
 
 /* LEAGUE */
@@ -174,8 +170,8 @@ if(cashierSection) cashierSection.style.display = "none";
 
 function removeActive(){
 
-document.querySelectorAll(".nav-item").forEach(btn=>{
-btn.classList.remove("active");
+btn.classList.remove("active-nav");
+btn.classList.add("active-nav");
 });
 
 }
@@ -511,14 +507,14 @@ coinsEl.innerText = Math.floor(data.coins);
 /* UPDATE CARD UI */
 
 const levelEl = qs(type+"Level");
-const profitEl = qs(type+"Profit");
+const cardProfitEl = qs(type+"Profit");
 const costEl = qs(type+"Cost");
 
 if(levelEl)
 levelEl.innerText = data.level + "/20";
 
-if(profitEl)
-profitEl.innerText = data.profit;
+if(cardProfitEl)
+cardProfitEl.innerText = data.profit;
 
 if(costEl)
 costEl.innerText = data.cost;
