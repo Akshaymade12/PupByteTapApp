@@ -1,3 +1,11 @@
+function qs(id){
+return document.getElementById(id);
+}
+
+function notify(msg){
+alert(msg);
+}
+
 /* ================================
 PUPBYTE TAP BOT
 MAIN SCRIPT
@@ -51,18 +59,6 @@ league:"Wood"
 };
 
 /* ================================
-GLOBAL HELPERS
-================================ */
-
-function qs(id){
-return document.getElementById(id);
-}
-
-function notify(msg){
-alert(msg);
-}
-
-/* ================================
 START LOADING USER
 ================================ */
 
@@ -79,8 +75,6 @@ initReferral();
 loadGlobalTop();
 loadLeagueTop(GAME.league);
 loadMyRank();
-  
-});
 
 /* ================================
 DOM ELEMENTS
@@ -1314,3 +1308,4 @@ window.onerror = function(msg,src,line){
 console.log("JS ERROR:",msg,"line:",line);
 
 };
+});
