@@ -1,6 +1,11 @@
+/* ================================
+PUPBYTE TAP BOT
+MAIN SCRIPT
+=============================== */
+
 document.addEventListener("DOMContentLoaded", async () => {
 
-const tg = window.Telegram.WebApp;
+const tg = window.Telegram?.WebApp;
 
 if(!tg){
 alert("Open inside Telegram");
@@ -9,71 +14,360 @@ return;
 
 tg.expand();
 
-const telegramId = tg.initDataUnsafe.user.id.toString();
+/* ================================
+TELEGRAM USER
+================================ */
+
+const telegramUser = tg.initDataUnsafe?.user;
+
+if(!telegramUser){
+alert("Telegram user not found");
+return;
+}
+
+const telegramId = telegramUser.id.toString();
+const username = telegramUser.username || telegramUser.first_name || "Player";
+
 const initData = tg.initData;
 
-/* ===================== ELEMENTS ========================= */
+/* ================================
+GLOBAL GAME STATE
+================================ */
 
-const coinsEl = document.getElementById("coins");
-const energyEl = document.getElementById("energy");
-const profitEl = document.getElementById("profit");
+let GAME = {
 
-const tapBtn = document.getElementById("tapBtn");
+coins:0,
+energy:0,
+profit:0,
 
-const navEarn = document.getElementById("navEarn");
-const navMine = document.getElementById("navMine");
-const navTasks = document.getElementById("navTasks");
-const navAccount = document.getElementById("navAccount");
-const navSkills = document.getElementById("navSkills");
-const navCashier = document.getElementById("navCashier");
+tapPower:1,
+tapLevel:1,
 
-const earnSection = document.getElementById("earnSection");
-const mineSection = document.getElementById("mineSection");
-const tasksSection = document.getElementById("tasksSection");
-const accountSection = document.getElementById("accountSection");
-const skillsSection = document.getElementById("skillsSection");
-const cashierSection = document.getElementById("cashierSection");
+gpuLevel:1,
+marketingLevel:1,
 
-/* ======================= LOAD USER ========================== */
+league:"Wood"
 
-async function loadUser(){
+};
 
-const res = await fetch("/load/" + telegramId);
-const data = await res.json();
+/* ================================
+GLOBAL HELPERS
+================================ */
 
-coinsEl.innerText = Math.floor(data.coins);
-energyEl.innerText = data.energy;
-profitEl.innerText = data.profitPerHour;
+function qs(id){
+return document.getElementById(id);
+}
 
-/* =================== CARDS ======================= */
+function notify(msg){
+alert(msg);
+}
 
-document.getElementById("gpuLevel").innerText =
-data.gpuLevel + "/20";
+/* ================================
+START LOADING USER
+================================ */
 
-document.getElementById("gpuProfit").innerText =
-data.gpuProfit;
+await loadUser();
+initNavigation();
+initTap();
+initCards();
+initBoost();
+initSpin();
+initDailyReward();
+initMission();
+initReferral();
 
-document.getElementById("gpuCost").innerText =
-data.gpuCost;
+loadGlobalTop();
+loadLeagueTop(GAME.league);
+loadMyRank();
+  
+});
 
-document.getElementById("marketingLevel").innerText =
-data.marketingLevel + "/20";
+/* ================================
+DOM ELEMENTS
+================================ */
 
-document.getElementById("marketingProfit").innerText =
-data.marketingProfit;
+const coinsEl = qs("coins");
+const energyEl = qs("energy");
+const profitEl = qs("profit");
 
-document.getElementById("marketingCost").innerText =
-data.marketingCost;
+/* TAP */
+
+const tapBtn = qs("tapBtn");
+
+/* NAVIGATION */
+
+const navEarn = qs("navEarn");
+const navMine = qs("navMine");
+const navTasks = qs("navTasks");
+const navAccount = qs("navAccount");
+const navSkills = qs("navSkills");
+const navCashier = qs("navCashier");
+
+/* SECTIONS */
+
+const earnSection = qs("earnSection");
+const mineSection = qs("mineSection");
+const tasksSection = qs("tasksSection");
+const accountSection = qs("accountSection");
+const skillsSection = qs("skillsSection");
+const cashierSection = qs("cashierSection");
+
+/* BOOST */
+
+const openBoostBtn = qs("openBoost");
+const boostSection = qs("boostSection");
+const backBoostBtn = qs("backBtn");
+
+const upgradeTapBtn = qs("upgradeTapBtn");
+const upgradeProfitBtn = qs("upgradeProfitBtn");
+
+/* MINE CARDS */
+
+const gpuLevelEl = qs("gpuLevel");
+const gpuProfitEl = qs("gpuProfit");
+const gpuCostEl = qs("gpuCost");
+
+const marketingLevelEl = qs("marketingLevel");
+const marketingProfitEl = qs("marketingProfit");
+const marketingCostEl = qs("marketingCost");
+
+/* MISSIONS */
+
+const missionPage = qs("missionPage");
+
+/* SPIN */
+
+const spinBtn = qs("spinBtn");
+
+/* DAILY REWARD */
+
+const dailyBtn = qs("dailyRewardBtn");
+
+/* ACCOUNT */
+
+const accountUserId = qs("accountUserId");
+const accountCoins = qs("accountCoins");
+const accountReferrals = qs("accountReferrals");
+const refLinkInput = qs("accountRefLink");
+const copyRefBtn = qs("copyRefBtn");
+
+/* LEAGUE */
+
+const leagueSection = qs("leagueSection");
+const leagueNameEl = qs("leagueName");
+const leagueProgressEl = qs("leagueProgress");
+
+/* LEADERBOARD */
+
+const globalTopEl = qs("globalTop");
+const leagueTopEl = qs("leagueTop");
+const myRankEl = qs("myRank");
+
+/* ================================
+NAVIGATION SYSTEM
+================================ */
+
+function hideAllSections(){
+
+if(earnSection) earnSection.style.display = "none";
+if(mineSection) mineSection.style.display = "none";
+if(tasksSection) tasksSection.style.display = "none";
+if(accountSection) accountSection.style.display = "none";
+if(skillsSection) skillsSection.style.display = "none";
+if(cashierSection) cashierSection.style.display = "none";
 
 }
 
-await loadUser();
+function removeActive(){
 
-/* =================== TAP ENGINE ================ */
+document.querySelectorAll(".nav-item").forEach(btn=>{
+btn.classList.remove("active");
+});
+
+}
+
+function switchSection(section,btn){
+
+hideAllSections();
+removeActive();
+
+if(section) section.style.display="block";
+if(btn) btn.classList.add("active");
+
+}
+
+/* ================================
+INIT NAVIGATION
+================================ */
+
+function initNavigation(){
+
+if(navEarn){
+
+navEarn.onclick = ()=>{
+switchSection(earnSection,navEarn);
+};
+
+}
+
+if(navMine){
+
+navMine.onclick = ()=>{
+switchSection(mineSection,navMine);
+};
+
+}
+
+if(navTasks){
+
+navTasks.onclick = ()=>{
+switchSection(tasksSection,navTasks);
+};
+
+}
+
+if(navAccount){
+
+navAccount.onclick = ()=>{
+switchSection(accountSection,navAccount);
+};
+
+}
+
+if(navSkills){
+
+navSkills.onclick = ()=>{
+switchSection(skillsSection,navSkills);
+};
+
+}
+
+if(navCashier){
+
+navCashier.onclick = ()=>{
+switchSection(cashierSection,navCashier);
+};
+
+}
+
+}
+
+/* ================================
+LOAD USER DATA
+================================ */
+
+async function loadUser(){
+
+try{
+
+const res = await fetch("/load/" + telegramId);
+
+const data = await res.json();
+
+if(!data) return;
+
+/* ================================
+UPDATE GAME STATE
+================================ */
+
+GAME.coins = data.coins;
+GAME.energy = data.energy;
+GAME.profit = data.profitPerHour;
+
+GAME.tapLevel = data.tapLevel;
+GAME.tapPower = data.tapPower;
+
+GAME.gpuLevel = data.gpuLevel;
+GAME.marketingLevel = data.marketingLevel;
+
+GAME.league = data.league;
+
+
+/* ================================
+UPDATE UI
+================================ */
+
+if(coinsEl) coinsEl.innerText = Math.floor(data.coins);
+  
+  updateLeagueProgress(data.coins);
+updateAccount(data);
+  
+if(energyEl) energyEl.innerText = data.energy;
+
+if(profitEl) profitEl.innerText = data.profitPerHour;
+
+
+/* ================================
+MINE CARDS
+================================ */
+
+if(gpuLevelEl)
+gpuLevelEl.innerText = data.gpuLevel + "/20";
+
+if(gpuProfitEl)
+gpuProfitEl.innerText = data.gpuProfit;
+
+if(gpuCostEl)
+gpuCostEl.innerText = data.gpuCost;
+
+
+if(marketingLevelEl)
+marketingLevelEl.innerText = data.marketingLevel + "/20";
+
+if(marketingProfitEl)
+marketingProfitEl.innerText = data.marketingProfit;
+
+if(marketingCostEl)
+marketingCostEl.innerText = data.marketingCost;
+
+
+/* ================================
+ACCOUNT SECTION
+================================ */
+
+if(accountUserId)
+accountUserId.innerText = telegramId;
+
+if(accountCoins)
+accountCoins.innerText = Math.floor(data.coins);
+
+if(accountReferrals)
+accountReferrals.innerText = data.referrals || 0;
+
+if(refLinkInput)
+refLinkInput.value = "https://t.me/PupByteTapBot?start=" + telegramId;
+
+
+/* ================================
+BOOST COST
+================================ */
+
+if(upgradeTapBtn)
+upgradeTapBtn.innerText = "Upgrade Tap ("+data.nextTapCost+")";
+
+if(upgradeProfitBtn)
+upgradeProfitBtn.innerText = "Upgrade Profit ("+data.nextProfitCost+")";
+
+
+}catch(err){
+
+console.log("Load user error",err);
+
+}
+
+}
+
+/* ================================
+TAP SYSTEM
+================================ */
+
+function initTap(){
+
+if(!tapBtn) return;
 
 let tapping = false;
 
-tapBtn.onclick = async () => {
+tapBtn.onclick = async ()=>{
 
 if(tapping) return;
 
@@ -82,47 +376,85 @@ tapping = true;
 try{
 
 const res = await fetch("/tap",{
+
 method:"POST",
-headers:{ "Content-Type":"application/json"},
-body: JSON.stringify({
-telegramId,
-initData
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+telegramId:telegramId,
+initData:initData
+
 })
+
 });
 
 const data = await res.json();
 
-if(data.success){
+if(!data.success){
 
-coinsEl.innerText = data.coins;
+notify(data.message || "Tap rejected");
+tapping = false;
+return;
+
+}
+
+/* UPDATE UI */
+
+GAME.coins = data.coins;
+GAME.energy = data.energy;
+GAME.profit = data.profitPerHour;
+
+if(coinsEl)
+coinsEl.innerText = Math.floor(data.coins);
+
+if(energyEl)
 energyEl.innerText = data.energy;
+
+if(profitEl)
+profitEl.innerText = data.profitPerHour;
+
+/* COIN ANIMATION */
 
 showPlus(data.tapPower);
 
-}
+}catch(err){
 
-}catch(e){
-
-console.log("Tap error",e);
+console.log("Tap error",err);
 
 }
 
-setTimeout(()=>{ tapping=false },120);
+setTimeout(()=>{
+
+tapping = false;
+
+},120);
 
 };
 
-/* ================== PLUS ANIMATION ================ */
+}
+
+
+/* ================================
+COIN FLOAT ANIMATION
+================================ */
 
 function showPlus(amount){
 
 const el = document.createElement("div");
 
-el.innerText = "+" + amount;
-
 el.className = "plus-one";
 
-document.querySelector(".coin-wrapper")
-.appendChild(el);
+el.innerText = "+" + amount;
+
+const wrapper = document.querySelector(".coin-wrapper");
+
+if(wrapper){
+
+wrapper.appendChild(el);
 
 setTimeout(()=>{
 
@@ -132,37 +464,19 @@ el.remove();
 
 }
 
-/* =================== NAVIGATION =============== */
-
-function showSection(section){
-
-earnSection.style.display="none";
-mineSection.style.display="none";
-tasksSection.style.display="none";
-accountSection.style.display="none";
-skillsSection.style.display="none";
-cashierSection.style.display="none";
-
-section.style.display="block";
-
 }
 
-navEarn.onclick = ()=>showSection(earnSection);
-navMine.onclick = ()=>showSection(mineSection);
-navTasks.onclick = ()=>showSection(tasksSection);
-navAccount.onclick = ()=>showSection(accountSection);
-navSkills.onclick = ()=>showSection(skillsSection);
-navCashier.onclick = ()=>showSection(cashierSection);
+/* ================================
+MINE CARDS SYSTEM
+================================ */
 
-/* ================= CARD UPGRADE ================= */
+function initCards(){
+
+/* GPU CARD */
 
 window.upgradeCard = async function(type){
 
-const tg = window.Telegram.WebApp;
-
-const telegramId = tg.initDataUnsafe.user.id.toString();
-
-const initData = tg.initData;
+try{
 
 const res = await fetch("/upgrade-card",{
 
@@ -172,11 +486,11 @@ headers:{
 "Content-Type":"application/json"
 },
 
-body: JSON.stringify({
+body:JSON.stringify({
 
-telegramId,
-initData,
-type
+telegramId:telegramId,
+initData:initData,
+type:type
 
 })
 
@@ -184,79 +498,49 @@ type
 
 const data = await res.json();
 
+if(!data.success){
 
-if(data.success){
+notify(data.message || "Upgrade failed");
+
+return;
+
+}
 
 /* UPDATE COINS */
 
-document.getElementById("coins").innerText = data.coins;
+GAME.coins = data.coins;
+
+if(coinsEl)
+coinsEl.innerText = Math.floor(data.coins);
 
 
-/* UPDATE CARD */
+/* UPDATE CARD UI */
 
-document.getElementById(type+"Level").innerText =
-data.level + "/20";
+const levelEl = qs(type+"Level");
+const profitEl = qs(type+"Profit");
+const costEl = qs(type+"Cost");
 
-document.getElementById(type+"Profit").innerText =
-data.profit;
+if(levelEl)
+levelEl.innerText = data.level + "/20";
 
-document.getElementById(type+"Cost").innerText =
-data.cost;
+if(profitEl)
+profitEl.innerText = data.profit;
+
+if(costEl)
+costEl.innerText = data.cost;
 
 
 /* UPDATE TOTAL PROFIT */
 
-document.getElementById("profit").innerText =
-data.totalProfit;
+GAME.profit = data.totalProfit;
 
-}else{
+if(profitEl)
+profitEl.innerText = data.totalProfit;
 
-alert(data.message);
 
-}
+}catch(err){
 
-};
-
-/* ========================== DAILY SPIN =================== */
-
-const spinBtn = document.getElementById("spinBtn");
-
-if(spinBtn){
-
-spinBtn.onclick = async ()=>{
-
-const tg = window.Telegram.WebApp;
-
-const telegramId = tg.initDataUnsafe.user.id.toString();
-
-const initData = tg.initData;
-
-const res = await fetch("/spin",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body: JSON.stringify({
-telegramId,
-initData
-})
-
-});
-
-const data = await res.json();
-
-if(data.success){
-
-alert("🎉 You won " + data.reward + " coins!");
-
-document.getElementById("coins").innerText = data.coins;
-
-}else{
-
-alert(data.message);
+console.log("Card upgrade error",err);
 
 }
 
@@ -264,207 +548,51 @@ alert(data.message);
 
 }
 
-/* ============================= DAILY REWARD ================= */
 
-const dailyBtn = document.getElementById("dailyRewardBtn");
+/* ================================
+BOOST SYSTEM
+================================ */
 
-if(dailyBtn){
+function initBoost(){
 
-dailyBtn.onclick = async ()=>{
+/* OPEN BOOST */
 
-const tg = window.Telegram.WebApp;
+if(openBoostBtn){
 
-const telegramId = tg.initDataUnsafe.user.id.toString();
+openBoostBtn.onclick = ()=>{
 
-const initData = tg.initData;
+if(earnSection) earnSection.style.display="none";
 
-const res = await fetch("/daily-reward",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body: JSON.stringify({
-telegramId,
-initData
-})
-
-});
-
-const data = await res.json();
-
-if(data.success){
-
-alert("🎁 Daily reward +" + data.reward);
-
-document.getElementById("coins").innerText =
-parseInt(document.getElementById("coins").innerText) + data.reward;
-
-}else{
-
-alert(data.message);
-
-}
+if(boostSection) boostSection.style.display="block";
 
 };
 
 }
-  
-/* =========================== MISSION ==================== */
-  
-/* OPEN MISSION PAGE */
 
-window.openMission = function(){
+/* BACK BUTTON */
 
-document.getElementById("tasksSection").style.display="none";
+if(backBoostBtn){
 
-document.getElementById("missionPage").style.display="block";
+backBoostBtn.onclick = ()=>{
 
-};
+if(boostSection) boostSection.style.display="none";
 
-
-/* CLOSE MISSION */
-
-window.closeMission = function(){
-
-document.getElementById("missionPage").style.display="none";
-
-document.getElementById("tasksSection").style.display="block";
+if(earnSection) earnSection.style.display="block";
 
 };
-
-
-/* OPEN SOCIAL LINK */
-
-window.openLink = function(url){
-
-window.open(url,"_blank");
-
-};
-
-/* ============================ TASK VERIFY ==================== */
-
-window.verifyTask = async function(){
-
-const tg = window.Telegram.WebApp;
-
-const telegramId = tg.initDataUnsafe.user.id.toString();
-
-const initData = tg.initData;
-
-const res = await fetch("/complete-task",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body: JSON.stringify({
-
-telegramId,
-initData,
-taskId:"telegram_join"
-
-})
-
-});
-
-const data = await res.json();
-
-
-if(data.success){
-
-alert("🎉 Task Completed! +" + data.reward + " coins");
-
-document.getElementById("coins").innerText =
-parseInt(document.getElementById("coins").innerText) + data.reward;
-
-}else{
-
-alert(data.message);
 
 }
 
-};
 
-  /* ================= ACCOUNT SYSTEM ================= */
-
-const accountUserId = document.getElementById("userId");
-const accountCoins = document.getElementById("accountCoins");
-const accountReferrals = document.getElementById("referrals");
-const accountRefLink = document.getElementById("refLink");
-
-
-async function loadAccount(){
-
-const tg = window.Telegram.WebApp;
-
-const telegramId = tg.initDataUnsafe.user.id.toString();
-
-const res = await fetch("/load/" + telegramId);
-
-const data = await res.json();
-
-
-if(accountUserId)
-accountUserId.innerText = telegramId;
-
-
-if(accountCoins)
-accountCoins.innerText = Math.floor(data.coins);
-
-
-if(accountReferrals)
-accountReferrals.innerText = data.referrals || 0;
-
-
-if(accountRefLink){
-
-accountRefLink.value =
-"https://t.me/PupByteTapBot?start=" + telegramId;
-
-}
-
-}
-
-loadAccount();
-
-
-
-/* ================= COPY REF LINK ================= */
-
-window.copyRef = function(){
-
-const refInput = document.getElementById("refLink");
-
-refInput.select();
-
-document.execCommand("copy");
-
-alert("Referral link copied!");
-
-};
-
-  /* ================= BOOST SYSTEM ================= */
-
-const upgradeTapBtn = document.getElementById("upgradeTapBtn");
-const upgradeProfitBtn = document.getElementById("upgradeProfitBtn");
-
-
-/* TAP UPGRADE */
+/* ================================
+UPGRADE TAP
+================================ */
 
 if(upgradeTapBtn){
 
 upgradeTapBtn.onclick = async ()=>{
 
-const tg = window.Telegram.WebApp;
-
-const telegramId = tg.initDataUnsafe.user.id.toString();
-
-const initData = tg.initData;
+try{
 
 const res = await fetch("/upgrade-tap",{
 
@@ -474,24 +602,30 @@ headers:{
 "Content-Type":"application/json"
 },
 
-body: JSON.stringify({
-telegramId,
-initData
+body:JSON.stringify({
+
+telegramId:telegramId,
+initData:initData
+
 })
 
 });
 
 const data = await res.json();
 
-if(data.success){
+if(!data.success){
 
-alert("🔥 Tap upgraded!");
+notify("Not enough coins");
 
-document.getElementById("coins").innerText = data.coins;
+return;
 
-}else{
+}
 
-alert("Not enough coins");
+await loadUser();
+
+}catch(err){
+
+console.log("Tap upgrade error",err);
 
 }
 
@@ -500,17 +634,15 @@ alert("Not enough coins");
 }
 
 
-/* PROFIT UPGRADE */
+/* ================================
+UPGRADE PROFIT
+================================ */
 
 if(upgradeProfitBtn){
 
 upgradeProfitBtn.onclick = async ()=>{
 
-const tg = window.Telegram.WebApp;
-
-const telegramId = tg.initDataUnsafe.user.id.toString();
-
-const initData = tg.initData;
+try{
 
 const res = await fetch("/upgrade-profit",{
 
@@ -520,26 +652,30 @@ headers:{
 "Content-Type":"application/json"
 },
 
-body: JSON.stringify({
-telegramId,
-initData
+body:JSON.stringify({
+
+telegramId:telegramId,
+initData:initData
+
 })
 
 });
 
 const data = await res.json();
 
-if(data.success){
+if(!data.success){
 
-alert("⛏ Profit upgraded!");
+notify("Not enough coins");
 
-document.getElementById("coins").innerText = data.coins;
+return;
 
-document.getElementById("profit").innerText = data.profitPerHour;
+}
 
-}else{
+await loadUser();
 
-alert("Not enough coins");
+}catch(err){
+
+console.log("Profit upgrade error",err);
 
 }
 
@@ -547,80 +683,384 @@ alert("Not enough coins");
 
 }
 
-
-
-/* ================= ENERGY BAR UPDATE ================= */
-
-function updateEnergyBar(){
-
-const energy = parseInt(document.getElementById("energy").innerText);
-
-const maxEnergy = 100;
-
-const percent = (energy/maxEnergy)*100;
-
-const bar = document.getElementById("energyFill");
-
-if(bar){
-
-bar.style.width = percent + "%";
-
 }
 
-}
+/* ================================
+SOCIAL MISSIONS
+================================ */
 
-setInterval(updateEnergyBar,1000);
+function initMission(){
 
+/* OPEN MISSION PAGE */
 
+window.openMission = function(){
 
-/* ================= AUTO USER REFRESH ================= */
+if(tasksSection) tasksSection.style.display = "none";
 
-setInterval(async ()=>{
+if(missionPage) missionPage.style.display = "block";
+
+};
+
+/* CLOSE MISSION */
+
+window.closeMission = function(){
+
+if(missionPage) missionPage.style.display = "none";
+
+if(tasksSection) tasksSection.style.display = "block";
+
+};
+
+/* OPEN SOCIAL LINK */
+
+window.openLink = function(url){
+
+window.open(url,"_blank");
+
+};
+
+/* VERIFY TASK */
+
+window.verifyTask = async function(){
 
 try{
 
-const tg = window.Telegram.WebApp;
+const res = await fetch("/complete-task",{
 
-const telegramId = tg.initDataUnsafe.user.id.toString();
+method:"POST",
 
-const res = await fetch("/load/" + telegramId);
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+telegramId:telegramId,
+initData:initData,
+taskId:"telegram_join"
+
+})
+
+});
 
 const data = await res.json();
 
-document.getElementById("coins").innerText = data.coins;
+if(!data.success){
 
-document.getElementById("energy").innerText = data.energy;
+notify(data.message || "Task not completed");
 
-document.getElementById("profit").innerText = data.profitPerHour;
-
-}catch(e){
-
-console.log("Auto refresh error");
+return;
 
 }
 
-},15000);
+/* REWARD */
 
-  
-/* ================= GLOBAL LEADERBOARD ================= */
+notify("Task completed +" + data.reward + " coins");
+
+/* RELOAD USER */
+
+await loadUser();
+
+}catch(err){
+
+console.log("Task verify error",err);
+
+}
+
+};
+
+}
+
+/* ================================
+DAILY REWARD SYSTEM
+================================ */
+
+function initDailyReward(){
+
+if(!dailyBtn) return;
+
+dailyBtn.onclick = async ()=>{
+
+try{
+
+const res = await fetch("/daily-reward",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+telegramId:telegramId,
+initData:initData
+
+})
+
+});
+
+const data = await res.json();
+
+if(!data.success){
+
+notify(data.message || "Already claimed");
+
+return;
+
+}
+
+/* REWARD MESSAGE */
+
+notify("You received " + data.reward + " coins 🎉");
+
+/* RELOAD USER */
+
+await loadUser();
+
+}catch(err){
+
+console.log("Daily reward error",err);
+
+}
+
+};
+
+}
+
+/* ================================
+SPIN WHEEL SYSTEM
+================================ */
+
+function initSpin(){
+
+if(!spinBtn) return;
+
+const wheel = qs("wheel");
+const wheelWrapper = qs("wheelWrapper");
+
+spinBtn.onclick = async ()=>{
+
+try{
+
+const res = await fetch("/spin",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+telegramId:telegramId,
+initData:initData
+
+})
+
+});
+
+const data = await res.json();
+
+if(!data.success){
+
+notify(data.message || "Spin not available");
+
+return;
+
+}
+
+/* REWARD */
+
+const reward = data.reward;
+
+/* WHEEL ANIMATION */
+
+if(wheel && wheelWrapper){
+
+wheelWrapper.style.display = "flex";
+
+const rewardsMap = {
+
+100:30,
+200:90,
+300:150,
+500:210,
+800:270,
+1000:330
+
+};
+
+const baseDeg = rewardsMap[reward] || 30;
+
+const spinRounds = 5 * 360;
+
+const finalDeg = spinRounds + (360 - baseDeg);
+
+wheel.style.transform = `rotate(${finalDeg}deg)`;
+
+/* SHOW RESULT */
+
+setTimeout(()=>{
+
+notify("🎉 You won " + reward + " coins!");
+
+loadUser();
+
+},4000);
+
+}else{
+
+notify("🎉 You won " + reward + " coins!");
+
+loadUser();
+
+}
+
+}catch(err){
+
+console.log("Spin error",err);
+
+}
+
+};
+
+}
+
+/* ================================
+REFERRAL SYSTEM
+================================ */
+
+function initReferral(){
+
+/* COPY REFERRAL LINK */
+
+if(copyRefBtn){
+
+copyRefBtn.onclick = ()=>{
+
+if(!refLinkInput) return;
+
+navigator.clipboard.writeText(refLinkInput.value);
+
+notify("Referral link copied ✅");
+
+};
+
+}
+
+
+/* INVITE FRIEND */
+
+const inviteBtn = qs("inviteBtn");
+
+if(inviteBtn){
+
+inviteBtn.onclick = ()=>{
+
+const link = "https://t.me/PupByteTapBot?start=" + telegramId;
+
+const shareUrl =
+"https://t.me/share/url?url=" + encodeURIComponent(link);
+
+window.open(shareUrl,"_blank");
+
+};
+
+}
+
+}
+
+/* ================================
+LEAGUE SYSTEM
+================================ */
+
+function updateLeagueProgress(coins){
+
+const leagues = [
+
+{ name:"Wood", min:0, max:10000 },
+{ name:"Bronze", min:10000, max:30000 },
+{ name:"Silver", min:30000, max:70000 },
+{ name:"Golden", min:70000, max:150000 },
+{ name:"Platinum", min:150000, max:300000 },
+{ name:"Diamond", min:300000, max:600000 },
+{ name:"Master", min:600000, max:1200000 },
+{ name:"Grandmaster", min:1200000, max:2500000 },
+{ name:"Elite", min:2500000, max:5000000 },
+{ name:"Legendary", min:5000000, max:10000000 },
+{ name:"Mythic", min:10000000, max:Infinity }
+
+];
+
+let currentLeague = null;
+
+for(const league of leagues){
+
+if(coins >= league.min && coins < league.max){
+
+currentLeague = league;
+break;
+
+}
+
+}
+
+if(!currentLeague) return;
+
+
+/* UPDATE NAME */
+
+if(leagueNameEl)
+
+leagueNameEl.innerText = currentLeague.name + " League";
+
+
+/* UPDATE PROGRESS */
+
+if(!leagueProgressEl) return;
+
+if(currentLeague.max === Infinity){
+
+leagueProgressEl.style.width = "100%";
+
+return;
+
+}
+
+const progress =
+
+((coins - currentLeague.min) /
+(currentLeague.max - currentLeague.min)) * 100;
+
+leagueProgressEl.style.width = progress + "%";
+
+}
+
+/* ================================
+LEADERBOARD SYSTEM
+================================ */
+
+
+/* GLOBAL TOP */
 
 async function loadGlobalTop(){
+
+try{
 
 const res = await fetch("/top-global");
 
 const users = await res.json();
 
-const list = document.getElementById("leaderboardList");
+if(!globalTopEl) return;
 
-if(!list) return;
-
-list.innerHTML = "";
+globalTopEl.innerHTML = "";
 
 users.forEach((u,i)=>{
 
 const row = document.createElement("div");
 
-row.className="leaderboard-row";
+row.className = "user-row";
 
 row.innerHTML = `
 <span>#${i+1}</span>
@@ -628,44 +1068,249 @@ row.innerHTML = `
 <span>${Math.floor(u.coins)}</span>
 `;
 
-list.appendChild(row);
+globalTopEl.appendChild(row);
 
 });
 
+}catch(err){
+
+console.log("Global top error",err);
+
+}
+
 }
 
 
+/* LEAGUE TOP */
 
-/* ================= LEAGUE LEADERBOARD ================= */
+async function loadLeagueTop(league){
 
-async function loadLeagueTop(){
+try{
 
-const tg = window.Telegram.WebApp;
+const res = await fetch("/top-league/" + league);
 
-const telegramId = tg.initDataUnsafe.user.id.toString();
+const users = await res.json();
 
-const res = await fetch("/rank/"+telegramId);
+if(!leagueTopEl) return;
 
-const data = await res.json();
+leagueTopEl.innerHTML = "";
 
-const list = document.getElementById("leaderboardList");
-
-if(!list) return;
-
-list.innerHTML="";
+users.forEach((u,i)=>{
 
 const row = document.createElement("div");
 
-row.className="leaderboard-row";
+row.className = "user-row";
 
-row.innerHTML=`
+row.innerHTML = `
+<span>#${i+1}</span>
+<span>${u.telegramId}</span>
+<span>${Math.floor(u.coins)}</span>
+`;
+
+leagueTopEl.appendChild(row);
+
+});
+
+}catch(err){
+
+console.log("League top error",err);
+
+}
+
+}
+
+
+/* MY RANK */
+
+async function loadMyRank(){
+
+try{
+
+const res = await fetch("/rank/" + telegramId);
+
+const data = await res.json();
+
+if(!myRankEl) return;
+
+myRankEl.innerHTML = `
+<div class="user-row my-rank">
 <span>#${data.rank}</span>
 <span>You</span>
 <span>${Math.floor(data.coins)}</span>
+</div>
 `;
 
-list.appendChild(row);
+}catch(err){
+
+console.log("Rank error",err);
 
 }
+
+}
+
+/* ================================
+ACCOUNT SYSTEM
+================================ */
+
+function updateAccount(data){
+
+/* USER ID */
+
+if(accountUserId){
+
+accountUserId.innerText = telegramId;
+
+}
+
+/* USERNAME */
+
+const usernameEl = qs("accountUsername");
+
+if(usernameEl){
+
+usernameEl.innerText = username;
+
+}
+
+/* COINS */
+
+if(accountCoins){
+
+accountCoins.innerText = Math.floor(data.coins);
+
+}
+
+/* REFERRALS */
+
+if(accountReferrals){
+
+accountReferrals.innerText = data.referrals || 0;
+
+}
+
+/* REFERRAL LINK */
+
+if(refLinkInput){
+
+refLinkInput.value =
+"https://t.me/PupByteTapBot?start=" + telegramId;
+
+}
+
+}
+
+/* =================================
+FINAL SECURITY + UTILITIES
+================================= */
+
+
+/* SAFE FETCH WRAPPER */
+
+async function safeFetch(url, options){
+
+try{
+
+const res = await fetch(url, options);
+
+if(!res.ok){
+throw new Error("Network error");
+}
+
+return await res.json();
+
+}catch(err){
+
+console.log("Fetch error:",err);
+
+notify("Network error");
+
+return { success:false };
+
+}
+
+}
+
+
+/* =================================
+ANTI DOUBLE CLICK PROTECTION
+================================= */
+
+let clickLock = false;
+
+function lockClick(ms=250){
+
+clickLock = true;
+
+setTimeout(()=>{
+
+clickLock = false;
+
+},ms);
+
+}
+
+
+/* =================================
+AUTO MINING UPDATE
+================================= */
+
+function startAutoMining(){
+
+setInterval(()=>{
+
+if(!GAME) return;
+
+const profit = GAME.profit || 0;
+
+const perSecond = profit / 3600;
+
+GAME.coins += perSecond;
+
+if(coinsEl)
+coinsEl.innerText = Math.floor(GAME.coins);
+
+},1000);
+
+}
+
+
+/* =================================
+FORMAT NUMBERS
+================================= */
+
+function formatNumber(num){
+
+return num.toLocaleString();
+
+}
+
+
+/* =================================
+POPUP MESSAGE SYSTEM
+================================= */
+
+function notify(msg){
+
+if(!msg) return;
+
+alert(msg);
+
+}
+
+
+/* =================================
+START AUTO SYSTEMS
+================================= */
+
+startAutoMining();
+
+
+/* =================================
+GLOBAL ERROR HANDLER
+================================= */
+
+window.onerror = function(msg,src,line){
+
+console.log("JS ERROR:",msg,"line:",line);
 
 };
