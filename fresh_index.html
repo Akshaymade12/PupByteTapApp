@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PupByte Tap Bot</title>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="stylesheet" href="style.css">
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- TOP BAR -->
+        <div class="top-bar">
+            <div class="top-item">
+                <span class="icon">🪙</span>
+                <span id="coins">0</span>
+            </div>
+            <div class="top-item">
+                <span class="icon">⛏</span>
+                <span id="profit">0</span>
+                <span class="profit-text">P/H</span>
+            </div>
+            <div class="top-item">
+                <span class="icon">⚡</span>
+                <span id="energy">0</span>
+            </div>
+        </div>
+
+        <!-- LEAGUE BAR -->
+        <div class="league-bar">
+            <div class="league-box">
+                <span class="league-icon">🏆</span>
+                <span id="leagueName">Wood League</span>
+            </div>
+            <div class="wallet-box">
+                <span class="wallet-icon">👛</span>
+                <span>Connect Wallet</span>
+            </div>
+        </div>
+
+        <!-- PROGRESS BAR -->
+        <div class="progress-container">
+            <div class="progress-bg">
+                <div id="leagueProgress" class="progress-fill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- MAIN SECTIONS -->
+        
+        <!-- EARN SECTION -->
+        <section id="earnSection" class="section">
+            <div class="tap-container">
+                <div class="coin-wrapper">
+                    <img id="tapBtn" class="tap-btn" src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/img/coin.png" alt="Tap Coin" />
+                </div>
+            </div>
+            
+            <div class="energy-container">
+                <div class="energy-info">
+                    <span class="energy-icon">⚡</span>
+                    <span id="energyText">1000/1000</span>
+                </div>
+                <div class="boost-container">
+                    <button id="openBoost" class="boost-btn">
+                        <span class="boost-icon">🔥</span>
+                        <span>Boost</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MINE SECTION -->
+        <section id="mineSection" class="section" style="display:none">
+            <h2 class="section-title">⛏ Mining Center</h2>
+            <div class="mine-container">
+                <!-- GPU CARD -->
+                <div class="mine-card">
+                    <img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/img/gpu.png" class="mine-card-img" />
+                    <div class="mine-card-body">
+                        <h3>GPU Mining</h3>
+                        <p>Level: <span id="gpuLevel">1/20</span></p>
+                        <p>Profit: +<span id="gpuProfit">10</span> P/H</p>
+                        <p>Cost: <span id="gpuCost">1000</span></p>
+                    </div>
+                    <button class="upgrade-btn" onclick="upgradeCard('gpu')">Upgrade</button>
+                </div>
+                <!-- MARKETING CARD -->
+                <div class="mine-card">
+                    <img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/img/marketing.png" class="mine-card-img" />
+                    <div class="mine-card-body">
+                        <h3>Marketing</h3>
+                        <p>Level: <span id="marketingLevel">1/20</span></p>
+                        <p>Profit: +<span id="marketingProfit">15</span> P/H</p>
+                        <p>Cost: <span id="marketingCost">1500</span></p>
+                    </div>
+                    <button class="upgrade-btn" onclick="upgradeCard('marketing')">Upgrade</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TASKS SECTION -->
+        <section id="tasksSection" class="section" style="display:none">
+            <h2 class="section-title">📋 Tasks</h2>
+            <div class="tasks-container">
+                <div class="task-card" onclick="openMission()">
+                    <div class="task-info">
+                        <h3>Join Our Socials</h3>
+                        <p>Reward 5000 Coins</p>
+                    </div>
+                    <span class="task-arrow">›</span>
+                </div>
+                <!-- LEADERBOARD AREA -->
+                <div class="leaderboard-area">
+                    <h3>🌍 Global Top 10</h3>
+                    <div id="globalTop" class="leaderboard-list"></div>
+                    <h3>🥇 League Top 10</h3>
+                    <div id="leagueTop" class="leaderboard-list"></div>
+                    <h3>👤 Your Rank</h3>
+                    <div id="myRank"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MISSION PAGE -->
+        <section id="missionPage" class="section" style="display:none">
+            <h2 class="section-title">🚀 Social Missions</h2>
+            <div class="mission-container">
+                <div class="mission-card">
+                    <div class="mission-info">
+                        <h3>Follow on X</h3>
+                        <p>500 Coins</p>
+                    </div>
+                    <button class="mission-btn" onclick="openLink('https://x.com/PupByteCoin')">Go</button>
+                </div>
+                <div class="mission-card">
+                    <div class="mission-info">
+                        <h3>Join Telegram</h3>
+                        <p>1000 Coins</p>
+                    </div>
+                    <button class="mission-btn" onclick="openLink('https://t.me/PupByteOfficial')">Go</button>
+                </div>
+                <button class="verify-btn" onclick="verifyTask('telegram_join')">Verify Task</button>
+                <button id="backBtn" class="back-btn">Back</button>
+            </div>
+        </section>
+
+        <!-- ACCOUNT SECTION -->
+        <section id="accountSection" class="section" style="display:none">
+            <h2 class="section-title">👤 Account</h2>
+            <div class="account-card">
+                <p>Username: <span id="accountUsername">Loading...</span></p>
+                <p>User ID: <span id="userId">Loading...</span></p>
+                <p>Coins: <span id="accountCoins">0</span></p>
+                <p>Referrals: <span id="accountReferrals">0</span></p>
+            </div>
+            <div class="account-card">
+                <h3>Invite Friends</h3>
+                <div class="ref-box">
+                    <input type="text" id="refLink" readonly />
+                    <button id="copyRefBtn">Copy</button>
+                </div>
+                <button id="inviteBtn" class="invite-btn">Invite Friend</button>
+            </div>
+        </section>
+
+        <!-- SKILLS SECTION -->
+        <section id="skillsSection" class="section" style="display:none">
+            <h2 class="section-title">🤖 Skills</h2>
+            <div class="skill-card">
+                <h3>Daily Spin</h3>
+                <button id="spinBtn" class="skill-btn">Spin Now</button>
+            </div>
+            <div class="skill-card">
+                <h3>Daily Reward</h3>
+                <button id="dailyRewardBtn" class="skill-btn">Claim</button>
+            </div>
+            <!-- SPIN WHEEL UI -->
+            <div id="wheelWrapper" style="display:none; flex-direction:column; align-items:center; margin-top:20px;">
+                <div id="wheel" style="width:200px; height:200px; border-radius:50%; border:5px solid #fff; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); background: conic-gradient(red 0 60deg, blue 60deg 120deg, green 120deg 180deg, yellow 180deg 240deg, purple 240deg 300deg, orange 300deg 360deg);"></div>
+                <p>Spinning...</p>
+            </div>
+        </section>
+
+        <!-- BOOST SECTION -->
+        <section id="boostSection" class="section" style="display:none">
+            <h2 class="section-title">🔥 Boosters</h2>
+            <div class="boost-card">
+                <h3>Multi-Tap</h3>
+                <button id="upgradeTapBtn" class="upgrade-btn">Upgrade Tap</button>
+            </div>
+            <div class="boost-card">
+                <h3>Profit Booster</h3>
+                <button id="upgradeProfitBtn" class="upgrade-btn">Upgrade Profit</button>
+            </div>
+            <button class="back-btn" onclick="switchSection('earn')">Back</button>
+        </section>
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav class="bottom-nav">
+            <div id="navEarn" class="nav-item"><span>🏠</span><p>Earn</p></div>
+            <div id="navMine" class="nav-item"><span>⛏</span><p>Mine</p></div>
+            <div id="navTasks" class="nav-item"><span>📋</span><p>Tasks</p></div>
+            <div id="navSkills" class="nav-item"><span>🤖</span><p>Skills</p></div>
+            <div id="navAccount" class="nav-item"><span>👤</span><p>Account</p></div>
+        </nav>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
