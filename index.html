@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>PupByte Tap Bot</title>
+
+<meta name="theme-color" content="#0f172a">
+
+<meta name="description" content="PupByte Tap Bot">
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+</head>
+
+<body>
+
+
+<!-- ================= APP ROOT ================= -->
+
+<div class="app">
+
+
+<!-- ================= TOP BAR ================= -->
+
+<div class="top-bar">
+
+<div class="top-item">
+
+<span class="icon">🪙</span>
+
+<span id="coins">0</span>
+
+</div>
+
+
+<div class="top-item">
+
+<span class="icon">⛏</span>
+
+<span id="profit">10</span>
+
+<span class="profit-text">P/H</span>
+
+</div>
+
+
+<div class="top-item">
+
+<span class="icon">⚡</span>
+
+<span id="energy">100</span>
+
+</div>
+
+</div>
+
+
+<!-- ================= LEAGUE BAR ================= -->
+
+<div class="league-bar">
+
+<div class="league-box">
+
+<span class="league-icon">🏆</span>
+
+<span id="league">Wood</span>
+
+</div>
+
+
+<div class="wallet-box">
+
+<span class="wallet-icon">👛</span>
+
+<span>Connect Wallet</span>
+
+</div>
+
+</div>
+
+ <!-- ================= EARN SECTION ================= -->
+
+<section id="earnSection" class="section active-section">
+
+
+<!-- TAP CONTAINER -->
+
+<div class="tap-container">
+
+
+<!-- TAP ANIMATION AREA -->
+
+<div class="tap-animation-area" id="tapAnimationArea">
+
+
+<!-- COIN WRAPPER -->
+
+<div class="coin-wrapper">
+
+
+<img
+id="tapBtn"
+class="tap-btn"
+src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/img/coin.png"
+alt="Tap Coin"
+/>
+
+
+</div>
+
+
+</div>
+
+
+<!-- TAP EFFECTS -->
+
+<div id="tapEffects"></div>
+
+
+</div>
+
+
+
+<!-- ENERGY SYSTEM -->
+
+<div class="energy-container">
+
+
+<div class="energy-info">
+
+<span class="energy-icon">⚡</span>
+
+<span id="energyText">100/100</span>
+
+</div>
+
+
+
+<div class="energy-bar">
+
+
+<div class="energy-bar-bg">
+
+<div id="energyFill" class="energy-fill"></div>
+
+</div>
+
+
+</div>
+
+
+
+<!-- BOOST BUTTON -->
+
+<div class="boost-container">
+
+<button id="openBoost" class="boost-btn">
+
+<span class="boost-icon">🔥</span>
+
+<span>Boost</span>
+
+</button>
+
+</div>
+
+
+</div>
+
+
+</section>
+
+ <!-- ================= MINE SECTION ================= -->
+
+<section id="mineSection" class="section">
+
+
+<h2 class="section-title">
+⛏ Mining Center
+</h2>
+
+
+<div class="mine-container">
+
+
+<!-- ================= GPU MINING CARD ================= -->
+
+<div class="mine-card" id="gpuCard">
+
+
+<div class="mine-card-header">
+
+<img
+src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/img/gpu.png"
+class="mine-card-img"
+/>
+
+</div>
+
+
+<div class="mine-card-body">
+
+<h3 class="mine-card-title">
+GPU Mining
+</h3>
+
+
+<p class="mine-card-level">
+
+Level
+<span id="gpuLevel">1</span>/20
+
+</p>
+
+
+<p class="mine-card-profit">
+
+Profit
++
+<span id="gpuProfit">10</span>
+P/H
+
+</p>
+
+
+<p class="mine-card-cost">
+
+Cost
+<span id="gpuCost">1000</span>
+
+</p>
+
+</div>
+
+
+<div class="mine-card-footer">
+
+<button
+class="upgrade-btn"
+onclick="upgradeCard('gpu')">
+
+Upgrade
+
+</button>
+
+</div>
+
+
+</div>
+
+
+
+<!-- ================= MARKETING CARD ================= -->
+
+<div class="mine-card" id="marketingCard">
+
+
+<div class="mine-card-header">
+
+<img
+src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/img/marketing.png"
+class="mine-card-img"
+/>
+
+</div>
+
+
+<div class="mine-card-body">
+
+<h3 class="mine-card-title">
+Marketing
+</h3>
+
+
+<p class="mine-card-level">
+
+Level
+<span id="marketingLevel">1</span>/20
+
+</p>
+
+
+<p class="mine-card-profit">
+
+Profit
++
+<span id="marketingProfit">15</span>
+P/H
+
+</p>
+
+
+<p class="mine-card-cost">
+
+Cost
+<span id="marketingCost">1500</span>
+
+</p>
+
+</div>
+
+
+<div class="mine-card-footer">
+
+<button
+class="upgrade-btn"
+onclick="upgradeCard('marketing')">
+
+Upgrade
+
+</button>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</section>
+
+ 
+<!-- ================= TASKS SECTION ================= -->
+
+<section id="tasksSection" class="section">
+
+
+<h2 class="section-title">
+📋 Tasks
+</h2>
+
+
+<div class="tasks-container">
+
+
+<!-- ================= SOCIAL MISSION CARD ================= -->
+
+<div class="task-card" onclick="openMission()">
+
+
+
+<div class="task-left">
+
+<div class="task-icon">
+🚀
+</div>
+
+
+<div class="task-info">
+
+<h3 class="task-title">
+Join Our Socials
+</h3>
+
+<p class="task-reward">
+Reward 5000 Coins
+</p>
+
+</div>
+
+</div>
+
+
+
+<div class="task-arrow">
+
+›
+
+</div>
+
+
+</div>
+
+
+
+<!-- ================= FUTURE TASK PLACEHOLDER ================= -->
+
+<div class="task-card future-task">
+
+
+<div class="task-left">
+
+<div class="task-icon">
+🎮
+</div>
+
+
+<div class="task-info">
+
+<h3 class="task-title">
+More Missions Coming
+</h3>
+
+<p class="task-reward">
+Stay Tuned
+</p>
+
+</div>
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
+
+</section>
+
+ <!-- ================= SOCIAL MISSION PAGE ================= -->
+
+<section id="missionPage" class="section" style="display:none">
+
+<h2 class="section-title">
+🚀 Social Missions
+</h2>
+
+
+<div class="mission-container">
+
+
+<!-- ================= TWITTER ================= -->
+
+<div class="mission-card">
+
+<div class="mission-left">
+
+<div class="mission-icon">
+🐦
+</div>
+
+<div class="mission-info">
+
+<h3>Follow on X (Twitter)</h3>
+
+<p>Reward 500 Coins</p>
+
+</div>
+
+</div>
+
+
+<button
+class="mission-btn"
+onclick="openLink('https://x.com/PupByteCoin')">
+
+Go
+
+</button>
+
+</div>
+
+
+
+<!-- ================= TELEGRAM CHANNEL ================= -->
+
+<div class="mission-card">
+
+<div class="mission-left">
+
+<div class="mission-icon">
+📢
+</div>
+
+<div class="mission-info">
+
+<h3>Join Telegram Channel</h3>
+
+<p>Reward 1000 Coins</p>
+
+</div>
+
+</div>
+
+
+<button
+class="mission-btn"
+onclick="openLink('https://t.me/PupByteOfficial')">
+
+Go
+
+</button>
+
+</div>
+
+
+
+<!-- ================= TELEGRAM GROUP ================= -->
+
+<div class="mission-card">
+
+<div class="mission-left">
+
+<div class="mission-icon">
+👥
+</div>
+
+<div class="mission-info">
+
+<h3>Join Telegram Group</h3>
+
+<p>Reward 1000 Coins</p>
+
+</div>
+
+</div>
+
+
+<button
+class="mission-btn"
+onclick="openLink('https://t.me/+D_WSaoaTr2hmYTY1')">
+
+Go
+
+</button>
+
+</div>
+
+
+
+<!-- ================= INSTAGRAM ================= -->
+
+<div class="mission-card">
+
+<div class="mission-left">
+
+<div class="mission-icon">
+📸
+</div>
+
+<div class="mission-info">
+
+<h3>Follow Instagram</h3>
+
+<p>Reward 500 Coins</p>
+
+</div>
+
+</div>
+
+
+<button
+class="mission-btn"
+onclick="openLink('https://instagram.com/pupbyte_official')">
+
+Go
+
+</button>
+
+</div>
+
+
+
+<!-- ================= DISCORD ================= -->
+
+<div class="mission-card">
+
+<div class="mission-left">
+
+<div class="mission-icon">
+🎮
+</div>
+
+<div class="mission-info">
+
+<h3>Join Discord</h3>
+
+<p>Reward 1000 Coins</p>
+
+</div>
+
+</div>
+
+
+<button
+class="mission-btn"
+onclick="openLink('https://discord.gg/BU8EazB2Q')">
+
+Go
+
+</button>
+
+</div>
+
+
+
+<!-- ================= VERIFY BUTTON ================= -->
+
+<button
+class="verify-btn"
+onclick="verifyTask()">
+
+✔ Verify Task
+
+</button>
+
+
+
+<!-- ================= BACK BUTTON ================= -->
+
+<button
+class="back-btn"
+onclick="closeMission()">
+
+⬅ Back
+
+</button>
+
+
+</div>
+
+
+</section>
+
+<!-- ================= ACCOUNT SECTION ================= -->
+
+<section id="accountSection" class="section" style="display:none">
+
+
+<h2 class="section-title">
+👤 My Account
+</h2>
+
+
+<div class="account-container">
+
+
+<!-- USER INFO -->
+
+<div class="account-card">
+
+
+<p class="account-row">
+
+<strong>Username:</strong>
+
+<span id="username">
+Loading...
+</span>
+
+</p>
+
+
+
+<p class="account-row">
+
+<strong>User ID:</strong>
+
+<span id="userId">
+Loading...
+</span>
+
+</p>
+
+
+
+<p class="account-row">
+
+<strong>Total Coins:</strong>
+
+<span id="accountCoins">
+0
+</span>
+
+</p>
+
+
+
+<p class="account-row">
+
+<strong>Total Referrals:</strong>
+
+<span id="referrals">
+0
+</span>
+
+</p>
+
+
+</div>
+
+
+
+<!-- REFERRAL LINK -->
+
+<div class="account-card">
+
+
+<h3 class="ref-title">
+Invite Friends
+</h3>
+
+
+<p class="ref-text">
+Share your referral link and earn rewards
+</p>
+
+
+<div class="ref-box">
+
+
+<input
+type="text"
+id="refLink"
+readonly
+placeholder="Referral link"
+/>
+
+
+<button
+id="copyRefBtn"
+onclick="copyRef()">
+
+Copy
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</section>
+
+ <!-- ================= SKILLS SECTION ================= -->
+
+<section id="skillsSection" class="section" style="display:none">
+
+
+<h2 class="section-title">
+🤖 Skills
+</h2>
+
+
+<div class="skills-container">
+
+
+<!-- ================= DAILY SPIN ================= -->
+
+<div class="skill-card">
+
+
+<div class="skill-left">
+
+<div class="skill-icon">
+🎡
+</div>
+
+
+<div class="skill-info">
+
+<h3 class="skill-title">
+Daily Spin
+</h3>
+
+<p class="skill-desc">
+Spin once every 24 hours
+</p>
+
+</div>
+
+</div>
+
+
+<div class="skill-right">
+
+<button
+id="spinBtn"
+class="skill-btn">
+
+Spin Now
+
+</button>
+
+</div>
+
+
+</div>
+
+
+
+<!-- ================= DAILY REWARD ================= -->
+
+<div class="skill-card">
+
+
+<div class="skill-left">
+
+<div class="skill-icon">
+🎁
+</div>
+
+
+<div class="skill-info">
+
+<h3 class="skill-title">
+Daily Reward
+</h3>
+
+<p class="skill-desc">
+Claim your daily bonus coins
+</p>
+
+</div>
+
+</div>
+
+
+<div class="skill-right">
+
+<button
+id="dailyRewardBtn"
+class="skill-btn">
+
+Claim Reward
+
+</button>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</section>
+
+<!-- ================= LEADERBOARD SECTION ================= -->
+
+<section id="leaderboardSection" class="section" style="display:none">
+
+
+<h2 class="section-title">
+🏆 Leaderboard
+</h2>
+
+
+<div class="leaderboard-container">
+
+
+<!-- ================= TAB BUTTONS ================= -->
+
+<div class="leaderboard-tabs">
+
+
+<button
+class="leaderboard-tab active-tab"
+onclick="loadGlobalTop()">
+
+🌍 Global Top
+
+</button>
+
+
+<button
+class="leaderboard-tab"
+onclick="loadLeagueTop()">
+
+🥇 League Top
+
+</button>
+
+
+</div>
+
+
+
+<!-- ================= LEADERBOARD LIST ================= -->
+
+<div id="leaderboardList" class="leaderboard-list">
+
+
+<!-- USERS WILL LOAD HERE -->
+
+
+</div>
+
+
+
+<!-- ================= PLAYER RANK ================= -->
+
+<div class="my-rank-box">
+
+
+<h3 class="rank-title">
+👤 Your Rank
+</h3>
+
+
+<div id="myRank" class="rank-card">
+
+
+<span class="rank-position">
+#0
+</span>
+
+
+<span class="rank-name">
+You
+</span>
+
+
+<span class="rank-coins">
+0
+</span>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</section>
+
+<!-- ================= CASHIER SECTION ================= -->
+
+<section id="cashierSection" class="section" style="display:none">
+
+
+<h2 class="section-title">
+💰 Cashier
+</h2>
+
+
+<div class="cashier-container">
+
+
+<!-- ================= WALLET CARD ================= -->
+
+<div class="cashier-card">
+
+
+<div class="wallet-icon">
+👛
+</div>
+
+
+<h3 class="wallet-title">
+Connect Wallet
+</h3>
+
+
+<p class="wallet-desc">
+Connect your wallet to withdraw coins
+</p>
+
+
+<button class="wallet-btn">
+
+Connect Wallet
+
+</button>
+
+
+</div>
+
+
+
+<!-- ================= WITHDRAW CARD ================= -->
+
+<div class="cashier-card">
+
+
+<div class="withdraw-icon">
+💸
+</div>
+
+
+<h3 class="withdraw-title">
+Withdraw
+</h3>
+
+
+<p class="withdraw-desc">
+Withdraw feature coming soon
+</p>
+
+
+<button class="withdraw-btn" disabled>
+
+Withdraw
+
+</button>
+
+
+</div>
+
+
+
+<!-- ================= INFO CARD ================= -->
+
+<div class="cashier-info">
+
+
+<p>
+
+⚠ Withdraw system will be enabled after official launch.
+
+</p>
+
+
+</div>
+
+
+</div>
+
+
+</section> 
+
+<!-- ================= BOTTOM NAVIGATION ================= -->
+
+<nav class="bottom-nav">
+
+
+<div class="nav-container">
+
+
+<!-- ================= EARN ================= -->
+
+<div
+id="navEarn"
+class="nav-item active-nav">
+
+<div class="nav-icon">
+💰
+</div>
+
+<span class="nav-text">
+Earn
+</span>
+
+</div>
+
+
+
+<!-- ================= MINE ================= -->
+
+<div
+id="navMine"
+class="nav-item">
+
+<div class="nav-icon">
+⛏
+</div>
+
+<span class="nav-text">
+Mine
+</span>
+
+</div>
+
+
+
+<!-- ================= TASKS ================= -->
+
+<div
+id="navTasks"
+class="nav-item">
+
+<div class="nav-icon">
+📋
+</div>
+
+<span class="nav-text">
+Tasks
+</span>
+
+</div>
+
+
+
+<!-- ================= ACCOUNT ================= -->
+
+<div
+id="navAccount"
+class="nav-item">
+
+<div class="nav-icon">
+👤
+</div>
+
+<span class="nav-text">
+Account
+</span>
+
+</div>
+
+
+
+<!-- ================= SKILLS ================= -->
+
+<div
+id="navSkills"
+class="nav-item">
+
+<div class="nav-icon">
+🤖
+</div>
+
+<span class="nav-text">
+Skills
+</span>
+
+</div>
+
+
+
+<!-- ================= CASHIER ================= -->
+
+<div
+id="navCashier"
+class="nav-item">
+
+<div class="nav-icon">
+💰
+</div>
+
+<span class="nav-text">
+Cashier
+</span>
+
+</div>
+
+
+</div>
+
+
+</nav> 
+
+ <!-- ================= BOOST SECTION ================= -->
+
+<section id="boostSection" class="section" style="display:none">
+
+
+<div class="boost-header">
+
+<button id="backBtn" class="back-btn">
+
+← Back
+
+</button>
+
+
+<h2 class="section-title">
+
+🔥 Boost
+
+</h2>
+
+</div>
+
+
+
+<div class="boost-container">
+
+
+<!-- ================= TAP UPGRADE ================= -->
+
+<div class="boost-card">
+
+
+<div class="boost-left">
+
+<div class="boost-icon">
+
+👆
+
+</div>
+
+
+<div class="boost-info">
+
+<h3 class="boost-title">
+
+Tap Level
+
+</h3>
+
+<p class="boost-desc">
+
+Increase coins per tap
+
+</p>
+
+</div>
+
+</div>
+
+
+<div class="boost-right">
+
+<button
+id="upgradeTapBtn"
+class="boost-btn">
+
+Upgrade Tap
+(<span id="tapCost">100</span>)
+
+</button>
+
+</div>
+
+
+</div>
+
+
+
+<!-- ================= PROFIT UPGRADE ================= -->
+
+<div class="boost-card">
+
+
+<div class="boost-left">
+
+<div class="boost-icon">
+
+⛏
+
+</div>
+
+
+<div class="boost-info">
+
+<h3 class="boost-title">
+
+Profit Level
+
+</h3>
+
+<p class="boost-desc">
+
+Increase hourly income
+
+</p>
+
+</div>
+
+</div>
+
+
+<div class="boost-right">
+
+<button
+id="upgradeProfitBtn"
+class="boost-btn">
+
+Upgrade Profit
+(<span id="profitCost">150</span>)
+
+</button>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</section>
+
+<!-- ================= SPIN WHEEL ================= -->
+
+<div id="wheelWrapper" class="wheel-wrapper" style="display:none">
+
+
+<div class="wheel-container">
+
+
+<!-- POINTER -->
+
+<div class="wheel-pointer">
+
+▲
+
+</div>
+
+
+
+<!-- WHEEL -->
+
+<div id="wheel" class="wheel">
+
+
+<div class="wheel-segment">
+100
+</div>
+
+<div class="wheel-segment">
+200
+</div>
+
+<div class="wheel-segment">
+300
+</div>
+
+<div class="wheel-segment">
+500
+</div>
+
+<div class="wheel-segment">
+800
+</div>
+
+<div class="wheel-segment">
+1000
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+ <!-- ================= NOTIFICATION SYSTEM ================= -->
+
+<div id="notificationContainer" class="notification-container">
+
+
+<!-- ================= SUCCESS NOTIFICATION ================= -->
+
+<div id="successNotification" class="notification success-notification" style="display:none">
+
+<div class="notification-icon">
+
+✅
+
+</div>
+
+
+<div class="notification-message">
+
+<span id="successMessage">
+
+Success
+
+</span>
+
+</div>
+
+
+</div>
+
+
+
+<!-- ================= ERROR NOTIFICATION ================= -->
+
+<div id="errorNotification" class="notification error-notification" style="display:none">
+
+<div class="notification-icon">
+
+❌
+
+</div>
+
+
+<div class="notification-message">
+
+<span id="errorMessage">
+
+Error
+
+</span>
+
+</div>
+
+
+</div>
+
+
+
+<!-- ================= REWARD NOTIFICATION ================= -->
+
+<div id="rewardNotification" class="notification reward-notification" style="display:none">
+
+<div class="notification-icon">
+
+🎉
+
+</div>
+
+
+<div class="notification-message">
+
+<span id="rewardMessage">
+
+Reward
+
+</span>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+<!-- ================= MODAL OVERLAY ================= -->
+
+<div id="modalOverlay" class="modal-overlay" style="display:none">
+
+
+<!-- ================= INFO MODAL ================= -->
+
+<div id="infoModal" class="modal-box">
+
+
+<div class="modal-header">
+
+<h3 id="modalTitle">
+
+Info
+
+</h3>
+
+
+<button
+class="modal-close"
+onclick="closeModal()">
+
+✖
+
+</button>
+
+</div>
+
+
+<div class="modal-body">
+
+<p id="modalMessage">
+
+Message
+
+</p>
+
+</div>
+
+
+<div class="modal-footer">
+
+<button
+class="modal-btn"
+onclick="closeModal()">
+
+OK
+
+</button>
+
+</div>
+
+
+</div>
+
+
+
+<!-- ================= CONFIRM MODAL ================= -->
+
+<div id="confirmModal" class="modal-box">
+
+
+<div class="modal-header">
+
+<h3>
+
+Confirm Action
+
+</h3>
+
+
+<button
+class="modal-close"
+onclick="closeModal()">
+
+✖
+
+</button>
+
+</div>
+
+
+<div class="modal-body">
+
+<p id="confirmMessage">
+
+Are you sure?
+
+</p>
+
+</div>
+
+
+<div class="modal-footer">
+
+<button
+class="modal-btn cancel-btn"
+onclick="closeModal()">
+
+Cancel
+
+</button>
+
+
+<button
+class="modal-btn confirm-btn"
+id="confirmActionBtn">
+
+Confirm
+
+</button>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+ <!-- ================= SECURITY SCRIPTS ================= -->
+
+<script>
+
+/* ================= DISABLE RIGHT CLICK ================= */
+
+document.addEventListener("contextmenu",function(e){
+
+e.preventDefault();
+
+});
+
+
+/* ================= DISABLE F12 ================= */
+
+document.onkeydown=function(e){
+
+if(e.keyCode==123){
+
+return false;
+
+}
+
+/* CTRL + SHIFT + I */
+
+if(e.ctrlKey && e.shiftKey && e.keyCode==73){
+
+return false;
+
+}
+
+/* CTRL + SHIFT + J */
+
+if(e.ctrlKey && e.shiftKey && e.keyCode==74){
+
+return false;
+
+}
+
+/* CTRL + U */
+
+if(e.ctrlKey && e.keyCode==85){
+
+return false;
+
+}
+
+};
+
+</script>
+ 
+
+
+<!-- ================= MAIN SCRIPT ================= -->
+
+<script src="script.js"></script>
+
+</div>
+
+</body>
+</html>
