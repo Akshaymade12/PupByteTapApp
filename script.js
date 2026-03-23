@@ -30,4 +30,7 @@ tapBtn.onclick = async () => {
     if(data.success){
         coinsEl.innerText = data.coins;
     }
+
+ app.get('/', (req, res) => {
+  res.send('PupByte Tap App is Running 🚀');   
 };
