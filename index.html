@@ -4,91 +4,13 @@
 <meta charset="UTF-8">
 <title>Tap Game</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<style>
-body{
-    background:#0f172a;
-    color:white;
-    text-align:center;
-    font-family:sans-serif;
-}
-
-.tap-btn{
-    width:150px;
-    margin-top:30px;
-}
-
-.nav{
-    position:fixed;
-    bottom:0;
-    width:100%;
-    display:flex;
-    justify-content:space-around;
-    background:#111;
-    padding:10px;
-}
-
-.nav div{
-    cursor:pointer;
-}
-
-.section{
-    display:none;
-}
-
-.active{
-    display:block;
-}
-</style>
 </head>
 
-<body>
+<body style="text-align:center; background:black; color:white;">
 
-<h1>🪙 <span id="coins">0</span></h1>
-<h3>⚡ <span id="energy">100</span></h3>
-<h3>⛏ <span id="profit">10</span> P/H</h3>
+<h1>Coins: <span id="coins">0</span></h1>
 
-<!-- EARN -->
-<div id="earnSection" class="section active">
-    <img id="tapBtn" class="tap-btn"
-    src="https://cdn-icons-png.flaticon.com/512/2933/2933116.png">
-</div>
-
-<!-- MINE -->
-<div id="mineSection" class="section">
-    <h2>Mining coming soon</h2>
-</div>
-
-<!-- TASKS -->
-<div id="tasksSection" class="section">
-    <button id="dailyRewardBtn">🎁 Daily Reward</button>
-</div>
-
-<!-- ACCOUNT -->
-<div id="accountSection" class="section">
-    <p>User ID: <span id="userId"></span></p>
-    <p>Coins: <span id="accountCoins"></span></p>
-</div>
-
-<!-- SKILLS -->
-<div id="skillsSection" class="section">
-    <button id="spinBtn">🎡 Spin</button>
-</div>
-
-<!-- CASHIER -->
-<div id="cashierSection" class="section">
-    <h3>Coming soon</h3>
-</div>
-
-<!-- NAV -->
-<div class="nav">
-    <div id="navEarn">Earn</div>
-    <div id="navMine">Mine</div>
-    <div id="navTasks">Tasks</div>
-    <div id="navAccount">Account</div>
-    <div id="navSkills">Skills</div>
-    <div id="navCashier">Cashier</div>
-</div>
+<img id="tapBtn" src="taplogo.png" width="150">
 
 <script src="script.js"></script>
 
