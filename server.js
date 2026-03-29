@@ -44,18 +44,3 @@ app.post("/tap/:id", async (req, res) => {
 app.listen(process.env.PORT || 3000, () => {
     console.log("Server running...");
 });
-/* TAP */
-app.post("/tap", (req, res) => {
-    const { id } = req.body;
-
-    if (!users[id]) return res.json({ success: false });
-
-    users[id].coins += 1;
-
-    res.json({
-        success: true,
-        coins: users[id].coins
-    });
-});
-
-app.listen(3000, () => console.log("Server running 🚀"));
