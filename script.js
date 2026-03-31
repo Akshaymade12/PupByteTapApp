@@ -21,7 +21,7 @@ load();
 
 /* TAP */
 tapBtn.onclick = async () => {
-    const res = await fetch("/tap/" + userId, {
+    const res = await fetch(window.location.origin + "/tap/" + userId)
         method: "POST"
     });
 
