@@ -2,13 +2,12 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 
 const userId = 123456; // test id
-console.log(user);
-console.log(userId);
 
 const coinsEl = document.getElementById("coins");
 const energyEl = document.getElementById("energy");
 const tapBtn = document.getElementById("tapBtn");
 
+/* LOAD */
 async function load() {
     try {
         const res = await fetch(window.location.origin + "/user/" + userId);
@@ -27,14 +26,19 @@ async function load() {
 
 load();
 
-/* TAP */
+/* TAP (FIXED) */
 tapBtn.onclick = async () => {
-    const res = await fetch(window.location.origin + "/tap/" + userId)
-        method: "POST"
-    });
+    try {
+        const res = await fetch(window.location.origin + "/tap/" + userId, {
+            method: "POST"
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    coinsEl.innerText = data.coins;
-    energyEl.innerText = data.energy;
+        coinsEl.innerText = data.coins;
+        energyEl.innerText = data.energy;
+
+    } catch (err) {
+        console.error("Tap error:", err);
+    }
 };
