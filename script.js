@@ -10,11 +10,19 @@ const energyEl = document.getElementById("energy");
 const tapBtn = document.getElementById("tapBtn");
 
 async function load() {
-    const res = await fetch("/user/" + userId);
-    const data = await res.json();
+    try {
+        const res = await fetch(window.location.origin + "/user/" + userId);
+        const data = await res.json();
 
-    coinsEl.innerText = data.coins;
-    energyEl.innerText = data.energy;
+        const coins = data.coins ?? 0;
+        const energy = data.energy ?? 100;
+
+        coinsEl.innerText = coins;
+        energyEl.innerText = energy;
+
+    } catch (err) {
+        console.error("Load error:", err);
+    }
 }
 
 load();
