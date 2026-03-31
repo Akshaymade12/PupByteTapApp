@@ -1,11 +1,209 @@
-body {
-  text-align: center;
-  font-family: Arial;
-  margin-top: 50px;
+/* 
+ * Pupbyte Bot - GitHub Style UI
+ * Inspired by the provided screenshot but with a GitHub Dark theme twist.
+ */
+
+:root {
+    --bg-color: #0d1117; /* GitHub Dark BG */
+    --surface-color: #161b22; /* GitHub Dark Surface */
+    --border-color: #30363d; /* GitHub Dark Border */
+    --text-primary: #c9d1d9;
+    --text-secondary: #8b949e;
+    --accent-gold: #d29922; /* Gold for coin and accents */
+    --accent-blue: #58a6ff; /* GitHub Blue */
+    --accent-green: #238636;
+    --nav-height: 80px;
 }
 
-button {
-  padding: 20px 40px;
-  font-size: 20px;
-  cursor: pointer;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Top Stats Bar */
+.header-stats {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.stat-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Action Buttons (Bronze, Connect Wallet) */
+.action-row {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+}
+
+.btn {
+    flex: 1;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn:hover {
+    background-color: #21262d;
+    border-color: #8b949e;
+}
+
+/* Main Content - The Coin Area */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.coin-container {
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(210, 153, 34, 0.2) 0%, transparent 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-bottom: 30px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.coin-container:active {
+    transform: scale(0.95);
+}
+
+.coin {
+    width: 200px;
+    height: 200px;
+    background-color: var(--accent-gold);
+    border-radius: 50%;
+    border: 8px solid #b0801a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(210, 153, 34, 0.5);
+    position: relative;
+}
+
+.coin::after {
+    content: "P"; /* P for Pupbyte */
+    font-size: 100px;
+    font-weight: bold;
+    color: #b0801a;
+}
+
+/* Energy & Boost Bar */
+.bottom-stats {
+    width: 100%;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.energy {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.boost-btn {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    height: var(--nav-height);
+    background-color: var(--surface-color);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.75rem;
+    flex: 1;
+}
+
+.nav-item.active {
+    color: var(--accent-gold);
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    background-color: #30363d;
+    border-radius: 6px;
+}
+
+.nav-item.active .nav-icon {
+    background-color: rgba(210, 153, 34, 0.2);
+    border: 1px solid var(--accent-gold);
+}
+
+/* Animations */
+@keyframes tap {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-50px); opacity: 0; }
+}
+
+.tap-indicator {
+    position: absolute;
+    color: var(--text-primary);
+    font-weight: bold;
+    pointer-events: none;
+    animation: tap 0.5s ease-out forwards;
 }
