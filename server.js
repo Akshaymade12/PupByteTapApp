@@ -8,7 +8,7 @@ app.use(express.static(__dirname));
 const PORT = process.env.PORT || 3000;
 
 /* 🔑 BOT TOKEN */
-const BOT_TOKEN = "8567526959:AAEAXU5hSh18jwU6siloXEfYLVkRvHSc0V0";
+const BOT_TOKEN = "YOUR_TOKEN_HERE";
 
 /* 🤖 BOT INIT */
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
