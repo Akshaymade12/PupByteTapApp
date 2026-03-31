@@ -74,8 +74,18 @@ if (user.energy <= 0) return res.json(user);
 setInterval(() => {
     for (let id in users) {
         let u = users[id];
-        if (u.energy < u.maxEnergy) u.energy += 1;
+
+        if (!u.lastEnergyTime) u.lastEnergyTime = Date.now();
+
+        const now = Date.now();
+
+        if (now - u.lastEnergyTime > 5000) {
+            if (u.energy < u.maxEnergy) {
+                u.energy += 1;
+                u.lastEnergyTime = now;
+            }
+        }
     }
-}, 3000);
+}, 1000);
 
 app.listen(PORT, () => console.log("Server running"));
