@@ -1,8 +1,9 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-const user = tg.initDataUnsafe.user;
-const userId = user.id;
+const userId = 123456; // test id
+console.log(user);
+console.log(userId);
 
 const coinsEl = document.getElementById("coins");
 const energyEl = document.getElementById("energy");
