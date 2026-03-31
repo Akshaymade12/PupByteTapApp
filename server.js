@@ -49,9 +49,20 @@ app.get("/user/:id", (req, res) => {
 
 /* API: TAP */
 app.post("/tap/:id", (req, res) => {
-    const user = users[req.params.id];
+   const id = req.params.id;
 
-    if (!user || user.energy <= 0) return res.json(user);
+if (!users[id]) {
+    users[id] = {
+        coins: 0,
+        energy: 100,
+        maxEnergy: 100,
+        power: 1
+    };
+}
+
+let user = users[id];
+
+if (user.energy <= 0) return res.json(user);
 
     user.coins += user.power;
     user.energy -= 1;
