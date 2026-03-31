@@ -1,46 +1,70 @@
-require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-
-const User = require("./models/User");
+const TelegramBot = require("node-telegram-bot-api");
 
 const app = express();
-app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(__dirname));
 
-// MongoDB connect
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB Connected"))
-.catch(err => console.log(err));
+const PORT = process.env.PORT || 3000;
 
-// Load user
-app.get("/load/:id", async (req, res) => {
-    let user = await User.findOne({ userId: req.params.id });
+/* 🔑 BOT TOKEN */
+const BOT_TOKEN = "8567526959:AAEAXU5hSh18jwU6siloXEfYLVkRvHSc0V0";
 
-    if (!user) {
-        user = new User({ userId: req.params.id });
-        await user.save();
+/* 🤖 BOT INIT */
+const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+
+/* 🧠 DATABASE */
+let users = {};
+
+/* /start command */
+bot.onText(/\/start/, (msg) => {
+    const chatId = msg.chat.id;
+
+    const webAppUrl = "https://pupbytetapapp.onrender.com";
+
+    bot.sendMessage(chatId, "🐶 Welcome to PupByte Tap Bot!", {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: "🚀 Play Game", web_app: { url: webAppUrl } }]
+            ]
+        }
+    });
+});
+
+/* API: GET USER */
+app.get("/user/:id", (req, res) => {
+    const id = req.params.id;
+
+    if (!users[id]) {
+        users[id] = {
+            coins: 0,
+            energy: 100,
+            maxEnergy: 100,
+            power: 1
+        };
     }
+
+    res.json(users[id]);
+});
+
+/* API: TAP */
+app.post("/tap/:id", (req, res) => {
+    const user = users[req.params.id];
+
+    if (!user || user.energy <= 0) return res.json(user);
+
+    user.coins += user.power;
+    user.energy -= 1;
 
     res.json(user);
 });
 
-// Tap
-app.post("/tap/:id", async (req, res) => {
-    let user = await User.findOne({ userId: req.params.id });
-
-    if (!user) {
-        user = new User({ userId: req.params.id });
+/* ENERGY AUTO RECHARGE */
+setInterval(() => {
+    for (let id in users) {
+        let u = users[id];
+        if (u.energy < u.maxEnergy) u.energy += 1;
     }
+}, 3000);
 
-    user.coins += 1;
-    await user.save();
-
-    res.json({ coins: user.coins });
-});
-
-app.listen(process.env.PORT || 3000, () => {
-    console.log("Server running...");
-});
+app.listen(PORT, () => console.log("Server running"));
