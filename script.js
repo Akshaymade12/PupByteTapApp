@@ -29,6 +29,14 @@ load();
 /* TAP (FIXED) */
 tapBtn.onclick = async () => {
     try {
+         // 🔥 animation start
+        tapBtn.style.transform = "scale(0.9)";
+        setTimeout(() => {
+            tapBtn.style.transform = "scale(1)";
+        }, 100);
+        
+        tapBtn.disabled = true; // double tap रोकने के लिए
+
         const res = await fetch(window.location.origin + "/tap/" + userId, {
             method: "POST"
         });
@@ -37,6 +45,10 @@ tapBtn.onclick = async () => {
 
         coinsEl.innerText = data.coins;
         energyEl.innerText = data.energy;
+
+        setTimeout(() => {
+            tapBtn.disabled = false;
+        }, 200);
 
     } catch (err) {
         console.error("Tap error:", err);
