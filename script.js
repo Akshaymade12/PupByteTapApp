@@ -1,15 +1,31 @@
-let userId = 123; // test id
+const tg = window.Telegram.WebApp;
+tg.expand();
 
-async function load(){
-    const res = await fetch("/load/" + userId);
-    const data = await res.json();
-    document.getElementById("coins").innerText = data.coins;
-}
+const user = tg.initDataUnsafe.user;
+const userId = user.id;
 
-async function tap(){
-    const res = await fetch("/tap/" + userId, { method: "POST" });
+const coinsEl = document.getElementById("coins");
+const energyEl = document.getElementById("energy");
+const tapBtn = document.getElementById("tapBtn");
+
+async function load() {
+    const res = await fetch("/user/" + userId);
     const data = await res.json();
-    document.getElementById("coins").innerText = data.coins;
+
+    coinsEl.innerText = data.coins;
+    energyEl.innerText = data.energy;
 }
 
 load();
+
+/* TAP */
+tapBtn.onclick = async () => {
+    const res = await fetch("/tap/" + userId, {
+        method: "POST"
+    });
+
+    const data = await res.json();
+
+    coinsEl.innerText = data.coins;
+    energyEl.innerText = data.energy;
+};
