@@ -6,12 +6,34 @@
 </head>
 <body>
 
-<h1>🐶 PupByte Tap</h1>
+<div class="container">
 
-<h2>Coins: <span id="coins">0</span></h2>
-<h3>Energy: <span id="energy">0</span></h3>
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div>🪙 <span id="coins">0</span></div>
+    <div>⚡ <span id="energy">0</span></div>
+  </div>
 
-<button id="tapBtn">🐾 TAP</button>
+  <!-- MAIN COIN -->
+  <div class="coin-section">
+    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" id="tapBtn" class="coin">
+  </div>
+
+  <!-- BOOST -->
+  <div class="boost">
+    ⚡ Boost
+  </div>
+
+</div>
+
+<!-- BOTTOM MENU -->
+<div class="bottom-nav">
+  <div class="nav-item active">💰<br>Earn</div>
+  <div class="nav-item">📋<br>Tasks</div>
+  <div class="nav-item">👤<br>Account</div>
+  <div class="nav-item">🚗<br>Skills</div>
+  <div class="nav-item">💵<br>Cashier</div>
+</div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="script.js"></script>
