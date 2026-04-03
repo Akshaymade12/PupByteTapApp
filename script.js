@@ -22,7 +22,7 @@ async function load() {
         energyEl.innerText = energy;
 
         // 🔗 Referral link
-        const botUsername = "pupbyte_tap_bot";
+        const botUsername = "PupByteTapBot";
         const link = "https://t.me/" + botUsername + "?start=" + userId;
 
 refLinkEl.innerText = link;
