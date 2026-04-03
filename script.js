@@ -23,7 +23,10 @@ async function load() {
 
         // 🔗 Referral link
         const botUsername = "pupbyte_tap_bot";
-        refLinkEl.innerText = "https://t.me/" + botUsername + "?start=" + userId;
+        const link = "https://t.me/" + botUsername + "?start=" + userId;
+
+refLinkEl.innerText = link;
+refLinkEl.href = link;
 
     } catch (err) {
         console.error("Load error:", err);
