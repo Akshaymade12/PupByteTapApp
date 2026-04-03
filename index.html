@@ -14,28 +14,35 @@
     <div>⚡ <span id="energy">0</span></div>
   </div>
 
-  <!-- MAIN COIN -->
-  <div class="coin-section">
-    <img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/taplogo.png" id="tapBtn" class="coin">
+  <!-- EARN SECTION -->
+  <div id="earnSection">
+
+    <div class="coin-section">
+      <img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/taplogo.png" id="tapBtn" class="coin">
+    </div>
+
+    <button id="upgradeBtn">⬆️ Upgrade Power</button>
+
   </div>
-  
-  <p id="refLink"></p>
-<button id="upgradeBtn">⬆️ Upgrade Power</button>
-  
-  <!-- BOOST -->
-  <div class="boost">
-    ⚡ Boost
+
+  <!-- TASK SECTION -->
+  <div id="taskSection" style="display:none;">
+    <h2>📋 Tasks</h2>
+
+    <p>👥 Invite friends & earn coins</p>
+
+    <div id="refBox">
+      <p id="refLink"></p>
+    </div>
+
   </div>
 
 </div>
 
-<!-- BOTTOM MENU -->
+<!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <div class="nav-item active">💰<br>Earn</div>
-  <div class="nav-item">📋<br>Tasks</div>
-  <div class="nav-item">👤<br>Account</div>
-  <div class="nav-item">🚗<br>Skills</div>
-  <div class="nav-item">💵<br>Cashier</div>
+  <div class="nav-item active" onclick="showSection('earn')">💰<br>Earn</div>
+  <div class="nav-item" onclick="showSection('task')">📋<br>Tasks</div>
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
