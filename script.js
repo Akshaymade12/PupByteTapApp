@@ -7,7 +7,7 @@ const coinsEl = document.getElementById("coins");
 const energyEl = document.getElementById("energy");
 const tapBtn = document.getElementById("tapBtn");
 const upgradeBtn = document.getElementById("upgradeBtn");
-
+const refLinkEl = document.getElementById("refLink");
 /* UPGRADE */
 
 upgradeBtn.onclick = async () => {
@@ -28,7 +28,10 @@ async function load() {
 
         const coins = data.coins ?? 0;
         const energy = data.energy ?? 100;
-
+        
+const botUsername = "PupByteTapBot";
+refLinkEl.innerText = "Invite: https://t.me/" + botUsername + "?start=" + userId;
+        
         coinsEl.innerText = coins;
         energyEl.innerText = energy;
 
