@@ -6,6 +6,19 @@ const userId = 123456; // test id
 const coinsEl = document.getElementById("coins");
 const energyEl = document.getElementById("energy");
 const tapBtn = document.getElementById("tapBtn");
+const upgradeBtn = document.getElementById("upgradeBtn");
+
+/* UPGRADE */
+
+upgradeBtn.onclick = async () => {
+    const res = await fetch(window.location.origin + "/upgrade/power/" + userId, {
+        method: "POST"
+    });
+
+    const data = await res.json();
+
+    coinsEl.innerText = data.coins;
+};
 
 /* LOAD */
 async function load() {
