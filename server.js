@@ -17,15 +17,38 @@ const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 let users = {};
 
 /* /start command */
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start(.*)/, (msg, match) => {
     const chatId = msg.chat.id;
+    const refId = match[1]?.trim();
 
-    const webAppUrl = "https://pupbytetapapp.onrender.com";
+    const userId = chatId;
 
-    bot.sendMessage(chatId, "🐶 Welcome to PupByte Tap Bot!", {
+    if (!users[userId]) {
+        users[userId] = {
+            coins: 0,
+            energy: 100,
+            maxEnergy: 100,
+            power: 1,
+            referredBy: null
+        };
+
+        // 🎁 Referral reward
+        if (refId && refId !== userId.toString() && users[refId]) {
+            users[userId].referredBy = refId;
+
+            users[userId].coins += 50; // new user bonus
+            users[refId].coins += 100; // inviter bonus
+        }
+    }
+
+    const botUsername = "PupByteTapBot";
+
+    const refLink = `https://t.me/${botUsername}?start=${userId}`;
+
+    bot.sendMessage(chatId, `🐶 Welcome to PupByte!\n\nInvite friends & earn 💰\n\nYour Link:\n${refLink}`, {
         reply_markup: {
             inline_keyboard: [
-                [{ text: "🚀 Play Game", web_app: { url: webAppUrl } }]
+                [{ text: "🚀 Play Game", web_app: { url: "https://pupbytetapapp.onrender.com" } }]
             ]
         }
     });
