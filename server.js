@@ -47,6 +47,25 @@ app.get("/user/:id", (req, res) => {
     res.json(users[id]);
 });
 
+/* UPGRADE API */
+
+app.post("/upgrade/power/:id", (req, res) => {
+    const id = req.params.id;
+
+    if (!users[id]) return res.json({ error: "user not found" });
+
+    let user = users[id];
+
+    const cost = user.power * 50;
+
+    if (user.coins >= cost) {
+        user.coins -= cost;
+        user.power += 1;
+    }
+
+    res.json(user);
+});
+
 /* API: TAP */
 app.post("/tap/:id", (req, res) => {
    const id = req.params.id;
