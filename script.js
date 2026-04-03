@@ -8,19 +8,8 @@ const energyEl = document.getElementById("energy");
 const tapBtn = document.getElementById("tapBtn");
 const upgradeBtn = document.getElementById("upgradeBtn");
 const refLinkEl = document.getElementById("refLink");
-/* UPGRADE */
 
-upgradeBtn.onclick = async () => {
-    const res = await fetch(window.location.origin + "/upgrade/power/" + userId, {
-        method: "POST"
-    });
-
-    const data = await res.json();
-
-    coinsEl.innerText = data.coins;
-};
-
-/* LOAD */
+/* LOAD USER */
 async function load() {
     try {
         const res = await fetch(window.location.origin + "/user/" + userId);
@@ -28,12 +17,13 @@ async function load() {
 
         const coins = data.coins ?? 0;
         const energy = data.energy ?? 100;
-        
-const botUsername = "PupByteTapBot";
-refLinkEl.innerText = "Invite: https://t.me/" + botUsername + "?start=" + userId;
-        
+
         coinsEl.innerText = coins;
         energyEl.innerText = energy;
+
+        // 🔗 Referral link
+        const botUsername = "pupbyte_tap_bot";
+        refLinkEl.innerText = "https://t.me/" + botUsername + "?start=" + userId;
 
     } catch (err) {
         console.error("Load error:", err);
@@ -42,16 +32,14 @@ refLinkEl.innerText = "Invite: https://t.me/" + botUsername + "?start=" + userId
 
 load();
 
-/* TAP (FIXED) */
+/* TAP */
 tapBtn.onclick = async () => {
     try {
-         // 🔥 animation start
+        // animation
         tapBtn.style.transform = "scale(0.9)";
         setTimeout(() => {
             tapBtn.style.transform = "scale(1)";
         }, 100);
-        
-        tapBtn.disabled = true; // double tap रोकने के लिए
 
         const res = await fetch(window.location.origin + "/tap/" + userId, {
             method: "POST"
@@ -62,11 +50,30 @@ tapBtn.onclick = async () => {
         coinsEl.innerText = data.coins;
         energyEl.innerText = data.energy;
 
-        setTimeout(() => {
-            tapBtn.disabled = false;
-        }, 200);
-
     } catch (err) {
         console.error("Tap error:", err);
     }
 };
+
+/* UPGRADE */
+upgradeBtn.onclick = async () => {
+    const res = await fetch(window.location.origin + "/upgrade/power/" + userId, {
+        method: "POST"
+    });
+
+    const data = await res.json();
+
+    coinsEl.innerText = data.coins;
+};
+
+/* NAVIGATION */
+function showSection(section) {
+    document.getElementById("earnSection").style.display = "none";
+    document.getElementById("taskSection").style.display = "none";
+
+    if (section === "earn") {
+        document.getElementById("earnSection").style.display = "block";
+    } else {
+        document.getElementById("taskSection").style.display = "block";
+    }
+}
