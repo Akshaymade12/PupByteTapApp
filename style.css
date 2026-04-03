@@ -1,25 +1,26 @@
 body {
   margin: 0;
   font-family: Arial;
-  background: linear-gradient(180deg, #1c1c2e, #0f172a);
+  background: #0f172a;
   color: white;
 }
 
-/* TOP BAR */
 .top-bar {
   display: flex;
   justify-content: space-between;
   padding: 15px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 10px;
-  margin: 10px;
 }
 
-/* COIN */
 .coin-section {
   display: flex;
   justify-content: center;
-  margin-top: 40px;
+  margin-top: 30px;
+}
+
+.coin {
+  width: 160px;
+  cursor: pointer;
+  transition: 0.1s;
 }
 
 #upgradeBtn {
@@ -29,27 +30,8 @@ body {
   background: gold;
   border: none;
   border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
 }
 
-.coin {
-  width: 180px;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-/* BOOST */
-.boost {
-  position: fixed;
-  bottom: 90px;
-  right: 20px;
-  background: orange;
-  padding: 10px 15px;
-  border-radius: 10px;
-}
-
-/* BOTTOM NAV */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -57,15 +39,27 @@ body {
   display: flex;
   justify-content: space-around;
   background: #111827;
-  padding: 10px 0;
+  padding: 10px;
 }
 
 .nav-item {
   text-align: center;
   font-size: 12px;
-  color: #aaa;
+  color: gray;
 }
 
 .nav-item.active {
   color: gold;
+}
+
+#taskSection {
+  text-align: center;
+  padding: 20px;
+}
+
+#refBox {
+  background: #1f2937;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 10px;
 }
