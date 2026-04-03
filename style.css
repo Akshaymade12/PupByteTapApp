@@ -22,6 +22,17 @@ body {
   margin-top: 40px;
 }
 
+#upgradeBtn {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background: gold;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 .coin {
   width: 180px;
   cursor: pointer;
