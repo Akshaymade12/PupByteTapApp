@@ -72,9 +72,14 @@ function showSection(section) {
     document.getElementById("earnSection").style.display = "none";
     document.getElementById("taskSection").style.display = "none";
 
+    // remove active
+    document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+
     if (section === "earn") {
         document.getElementById("earnSection").style.display = "block";
+        document.querySelectorAll(".nav-item")[0].classList.add("active");
     } else {
         document.getElementById("taskSection").style.display = "block";
+        document.querySelectorAll(".nav-item")[1].classList.add("active");
     }
 }
