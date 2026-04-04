@@ -663,3 +663,4 @@ if(closeLeagueBtn){
 }
 
   });
+
