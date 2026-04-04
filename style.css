@@ -23,6 +23,12 @@ body {
   transition: 0.1s;
 }
 
+.coin {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+}
+
 #upgradeBtn {
   display: block;
   margin: 20px auto;
@@ -58,13 +64,15 @@ body {
 }
 
 #refLink {
-  display: inline-block;
-  background: gold;
-  padding: 10px 15px;
+  display: block;
+  background: #1f2937;
+  padding: 12px;
   border-radius: 10px;
-  color: black;
+  color: white;
   text-decoration: none;
   margin-top: 10px;
+  font-size: 12px;
+  word-break: break-all;
 }
 
 #refBox {
