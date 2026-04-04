@@ -6,43 +6,63 @@
 </head>
 <body>
 
-<div class="container">
+<div class="app">
 
   <!-- TOP BAR -->
   <div class="top-bar">
     <div>🪙 <span id="coins">0</span></div>
-    <div>⚡ <span id="energy">0</span></div>
+    <div>⚡ <span id="energy">100</span></div>
   </div>
 
-  <!-- EARN SECTION -->
-  <div id="earnSection">
-
-    <div class="coin-section">
+  <!-- EARN -->
+  <div id="earnSection" class="section">
+    <div class="coin-wrap">
       <img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/taplogo.png" id="tapBtn" class="coin">
     </div>
 
-    <button id="upgradeBtn">⬆️ Upgrade Power</button>
-
-  </div>
-
-  <!-- TASK SECTION -->
-  <div id="taskSection" style="display:none;">
-    <h2>📋 Tasks</h2>
-
-    <p>👥 Invite friends & earn coins</p>
-
-    <div id="refBox">
-      <a id="refLink" target="_blank"></a>
+    <div class="energy-bar">
+      ⚡ <span id="energyText">100/100</span>
     </div>
 
+    <button id="upgradeBtn">⬆️ Upgrade Power</button>
+  </div>
+
+  <!-- TASKS -->
+  <div id="taskSection" class="section" style="display:none;">
+    <h2>📋 Tasks</h2>
+    <p>Invite friends & earn</p>
+    <a id="refLink" target="_blank"></a>
+  </div>
+
+  <!-- ACCOUNT -->
+  <div id="accountSection" class="section" style="display:none;">
+    <h2>👤 Account</h2>
+    <p id="userName"></p>
+    <p id="userId"></p>
+  </div>
+
+  <!-- SKILLS -->
+  <div id="skillsSection" class="section" style="display:none;">
+    <h2>🚗 Skills</h2>
+    <p>Upgrade your tap power</p>
+    <button id="upgradeBtn2">⬆️ Upgrade Power</button>
+  </div>
+
+  <!-- CASHIER -->
+  <div id="cashierSection" class="section" style="display:none;">
+    <h2>💰 Cashier</h2>
+    <p>Withdraw coming soon...</p>
   </div>
 
 </div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <div class="nav-item active" onclick="showSection('earn')">💰<br>Earn</div>
+  <div class="nav-item active" onclick="showSection('earn')">🪙<br>Earn</div>
   <div class="nav-item" onclick="showSection('task')">📋<br>Tasks</div>
+  <div class="nav-item" onclick="showSection('account')">👤<br>Account</div>
+  <div class="nav-item" onclick="showSection('skills')">🚗<br>Skills</div>
+  <div class="nav-item" onclick="showSection('cashier')">💰<br>Cashier</div>
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
