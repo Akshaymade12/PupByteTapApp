@@ -53,12 +53,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= LOAD USER ================= */
 
   async function loadUser() {
-    const res = await fetch(`/load`, {
+    const res = await fetch("/tap", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json"
+  },
   body: JSON.stringify({
-    telegramId,
-    initData
+    telegramId: telegramId,
+    initData: initData
   })
 });
     
@@ -138,32 +140,47 @@ leagueNameEl.innerText = currentLeague.name + " League";
 
   /* ================= TAP (FIXED) ================= */
 
-  if (tapBtn) {
+  let tapping = false;
 
-    tapBtn.addEventListener("click", async () => {
+tapBtn.addEventListener("click", async () => {
 
-      // animation
-      tapBtn.style.transform = "scale(0.9)";
-      setTimeout(() => tapBtn.style.transform = "scale(1)", 100);
+  if (tapping) return;
+  tapping = true;
 
-      try {
+  tapBtn.style.transform = "scale(0.9)";
+  setTimeout(() => tapBtn.style.transform = "scale(1)", 100);
 
-        const res = await fetch("/tap/" + userId, {
-          method: "POST"
-        });
+  try {
 
-        const data = await res.json();
-
-        coinsEl.innerText = Math.floor(data.coins);
-        energyEl.innerText = data.energy;
-
-      } catch (e) {
-        console.log("Tap error", e);
-      }
-
+    const res = await fetch("/tap", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        telegramId: telegramId,
+        initData: initData
+      })
     });
 
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins);
+      energyEl.innerText = data.energy;
+      profitEl.innerText = data.profitPerHour;
+      showPlusOne(data.tapPower);
+    } else {
+      console.log(data);
+    }
+
+  } catch (e) {
+    console.log("Tap error", e);
   }
+
+  setTimeout(() => tapping = false, 120);
+});
+ 
   
 /* ===== SOCIAL MISSIONS ===== */
   
@@ -553,7 +570,8 @@ navAccount.onclick = ()=>switchSection("accountSection",navAccount);
 navSkills.onclick = ()=>switchSection("skillsSection",navSkills);
 navCashier.onclick = ()=>switchSection("cashierSection",navCashier);
   
-  
+
+ 
   /* ================= GLOBAL TOP ================= */
 
 async function loadGlobalTop() {
