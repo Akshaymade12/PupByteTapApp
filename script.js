@@ -1,22 +1,28 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+ /* ================= TELEGRAM SAFE INIT ================= */
+
   const tg = window.Telegram?.WebApp;
-  const initData = tg.initData;
 
   if (!tg) {
-    alert("Please open inside Telegram");
-    return;
+    document.body.innerHTML = "<h2 style='color:white;text-align:center;margin-top:50px;'>Please open from Telegram</h2>";
+    throw new Error("Telegram not found");
   }
 
   tg.expand();
 
-  const telegramId = tg.initDataUnsafe?.user?.id;
-  const startParam = tg.initDataUnsafe?.start_param;
-
-  if (!telegramId) {
-    alert("Telegram ID not found");
-    return;
+  // ✅ SAFE USER FETCH (FIXED)
+  let user;
+  if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    user = tg.initDataUnsafe.user;
+  } else {
+    document.body.innerHTML = "<h2 style='color:white;text-align:center;margin-top:50px;'>Please open from Telegram</h2>";
+    throw new Error("User not found");
   }
+
+  const telegramId = user.id;
+  const userId = user.id; // ✅ for tap API
+  const initData = tg.initData;
 
   /* ================= ELEMENTS ================= */
 
@@ -129,55 +135,35 @@ leagueNameEl.innerText = currentLeague.name + " League";
   progressEl.style.width = progress + "%";
     
   }
-                          
-  /* ================= TAP ================= */
 
-if (tapBtn) {
+  /* ================= TAP (FIXED) ================= */
 
-let tapping = false;
+  if (tapBtn) {
 
-tapBtn.onclick = async () => {
+    tapBtn.addEventListener("click", async () => {
 
-if(tapping) return;
-tapping = true;
+      // animation
+      tapBtn.style.transform = "scale(0.9)";
+      setTimeout(() => tapBtn.style.transform = "scale(1)", 100);
 
-try{
+      try {
 
-const res = await fetch("/tap",{
-method:"POST",
-headers:{ "Content-Type":"application/json"},
-body: JSON.stringify({
-telegramId: telegramId,
-initData: initData
-})
-});
+        const res = await fetch("/tap/" + userId, {
+          method: "POST"
+        });
 
-const data = await res.json();
+        const data = await res.json();
 
-if(data.success){
+        coinsEl.innerText = Math.floor(data.coins);
+        energyEl.innerText = data.energy;
 
-coinsEl.innerText = Math.floor(data.coins);
-energyEl.innerText = data.energy;
-profitEl.innerText = data.profitPerHour;
+      } catch (e) {
+        console.log("Tap error", e);
+      }
 
-showPlusOne(data.tapPower);
+    });
 
-}else{
-console.log(data);
-alert(data.message || "Tap rejected");
-}
-  
-}catch(e){
-
-console.log("Tap error",e);
-
-}
-
-setTimeout(()=>{ tapping=false },150);
-
-};
-
-}
+  }
   
 /* ===== SOCIAL MISSIONS ===== */
   
@@ -510,7 +496,29 @@ if(nextBtn){
     }
   }
 }
-  
+
+ /* ================= SHOW SECTION (NEW FIX) ================= */
+
+  function showSection(section) {
+
+    const all = ["earn", "task", "account", "skills", "cashier"];
+
+    all.forEach(s => {
+      const el = document.getElementById(s + "Section");
+      if (el) el.style.display = "none";
+    });
+
+    const active = document.getElementById(section + "Section");
+    if (active) active.style.display = "block";
+
+    document.querySelectorAll(".nav-item")
+      .forEach(el => el.classList.remove("active"));
+
+    const index = all.indexOf(section);
+    if (index >= 0) {
+      document.querySelectorAll(".nav-item")[index].classList.add("active");
+    }
+  }
   
 /* ================= NAVIGATION ================= */
 
