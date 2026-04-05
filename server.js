@@ -56,6 +56,7 @@ lastCoinUpdate: { type: Date, default: null },
   tapPower: { type: Number, default: 1 },
   tapCount: { type: Number, default: 0 },
 tapResetTime: { type: Number, default: Date.now },
+  dailyComboClaimed: { type: String, default: "" },
   upgradeLevel: { type: Number, default: 0 },
   lastTap: { type: Number, default: 0 },
   referredBy: { type: String, default: null },
@@ -230,6 +231,66 @@ function rechargeEnergy(user) {
     user.lastEnergyUpdate = now;
   }
 }
+
+/* ================= DAILY COMBO ================= */
+
+function getTodayCombo() {
+  const today = new Date().toDateString();
+
+  let seed = 0;
+  for (let i = 0; i < today.length; i++) {
+    seed += today.charCodeAt(i);
+  }
+
+  const shuffled = [...CARDS].sort((a, b) => {
+    return (a.id.charCodeAt(0) + seed) - (b.id.charCodeAt(0) + seed);
+  });
+
+  return shuffled.slice(0, 3);
+}
+
+app.get("/daily-combo", async (req, res) => {
+  const combo = getTodayCombo();
+
+  res.json({
+    success: true,
+    combo
+  });
+});
+
+app.post("/claim-combo", async (req, res) => {
+  const { telegramId, initData } = req.body;
+
+  const user = await getValidUser(telegramId, initData);
+  if (!user) return res.json({ success: false });
+
+  const today = new Date().toDateString();
+
+  // already claimed
+  if (user.dailyComboClaimed === today) {
+    return res.json({ success: false, message: "Already claimed" });
+  }
+
+  const combo = getTodayCombo();
+
+  // check user cards
+  const userCardIds = user.cards.map(c => c.id);
+
+  const hasAll = combo.every(c => userCardIds.includes(c.id));
+
+  if (!hasAll) {
+    return res.json({ success: false, message: "Complete combo first" });
+  }
+
+  const reward = 5000; // tum change kar sakte ho
+
+  user.coins += reward;
+  user.dailyComboClaimed = today;
+
+  await user.save();
+
+  res.json({ success: true, reward });
+});
 
 /* ================= LOAD USER ================= */
 
