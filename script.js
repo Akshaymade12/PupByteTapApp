@@ -422,7 +422,7 @@ const leagueData = [
   { name: "Wood", img: "images/wood.png" },
   { name: "Bronze", img: "images/bronze.png" },
   { name: "Silver", img: "images/silver.png" },
-  { name: "Golden", img: "images/golden.png" },
+  { name: "Gold", img: "images/golden.png" },
   { name: "Platinum", img: "images/platinum.png" },
   { name: "Diamond", img: "images/diamond.png" },
   { name: "Master", img: "images/master.png" },
