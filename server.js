@@ -13,6 +13,8 @@ const MONGO_URI = process.env.MONGO_URI;
 
 const bot = new TelegramBot(BOT_TOKEN);
 
+bot.setWebHook(`https://pupbytetapapp.onrender.com/bot${BOT_TOKEN}`);
+
 app.post(`/bot${BOT_TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
@@ -151,6 +153,7 @@ function getLeague(coins) {
 /* ================= OFFLINE MINING ================= */
 
 async function applyOfflineMining(user) {
+  rechargeEnergy(user);
   const now = new Date();
   const seconds = (now - user.lastActive) / 1000;
 
@@ -211,32 +214,32 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
 
 /* ================= ENERGY RECHARGE ================= */
 
-setInterval(async () => {
-  const users = await User.find({});
-  for (let user of users) {
-    if (user.energy < user.maxEnergy) {
-      user.energy += 2;
-      if (user.energy > user.maxEnergy)
-        user.energy = user.maxEnergy;
-      await user.save();
-    }
+function rechargeEnergy(user) {
+  const now = Date.now();
+
+  if (!user.lastEnergyUpdate) {
+    user.lastEnergyUpdate = now;
+    return;
+  }
+
+  const diff = (now - user.lastEnergyUpdate) / 1000;
+  const energyToAdd = Math.floor(diff * 2);
+
+  if (energyToAdd > 0) {
+    user.energy = Math.min(user.maxEnergy, user.energy + energyToAdd);
+    user.lastEnergyUpdate = now;
+  }
   }
 }, 3000);
 
 /* ================= LOAD USER ================= */
 
-app.get("/load/:id", async (req, res) => {
-  const telegramId = req.params.id;
+app.post("/load", async (req, res) => {
 
-  if (!telegramId || telegramId.length < 5) {
-  return res.json({ success: false });
-  }
-  
-  let user = await User.findOne({ telegramId });
+  const { telegramId, initData } = req.body;
 
-  if (!user) {
-    user = await User.create({ telegramId });
-  }
+  const user = await getValidUser(telegramId, initData);
+  if (!user) return res.json({ success:false });
 
   await applyOfflineMining(user);
 
@@ -454,7 +457,7 @@ if (!user) return res.json({ success: false });
 
   if (league === "Bronze") reward = 2000;
   if (league === "Silver") reward = 5000;
-  if (league === "Golden") reward = 10000;
+  if (league === "Gold") reward = 10000;
 
   if (reward === 0) return res.json({ success: false });
 
@@ -597,27 +600,6 @@ app.get("/league/:telegramId", async (req, res) => {
   });
 });
 
-/* ================= SECURE LEAGUE TOP 10 ================= */
-
-app.get("/top10/:leagueName", async (req, res) => {
-
-  const league = LEAGUES.find(
-    l => l.name === req.params.leagueName
-  );
-
-  if (!league)
-    return res.status(400).json({ error: "Invalid league" });
-
-  const top = await User.find({
-    coins: { $gte: league.min, $lt: league.max }
-  })
-    .sort({ coins: -1 })
-    .limit(10)
-    .select("telegramId coins");
-
-  res.json(top);
-  
-});
 
 /* ================= LEAGUE REWARD CLAIM ================= */
 
