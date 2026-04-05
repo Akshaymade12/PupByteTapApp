@@ -79,8 +79,9 @@ if(leagueText) leagueText.innerText = data.league;
 
     if (upgradeProfitBtn)
       upgradeProfitBtn.innerText = `Upgrade Profit (${data.nextProfitCost})`;
+    loadDailyCombo();
+    
   }
-
   loadUser();
   
 /* ================= LEAGUE PROGRESS ================= */
@@ -217,7 +218,43 @@ window.open(url,"_blank");
       else alert("Not enough coins");
     };
   }
+  
+/* ================= DAILY COMBO CARD ================= */
+  
+  async function loadDailyCombo() {
+  const res = await fetch("/daily-combo");
+  const data = await res.json();
 
+  const container = document.getElementById("combo");
+  container.innerHTML = "";
+
+  data.combo.forEach(card => {
+    container.innerHTML += `
+      <div class="combo-card">?</div>
+    `;
+  });
+  }
+
+  async function claimCombo() {
+  const res = await fetch("/claim-combo", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId,
+      initData
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    alert("You got " + data.reward + " coins!");
+    loadUser();
+  } else {
+    alert(data.message);
+  }
+  }
+  
   /* ================= PROFIT UPGRADE ================= */
 
   if (upgradeProfitBtn) {
