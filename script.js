@@ -47,7 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= LOAD USER ================= */
 
   async function loadUser() {
-    const res = await fetch(`/load/${telegramId}`);
+    const res = await fetch(`/load`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    telegramId,
+    initData
+  })
+});
+    
     const data = await res.json();
 
     coinsEl.innerText = Math.floor(data.coins);
@@ -83,7 +91,7 @@ if(leagueText) leagueText.innerText = data.league;
     { name: "Wood", min: 0, max: 10000 },
     { name: "Bronze", min: 10000, max: 30000 },
     { name: "Silver", min: 30000, max: 70000 },
-    { name: "Golden", min: 70000, max: 150000 },
+    { name: "Gold", min: 70000, max: 150000 },
     { name: "Platinum", min: 150000, max: 300000 },
     { name: "Diamond", min: 300000, max: 600000 },
     { name: "Master", min: 600000, max: 1200000 },
@@ -615,21 +623,25 @@ alert(data.message);
 
   async function completeTask(taskId) {
 
-    const res = await fetch("/complete-task", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId, initData })
-    });
+  const res = await fetch("/complete-task", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId,
+      initData,
+      taskId: taskId
+    })
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if (data.success) {
-      alert("You received " + data.reward + " coins!");
-      loadUser();
-    } else {
-      alert(data.message || "Task already completed");
-    }
+  if (data.success) {
+    alert("You received " + data.reward + " coins!");
+    loadUser();
+  } else {
+    alert(data.message || "Task already completed");
   }
+}
 
 
   /* ================= CLAIM LEAGUE REWARD ================= */
