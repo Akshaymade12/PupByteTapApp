@@ -671,6 +671,12 @@ app.post("/claim-reward", async (req, res) => {
   res.json({ success: true });
 });
 
+/* ================= Error Fix ================= */
+
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/index.html");
+});
+
 /* ================= ROOT ================= */
 
 app.get("/", (req, res) => {
