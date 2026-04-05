@@ -229,8 +229,7 @@ function rechargeEnergy(user) {
     user.energy = Math.min(user.maxEnergy, user.energy + energyToAdd);
     user.lastEnergyUpdate = now;
   }
-  }
-}, 3000);
+}
 
 /* ================= LOAD USER ================= */
 
@@ -543,19 +542,6 @@ app.get("/top-global", async (req, res) => {
 });
 
 
-/* ================= LEAGUE TOP ================= */
-
-app.get("/top-league/:league", async (req, res) => {
-
-  const league = req.params.league;
-
-  const topUsers = await User.find({ league })
-    .sort({ coins: -1 })
-    .limit(10)
-    .select("telegramId coins");
-
-  res.json(topUsers);
-});
 
 
 /* ================= USER RANK ================= */
