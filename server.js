@@ -103,7 +103,7 @@ function verifyTelegram(initData) {
 
 /* ================= COMMON USER VALIDATION ================= */
 
-async function getValidUser(telegramId, initData) {
+async function getValidUser(telegramId, initData)
 
   if (!verifyTelegram(initData)) {
     return null;
