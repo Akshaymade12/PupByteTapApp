@@ -6,7 +6,6 @@
 }
 
 body{
-  margin:0;
   font-family:'Segoe UI',sans-serif;
   background: radial-gradient(circle at top,#1f1b3a,#0f0c29);
   color:white;
@@ -27,8 +26,9 @@ body{
   margin:10px;
   border-radius:15px;
   background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(10px);
-  box-shadow:0 0 20px rgba(0,255,255,0.1);
+  backdrop-filter:blur(12px);
+  box-shadow:0 0 25px rgba(0,255,255,0.15);
+  font-weight:bold;
 }
 
 /* CARDS */
@@ -40,13 +40,17 @@ body{
 
 .glass-card{
   flex:1;
-  padding:12px;
+  padding:14px;
   border-radius:15px;
   text-align:center;
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(10px);
-  box-shadow:0 0 20px rgba(0,255,255,0.1);
+  background:rgba(255,255,255,0.06);
+  backdrop-filter:blur(12px);
+  box-shadow:0 0 20px rgba(0,255,255,0.15);
   transition:0.3s;
+}
+
+.glass-card:hover{
+  transform:translateY(-3px);
 }
 
 .glass-card:active{
@@ -58,7 +62,7 @@ body{
   display:flex;
   justify-content:center;
   margin-top:40px;
-  position:relative; /* ADD THIS */
+  position:relative;
 }
 
 .coin-circle{
@@ -69,7 +73,13 @@ body{
   justify-content:center;
   align-items:center;
   background:radial-gradient(circle,#ffd700,#b8860b);
-  box-shadow:0 0 50px rgba(255,215,0,0.6);
+  box-shadow:0 0 60px rgba(255,215,0,0.6);
+}
+
+.main-coin{
+  width:160px;
+  height:160px;
+  transition:0.1s;
 }
 
 .tap-button{
@@ -77,27 +87,16 @@ body{
   border:none;
 }
 
-.main-coin{
-  width:160px;
-  height:160px;
-  object-fit:cover; /* ADD */
-}
-
-@keyframes coinGlow{
-  from{filter:drop-shadow(0 0 10px #00f7ff);}
-  to{filter:drop-shadow(0 0 30px #00f7ff);}
-}
-
 .tap-button:active .main-coin{
   transform:scale(0.9);
 }
 
-/* FLOAT + COIN */
+/* FLOAT */
 .plus-one{
   position:absolute;
   color:#00f7ff;
   font-weight:bold;
-  font-size:18px;
+  font-size:20px;
   animation:floatUp 1s ease forwards;
 }
 
@@ -124,7 +123,11 @@ button{
   font-weight:bold;
   cursor:pointer;
   transition:0.3s;
-  box-shadow:0 0 15px rgba(0,255,255,0.3);
+  box-shadow:0 0 20px rgba(0,255,255,0.4);
+}
+
+button:hover{
+  opacity:0.9;
 }
 
 button:active{
@@ -137,52 +140,83 @@ button:active{
   padding:15px;
   border-radius:15px;
   background:linear-gradient(145deg,#2b2342,#1a1335);
-  box-shadow:0 0 20px rgba(0,0,0,0.5);
+  box-shadow:0 0 25px rgba(0,0,0,0.6);
   text-align:center;
 }
 
-/* TASK CARD */
+/* TASK */
 .task-card{
   display:flex;
   align-items:center;
+  justify-content:space-between;
   background:#2b2342;
   padding:15px;
   border-radius:15px;
   margin:15px;
-  transition:0.3s;
 }
 
-.task-card:active{
-  transform:scale(0.95);
-}
-
-/* MINE */
-.mine-card{
+/* LEADERBOARD */
+.leaderboard-item{
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+  margin:8px 0;
   background:rgba(255,255,255,0.05);
-  padding:20px;
+  border-radius:10px;
+}
+
+.rank{
+  color:gold;
+}
+
+.coins{
+  color:#00f7ff;
+}
+
+/* ACCOUNT */
+.account-card{
+  background:#2b2342;
+  padding:15px;
   margin:15px;
   border-radius:15px;
-  text-align:center;
 }
 
-/* COMBO */
-.combo-box{
+.account-item{
   display:flex;
-  gap:10px;
-  margin:10px;
+  justify-content:space-between;
+  margin:10px 0;
 }
 
-.combo-card{
-  width:90px;
-  height:90px;
+/* AIRDROP */
+.airdrop-card{
+  background:#1e1e2e;
+  padding:15px;
+  margin:15px;
   border-radius:15px;
-  background:#1e1e1e;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:30px;
-  color:gold;
-  box-shadow:0 0 10px gold;
+}
+
+.eligibility-status{
+  text-align:center;
+  padding:10px;
+  margin:10px 0;
+  background:#333;
+  border-radius:10px;
+}
+
+.eligible{
+  background:green;
+}
+
+/* COMING SOON */
+.coming-soon{
+  text-align:center;
+  margin-top:100px;
+  opacity:0.8;
+}
+
+.cs-icon{
+  font-size:40px;
+  margin-bottom:10px;
 }
 
 /* NAV */
@@ -197,8 +231,6 @@ button:active{
   justify-content:space-around;
   padding:12px 0;
   background:rgba(0,0,0,0.9);
-  backdrop-filter:blur(10px);
-  border-top:1px solid rgba(255,255,255,0.1);
 }
 
 .nav-item{
@@ -206,91 +238,10 @@ button:active{
   flex-direction:column;
   align-items:center;
   font-size:12px;
+  color:#aaa;
 }
 
 .nav-item.active{
   color:#00f7ff;
   text-shadow:0 0 10px #00f7ff;
-}
-
-/* FADE ANIMATION */
-#earnSection,
-#mineSection,
-#tasksSection,
-#boostSection,
-#accountSection,
-#skillsSection{
-  animation:fade 0.3s ease;
-}
-
-@keyframes fade{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1; transform:translateY(0);}
-}
-
-/* LEAGUE */
-.league-img{
-  width:180px;
-  display:block;
-  margin:20px auto;
-  animation:glow 2s infinite alternate;
-}
-
-@keyframes glow{
-  from{filter:drop-shadow(0 0 10px gold);}
-  to{filter:drop-shadow(0 0 25px orange);}
-}
-
-/* PROGRESS */
-.progress-bar{
-  width:80%;
-  height:10px;
-  margin:10px auto;
-  background:#333;
-  border-radius:10px;
-}
-
-#leagueProgress{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,#00f7ff,#ff00ff);
-  border-radius:10px;
-}
-
-/* WHEEL */
-.wheel{
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  margin:auto;
-  background:conic-gradient(
-    gold 0deg 60deg,
-    orange 60deg 120deg,
-    #ff00ff 120deg 180deg,
-    #00f7ff 180deg 240deg,
-    #6a00ff 240deg 300deg,
-    red 300deg 360deg
-  );
-  transition:transform 4s cubic-bezier(.17,.67,.83,.67);
-  box-shadow:0 0 30px rgba(255,255,255,0.3);
-}
-
-.pointer{
-  width:0;
-  height:0;
-  border-left:15px solid transparent;
-  border-right:15px solid transparent;
-  border-bottom:25px solid gold;
-  margin:auto;
-}
-
-#mineSection,
-#tasksSection,
-#boostSection,
-#accountSection,
-#skillsSection,
-#cashierSection,
-#leagueSection,
-#missionPage{
-  display:none;
 }
