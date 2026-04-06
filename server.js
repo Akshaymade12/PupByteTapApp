@@ -127,7 +127,7 @@ async function getValidUser(telegramId, initData) {
 
 const LEAGUES = [
   { name: "Wood", min: 0, max: 1000 },
-  { name: "Bronze", min: 0, max: 5000 },
+  { name: "Bronze", min: 1000, max: 5000 },
   { name: "Silver", min: 5000, max: 15000 },
   { name: "Gold", min: 15000, max: 50000 },
   { name: "Platinum", min: 50000, max: 100000 },
@@ -151,12 +151,22 @@ function getLeague(coins) {
   return league ? league.name : "Bronze";
 }
 
+const league = LEAGUES.find(
+  l => user.coins >= l.min && user.coins < l.max
+);
+
+if (!league) {
+  return res.status(500).json({ error: "League error" });
+}
+
 /* ================= OFFLINE MINING ================= */
 
 async function applyOfflineMining(user) {
   rechargeEnergy(user);
   const now = new Date();
-  const seconds = (now - user.lastActive) / 1000;
+  const seconds = user.lastActive
+  ? (now - user.lastActive) / 1000
+  : 0;
 
   if (seconds > 0) {
     const earned = (user.profitPerHour / 3600) * seconds;
