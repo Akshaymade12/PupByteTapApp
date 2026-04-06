@@ -26,6 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= ELEMENTS ================= */
 
+ const streakCount = document.getElementById("streakCount");
+const claimStreakBtn = document.getElementById("claimStreakBtn");
+ 
   const coinsEl = document.getElementById("coins");
   const energyEl = document.getElementById("energy");
   const profitEl = document.getElementById("profit");
@@ -377,6 +380,30 @@ const rankData = await rankRes.json();
       console.log("Account error", e);
     }
   }
+ 
+/* ================= DAILY STREAK ================= */
+ 
+ if (claimStreakBtn) {
+  claimStreakBtn.onclick = async () => {
+    const res = await fetch("/daily-streak", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ telegramId })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert(`🔥 Streak: ${data.streak}\n🎁 Reward: ${data.reward}`);
+      if (streakCount) streakCount.innerText = data.streak;
+      coinsEl.innerText = data.coins;
+    } else {
+      alert(data.message);
+    }
+  };
+ }
  
   /* ================= +1 Animation ================= */
 
