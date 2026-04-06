@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PupByte Tap Bot</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   
@@ -21,8 +21,8 @@
   <!-- RANK + WALLET -->
   <div class="card-row">
     <div class="glass-card" id="openLeague">
-  🏆 <span id="currentLeagueText">Bronze</span>
-</div>
+      🏆 <span id="currentLeagueText">Bronze</span>
+    </div>
     <div class="glass-card">👛 Connect Wallet</div>
   </div>
 
@@ -30,95 +30,88 @@
   <div id="earnSection">
 
     <div class="coin-wrapper">
-  <div class="coin-circle">
-    <button id="tapBtn" class="tap-button">
-<img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/taplogo.png" class="main-coin">
-</button>
-    
-  </div>
-</div>
+      <div class="coin-circle">
+        <button id="tapBtn" class="tap-button">
+          <img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/taplogo.png" class="main-coin">
+        </button>
+      </div>
+    </div>
 
     <div class="energy-row">
       <div>⚡ <span id="energy">100</span>/100</div>
       <button id="openBoost" class="boost-btn">🔥 Boost</button>
-      
     </div>
+
   </div>
   
   <!-- ================= MINE ================= -->
-  <div id="mineSection">
+  <div id="mineSection" style="display:none;">
 
-  <!-- DAILY COMBO -->
-  <div class="combo-header">
-    <h3>Daily Combo</h3>
-    <button id="claimBtn">Claim</button>
+    <div class="combo-header">
+      <h3>Daily Combo</h3>
+      <button id="claimBtn">Claim</button>
+    </div>
+
+    <div id="combo" class="combo-box"></div>
+
+    <div class="mine-card">
+      <p>Mining Power</p>
+      <button id="startMining">Start Mining</button>
+    </div>
+
   </div>
-
-  <div id="combo" class="combo-box"></div>
-
-  <div class="mine-card">
-    <p>Mining Power</p>
-    <button id="startMining">Start Mining</button>
-  </div>
-</div>
   
-<!-- =============== tasksSection ========================== -->
-  
+  <!-- =============== tasksSection ========================== -->
   <div id="tasksSection" style="display:none;">
 
-<h2 class="page-title">📋 Tasks</h2>
+    <h2 class="page-title">📋 Tasks</h2>
 
-<div class="task-card" onclick="openMission()">
+    <div class="task-card" onclick="openMission()">
+      <div class="task-icon">🚀</div>
+      <div class="task-info">
+        <h3>Join Our Socials</h3>
+        <p>Reward 5000 Coins</p>
+      </div>
+      <div class="task-arrow">›</div>
+    </div>
 
-<div class="task-icon">🚀</div>
-
-<div class="task-info">
-<h3>Join Our Socials</h3>
-<p>Reward 5000 Coins</p>
-</div>
-
-<div class="task-arrow">›</div>
-
-</div>
   </div>
 
-<!-- SOCIAL MISSION PAGE -->
+  <!-- SOCIAL MISSION PAGE -->
+  <div id="missionPage" style="display:none;">
 
-<div id="missionPage" style="display:none;">
+    <h2>Social Missions</h2>
 
-<h2>Social Missions</h2>
+    <div class="mission-card">
+      Follow Instagram
+      <button onclick="openLink('https://www.instagram.com/pupbyte_official')">Go</button>
+    </div>
 
-<div class="mission-card">
-Follow Instagram
-<button onclick="openLink('https://www.instagram.com/pupbyte_official')">Go</button>
-</div>
+    <div class="mission-card">
+      Follow X
+      <button onclick="openLink('https://x.com/PupByteCoin')">Go</button>
+    </div>
 
-<div class="mission-card">
-Follow X
-<button onclick="openLink('https://x.com/PupByteCoin')">Go</button>
-</div>
+    <div class="mission-card">
+      Join Telegram Channel
+      <button onclick="openLink('https://t.me/PupByteOfficial')">Go</button>
+    </div>
 
-<div class="mission-card">
-Join Telegram Channel
-<button onclick="openLink('https://t.me/PupByteOfficial')">Go</button>
-</div>
+    <div class="mission-card">
+      Join Telegram Group
+      <button onclick="openLink('https://t.me/+D_WSaoaTr2hmYTY1')">Go</button>
+    </div>
 
-<div class="mission-card">
-Join Telegram Group
-<button onclick="openLink('https://t.me/+D_WSaoaTr2hmYTY1')">Go</button>
-</div>
+    <div class="mission-card">
+      Join Discord
+      <button onclick="openLink('https://discord.gg/BU8EazB2Q')">Go</button>
+    </div>
 
-<div class="mission-card">
-Join Discord
-<button onclick="openLink('https://discord.gg/BU8EazB2Q')">Go</button>
-</div>
+    <button class="verify-btn" onclick="verifyTask()">Verify Task</button>
+    <button class="back-btn" onclick="closeMission()">⬅ Back</button>
 
-<button class="verify-btn" onclick="verifyTask()">Verify Task</button>
+  </div>
 
-<button class="back-btn" onclick="closeMission()">⬅ Back</button>
-
-</div>​
-  
   <!-- ================= BOOTS SECTION ================= -->
   <div id="boostSection" style="display:none;">
 
@@ -145,138 +138,20 @@ Join Discord
 
   </div>
 
-  <!-- ============ LEAGUE SECTION ============ -->
-  
-<div id="leagueSection" style="display:none;">
-
-  <div class="league-header">
-    <button id="closeLeagueBtn">←</button>
-    <h2 id="leagueName">Wood League</h2>
-    <p>Your coins decide your league</p>
-  </div>
-
-  <div class="league-main">
-
-    <div id="prevLeague" class="arrow">‹</div>
-
-    <div class="league-center">
-      <img id="leagueImage" class="league-img">
-
-      <div class="progress-bar">
-        <div id="leagueProgress"></div>
-      </div>
-    </div>
-
-    <div id="nextLeague" class="arrow">›</div>
-
-  </div>
-
-  <h3>🌍 Global Top 10</h3>
-  <div id="globalTop"></div>
-
-  <h3>🏆 League Top 10</h3>
-  <div id="leagueTop"></div>
-
-  <h3>👤 Your Rank</h3>
-  <div id="myRank"></div>
-
-</div>
-  
-<!-- ============ ACCOUNT SECTION ============ -->
-  
-  <div id="accountSection" style="display:none;">
-
-  <div class="account-card">
-    <h2>👤 My Account</h2>
-
-    <p><strong>User ID:</strong> <span id="accountUserId"></span></p>
-
-    <p><strong>Total Coins:</strong> <span id="accountCoins"></span></p>
-
-    <p><strong>Total Referrals:</strong> <span id="accountReferrals"></span></p>
-
-    <div class="ref-box">
-      <input type="text" id="accountRefLink" readonly>
-      <button id="copyRefBtn">Copy</button>
-    </div>
-
-  </div>
-
-  </div>
-
-<!-- ================= CASHIER SECTION ================= -->
-
-<div id="cashierSection" style="display:none;">
-
-<h2 style="text-align:center;color:white;">💰 Cashier</h2>
-
-<div class="boost-card">
-<p>Withdraw coming soon</p>
-</div>
-
-</div>
-  
-<!-- ================= SKILLS SECTION ================= -->
-
-  <div id="skillsSection" style="display:none;">
-
-  <div class="boost-header">
-    <h2>🛠 Skills</h2>
-  </div>
-
-  <!-- DAILY SPIN -->
-  <div class="boost-card">
-    <h3>🎡 Daily Spin</h3>
-    <p>Spin once every 24 hours to win coins</p>
-    <button id="spinBtn" class="upgrade-btn">
-      Spin Now
-    </button>
-  </div>
-
-  <div class="wheel-wrapper" id="wheelWrapper" style="display:none;">
-
-  <div class="pointer"></div>
-
-  <div class="wheel" id="wheel">
-    <div class="segment">100</div>
-    <div class="segment">200</div>
-    <div class="segment">300</div>
-    <div class="segment">500</div>
-    <div class="segment">800</div>
-    <div class="segment">1000</div>
-  </div>
-
-</div>
-  
-  <!-- DAILY REWARD -->
-  <div class="boost-card">
-    <h3>🎁 Daily Reward</h3>
-    <p>Claim your daily bonus coins</p>
-    <button id="dailyRewardBtn" class="upgrade-btn">
-      Claim Reward
-    </button>
-  </div>
-
-</div>
-  
-  <!-- ================= BOTTOM NAV ================= -->
+  <!-- BOTTOM NAV -->
   <div class="bottom-nav">
-
-<div id="navEarn" class="nav-item active">💰 Earn</div>
-
-<div id="navMine" class="nav-item">⛏ Mine</div>
-
-<div id="navTasks" class="nav-item">📋 Tasks</div>
-
-<div id="navAccount" class="nav-item">😎 Account</div>
-
-<div id="navSkills" class="nav-item">🤖 Skills</div>
-
-<div id="navCashier" class="nav-item">💰 Cashier</div>
+    <div id="navEarn" class="nav-item active">💰 Earn</div>
+    <div id="navMine" class="nav-item">⛏ Mine</div>
+    <div id="navTasks" class="nav-item">📋 Tasks</div>
+    <div id="navAccount" class="nav-item">😎 Account</div>
+    <div id="navSkills" class="nav-item">🤖 Skills</div>
+    <div id="navCashier" class="nav-item">💰 Cashier</div>
+  </div>
 
 </div>
   
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="script.js"></script>
+<script src="script.js?v=5"></script>
+
 </body>
 </html>
