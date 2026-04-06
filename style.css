@@ -245,3 +245,7 @@ button:active{
   color:#00f7ff;
   text-shadow:0 0 10px #00f7ff;
 }
+
+#claimStreakBtn{
+  margin-top:10px;
+}
