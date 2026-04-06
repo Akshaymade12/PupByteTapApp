@@ -11,7 +11,7 @@ app.use(express.json());
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const MONGO_URI = process.env.MONGO_URI;
 
-const bot = new TelegramBot(BOT_TOKEN);
+const bot = new TelegramBot(BOT_TOKEN, { polling: false });
 
 bot.setWebHook(`https://pupbytetapapp.onrender.com/bot${BOT_TOKEN}`);
 
@@ -37,7 +37,10 @@ if (!BOT_TOKEN) {
   process.exit(1);
 }
 
-mongoose.connect(MONGO_URI)
+if (!MONGO_URI) {
+  console.error("MONGO_URI missing ❌");
+  process.exit(1);
+}
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.log("Mongo Error ❌", err));
 
@@ -155,7 +158,7 @@ async function applyOfflineMining(user) {
 
 bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
   const telegramId = msg.from.id.toString();
-  const refId = match[1];
+  const refId = match && match[1];
   let user = await User.findOne({ telegramId });
 
   if (!user) {
@@ -470,11 +473,16 @@ app.get("/", (req, res) => {
 /* ================= WEEKLY LEAGUE RESET ================= */
 
 cron.schedule("0 0 * * 0", async () => {
-  await User.updateMany({}, { tapCount: 0 });
+  try {
+    await User.updateMany({}, { tapCount: 0 });
+    console.log("Weekly reset done");
+  } catch (e) {
+    console.error("Cron error:", e);
+  }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
-
+    });
