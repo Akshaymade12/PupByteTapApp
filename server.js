@@ -70,7 +70,9 @@ const userSchema = new mongoose.Schema({
   lastDailyClaim: { type: Date, default: null },
   lastSpin: { type: Date, default: null },
   lastEnergyUpdate: { type: Number, default: Date.now },
-  rewardClaimed: { type: Boolean, default: false }
+  rewardClaimed: { type: Boolean, default: false },
+  streak: { type: Number, default: 0 },
+lastStreakDate: { type: Date, default: null }
 });
 
 const User = mongoose.model("User", userSchema);
@@ -288,6 +290,44 @@ app.post("/daily-reward", async (req, res) => {
   await user.save();
 
   res.json({ success: true });
+});
+
+/* ================= DAILY STREAK ================= */
+
+app.post("/daily-streak", async (req, res) => {
+  const { telegramId } = req.body;
+
+  const user = await getValidUser(telegramId);
+  if (!user) return res.json({ success: false });
+
+  const today = new Date().toDateString();
+
+  if (user.lastStreakDate === today) {
+    return res.json({ success: false, message: "Already claimed today" });
+  }
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (user.lastStreakDate === yesterday.toDateString()) {
+    user.streak += 1;
+  } else {
+    user.streak = 1;
+  }
+
+  const reward = user.streak * 200; // 🔥 reward formula
+
+  user.coins += reward;
+  user.lastStreakDate = today;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    streak: user.streak,
+    reward: reward,
+    coins: user.coins
+  });
 });
 
 /* ================= GLOBAL TOP ================= */
