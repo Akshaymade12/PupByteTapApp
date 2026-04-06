@@ -300,6 +300,71 @@ app.get("/top-global", async (req, res) => {
   res.json(users);
 });
 
+/* ================= TASK ================= */
+
+app.post("/complete-task", async (req, res) => {
+  const { telegramId, taskId } = req.body;
+
+  const user = await getValidUser(telegramId);
+  if (!user) return res.json({ success: false });
+
+  if (user.completedTasks.includes(taskId))
+    return res.json({ success: false, message: "Already done" });
+
+  user.coins += 1000;
+  user.completedTasks.push(taskId);
+
+  await user.save();
+
+  res.json({ success: true, reward: 1000 });
+});
+
+/* ================= DAILY COMBO ================= */
+
+app.get("/daily-combo", async (req, res) => {
+  const combo = ["A", "B", "C"];
+  res.json({ combo });
+});
+
+/* ================= LEAGUE API ================= */
+
+app.get("/league/:telegramId", async (req, res) => {
+  const user = await User.findOne({ telegramId: req.params.telegramId });
+  if (!user) return res.json({});
+
+  const league = getLeague(user.coins);
+
+  res.json({
+    league: league,
+    coins: user.coins
+  });
+});
+
+/* ================= TOP LEAGUE ================= */
+
+app.get("/top-league/:league", async (req, res) => {
+  const users = await User.find({ league: req.params.league })
+    .sort({ coins: -1 })
+    .limit(10);
+
+  res.json(users);
+});
+
+/* ================= USER RANK ================= */
+
+app.get("/rank/:telegramId", async (req, res) => {
+  const user = await User.findOne({ telegramId: req.params.telegramId });
+  if (!user) return res.json({});
+
+  const rank = await User.countDocuments({ coins: { $gt: user.coins } }) + 1;
+
+  res.json({
+    rank: rank,
+    coins: user.coins,
+    referrals: user.referrals
+  });
+});
+
 /* ================= ROOT ================= */
 
 app.get("/", (req, res) => {
