@@ -467,7 +467,7 @@ app.post("/claim-reward", async (req, res) => {
 /* ================= ROOT ================= */
 
 app.get("/", (req, res) => {
-  res.send("Server Running ✅");
+  res.sendFile(__dirname + "/index.html");
 });
 
 /* ================= CRON ================= */
