@@ -139,54 +139,59 @@
   </div>
 
   <!-- ================= ACCOUNT SECTION ================= -->
-  <div id="accountSection" style="display:none;">
-    <h2 class="page-title">😎 Account</h2>
+<div id="accountSection" style="display:none;">
+  <h2 class="page-title">😎 Account</h2>
+  
+  <div class="account-card">
+    <div class="account-item">
+      <span>Player ID:</span>
+      <span id="accountUserId">--</span>
+    </div>
+    <div class="account-item">
+      <span>Name:</span>
+      <span id="accountUserName">--</span>
+    </div>
+    <div class="account-item">
+      <span>Total Coins:</span>
+      <span id="accountCoins">0</span>
+    </div>
+    <div class="account-item">
+      <span>Referrals:</span>
+      <span id="accountReferrals">0</span>
+    </div>
+    <div class="account-item">
+      <span>Wallet:</span>
+      <span id="walletStatus">Not Connected</span>
+    </div>
+  </div>
+
+  <div class="airdrop-card">
+    <h3>Airdrop Eligibility</h3>
+    <div class="eligibility-status" id="airdropStatus">Not Eligible</div>
     
-    <div class="account-card">
-      <div class="account-item">
-        <span>Player ID:</span>
-        <span id="accountUserId">--</span>
+    <div class="conditions-list">
+      <div class="condition-item">
+        <span id="condCoins">❌</span> Min 50,000 Coins
       </div>
-      <div class="account-item">
-        <span>Name:</span>
-        <span id="accountUserName">--</span>
+      <div class="condition-item">
+        <span id="condWallet">❌</span> Wallet Connected
       </div>
-      <div class="account-item">
-        <span>Total Coins:</span>
-        <span id="accountCoins">0</span>
-      </div>
-      <div class="account-item">
-        <span>Referrals:</span>
-        <span id="accountReferrals">0</span>
-      </div>
-      <div class="account-item">
-        <span>Wallet:</span>
-        <span id="walletStatus">Not Connected</span>
+      <div class="condition-item">
+        <span id="condRefs">❌</span> Min 5 Referrals
       </div>
     </div>
-
-    <div class="airdrop-card">
-      <h3>Airdrop Eligibility</h3>
-      <div class="eligibility-status" id="airdropStatus">Not Eligible</div>
-      <div class="conditions-list">
-        <div class="condition-item">
-          <span id="condCoins">❌</span> Min 50,000 Coins
-        </div>
-        <div class="condition-item">
-          <span id="condWallet">❌</span> Wallet Connected
-        </div>
-        <div class="condition-item">
-          <span id="condRefs">❌</span> Min 5 Referrals
-        </div>
-        
-      <div class="boost-card">
-          <h3>🔥 Daily Streak</h3>
-          <p>Come daily and earn more!</p>
-          <p>Current Streak: <span id="streakCount">0</span></p>
-           <button id="claimStreakBtn">Claim Reward</button>
   </div>
-      </div>
-      
+
+  <!-- ✅ DAILY STREAK (CORRECT POSITION) -->
+  <div class="boost-card">
+    <h3>🔥 Daily Streak</h3>
+    <p>Come daily and earn more!</p>
+    <p>Current Streak: <span id="streakCount">0</span></p>
+    <button id="claimStreakBtn">Claim Reward</button>
+  </div>
+
+</div>
+  
   <!-- ================= SKILLS SECTION ================= -->
   <div id="skillsSection" style="display:none;">
     <div class="coming-soon">
