@@ -266,23 +266,11 @@ app.post("/claim-combo", async (req, res) => {
 
   const today = new Date().toDateString();
 
-  // already claimed
   if (user.dailyComboClaimed === today) {
     return res.json({ success: false, message: "Already claimed" });
   }
 
-  const combo = getTodayCombo();
-
-  // check user cards
-  const userCardIds = user.cards.map(c => c.id);
-
-  const hasAll = combo.every(c => userCardIds.includes(c.id));
-
-  if (!hasAll) {
-    return res.json({ success: false, message: "Complete combo first" });
-  }
-
-  const reward = 5000; // tum change kar sakte ho
+  const reward = 5000;
 
   user.coins += reward;
   user.dailyComboClaimed = today;
@@ -386,13 +374,12 @@ app.post("/tap", async (req, res) => {
   await user.save();
 
   res.json({
-    success:true,
-    coins:user.coins,
-    energy:user.energy,
-    tapPower:user.tapPower,
-    profitPerHour:user.profitPerHour
-  });
-
+  success:true,
+  coins:user.coins,
+  energy:user.energy,
+  tapPower:user.tapPower,
+  profitPerHour:user.profitPerHour,
+  league: user.league
 });
 
 /* ================= TAP UPGRADE ================= */
@@ -675,12 +662,6 @@ app.post("/claim-reward", async (req, res) => {
 
 app.get("/", (req, res) => {
     res.sendFile(__dirname + "/index.html");
-});
-
-/* ================= ROOT ================= */
-
-app.get("/", (req, res) => {
-  res.send("PupByte Server Running 🚀");
 });
 
 /* ================= WEEKLY LEAGUE RESET ================= */
