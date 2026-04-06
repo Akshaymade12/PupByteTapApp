@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= LOAD USER ================= */
 
   async function loadUser() {
-    const res = await fetch("/tap", {
+    const res = await fetch("/load", {
   method: "POST",
   headers: {
     "Content-Type": "application/json"
@@ -513,29 +513,6 @@ if(nextBtn){
     }
   }
 }
-
- /* ================= SHOW SECTION (NEW FIX) ================= */
-
-  function showSection(section) {
-
-    const all = ["earn", "task", "account", "skills", "cashier"];
-
-    all.forEach(s => {
-      const el = document.getElementById(s + "Section");
-      if (el) el.style.display = "none";
-    });
-
-    const active = document.getElementById(section + "Section");
-    if (active) active.style.display = "block";
-
-    document.querySelectorAll(".nav-item")
-      .forEach(el => el.classList.remove("active"));
-
-    const index = all.indexOf(section);
-    if (index >= 0) {
-      document.querySelectorAll(".nav-item")[index].classList.add("active");
-    }
-  }
   
 /* ================= NAVIGATION ================= */
 
