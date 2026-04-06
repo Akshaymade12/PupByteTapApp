@@ -8,11 +8,28 @@ const app = express();
 app.set("trust proxy", 1);
 app.use(express.json());
 
+/* ================= ENV ================= */
+
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const MONGO_URI = process.env.MONGO_URI;
 
-const bot = new TelegramBot(BOT_TOKEN, { polling: false });
+if (!BOT_TOKEN || !MONGO_URI) {
+  console.log("ENV missing ❌");
+  process.exit(1);
+}
 
+/* ================= DB ================= */
+
+mongoose.connect(MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log("MongoDB Connected ✅"))
+.catch(err => console.log(err));
+
+/* ================= BOT ================= */
+
+const bot = new TelegramBot(BOT_TOKEN);
 bot.setWebHook(`https://pupbytetapapp.onrender.com/bot${BOT_TOKEN}`);
 
 app.post(`/bot${BOT_TOKEN}`, (req, res) => {
@@ -20,29 +37,12 @@ app.post(`/bot${BOT_TOKEN}`, (req, res) => {
   res.sendStatus(200);
 });
 
-const apiLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 120, // 120 requests per minute per IP
-  message: { success: false, message: "Too many requests" }
-});
+/* ================= RATE LIMIT ================= */
 
-app.use(apiLimiter);
-
-app.use(express.static(__dirname));
-
-/* ================= ENV ================= */
-
-if (!BOT_TOKEN) {
-  console.error("BOT_TOKEN missing ❌");
-  process.exit(1);
-}
-
-if (!MONGO_URI) {
-  console.error("MONGO_URI missing ❌");
-  process.exit(1);
-}
-  .then(() => console.log("MongoDB Connected ✅"))
-  .catch(err => console.log("Mongo Error ❌", err));
+app.use(rateLimit({
+  windowMs: 60 * 1000,
+  max: 120
+}));
 
 /* ================= SCHEMA ================= */
 
@@ -467,22 +467,19 @@ app.post("/claim-reward", async (req, res) => {
 /* ================= ROOT ================= */
 
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+  res.send("Server Running ✅");
 });
 
-/* ================= WEEKLY LEAGUE RESET ================= */
+/* ================= CRON ================= */
 
 cron.schedule("0 0 * * 0", async () => {
-  try {
-    await User.updateMany({}, { tapCount: 0 });
-    console.log("Weekly reset done");
-  } catch (e) {
-    console.error("Cron error:", e);
-  }
+  await User.updateMany({}, { suspiciousCount: 0 });
 });
 
+/* ================= START ================= */
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
+
+app.listen(PORT, () => {
+  console.log("Server running 🚀");
 });
-    });
