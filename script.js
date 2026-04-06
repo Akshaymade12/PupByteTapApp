@@ -96,18 +96,19 @@ if(leagueText) leagueText.innerText = data.league;
   
   function updateLeagueProgress(coins) {
 
-  const leagues = [
-    { name: "Wood", min: 0, max: 10000 },
-    { name: "Bronze", min: 10000, max: 30000 },
-    { name: "Silver", min: 30000, max: 70000 },
-    { name: "Gold", min: 70000, max: 150000 },
-    { name: "Platinum", min: 150000, max: 300000 },
-    { name: "Diamond", min: 300000, max: 600000 },
-    { name: "Master", min: 600000, max: 1200000 },
-    { name: "Grandmaster", min: 1200000, max: 2500000 },
-    { name: "Elite", min: 2500000, max: 5000000 },
-    { name: "Legendary", min: 5000000, max: 10000000 },
-    { name: "Mythic", min: 10000000, max: Infinity }
+  const LEAGUES = [
+  { name: "Wood", min: 0, max: 1000 },
+  { name: "Bronze", min: 1000, max: 5000 },
+  { name: "Silver", min: 5000, max: 15000 },
+  { name: "Gold", min: 15000, max: 50000 },
+  { name: "Platinum", min: 50000, max: 100000 },
+  { name: "Diamond", min: 100000, max: 250000 },
+  { name: "Master", min: 250000, max: 500000 },
+  { name: "Elite", min: 500000, max: 1000000 },
+  { name: "Champion", min: 1000000, max: 2500000 },
+  { name: "Legend", min: 2500000, max: 5000000 },
+  { name: "Grandmaster", min: 5000000, max: 10000000 },
+  { name: "Immortal", min: 10000000, max: Infinity }
   ];
 
   const leagueNameEl = document.getElementById("leagueName");
