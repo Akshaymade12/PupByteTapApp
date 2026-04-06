@@ -1,10 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
-const tg = window.Telegram.WebApp;
-const user = tg.initDataUnsafe.user;
-
-const telegramId = user ? user.id.toString() : null;
-const initData = tg.initData;
  
  /* ================= TELEGRAM SAFE INIT ================= */
 
@@ -149,6 +143,7 @@ leagueNameEl.innerText = currentLeague.name + " League";
 
   let tapping = false;
 
+if (tapBtn) {
 tapBtn.addEventListener("click", async () => {
 
   if (tapping) return;
@@ -187,6 +182,7 @@ tapBtn.addEventListener("click", async () => {
 
   setTimeout(() => tapping = false, 120);
 });
+}
  
   
 /* ===== SOCIAL MISSIONS ===== */
@@ -230,7 +226,7 @@ window.open(url,"_blank");
   }
   
 /* ================= DAILY COMBO CARD ================= */
-  
+  const container = document.getElementById("comboContainer");
   async function loadDailyCombo() {
   const res = await fetch("/daily-combo");
   const data = await res.json();
