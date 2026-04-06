@@ -67,6 +67,7 @@ leagueRewardsClaimed: { type: [String], default: [] },
   lastActive: { type: Date, default: Date.now },
   lastDailyClaim: { type: Date, default: null },
   lastSpin: { type: Date, default: null },
+  lastEnergyUpdate: { type: Number, default: Date.now },
   rewardClaimed: { type: Boolean, default: false }
   
 });
@@ -149,14 +150,6 @@ function getLeagueByTaps(taps) {
 function getLeague(coins) {
   const league = getLeagueByTaps(coins);
   return league ? league.name : "Bronze";
-}
-
-const league = LEAGUES.find(
-  l => taps >= l.min && taps < l.max
-);
-
-if (!league) {
-  return res.status(500).json({ error: "League error" });
 }
 
 /* ================= OFFLINE MINING ================= */
@@ -426,8 +419,8 @@ if (!user) return res.json({ success: false });
     success: true,
     coins: user.coins,
     nextCost: Math.floor(40 * Math.pow(1.7, user.tapLevel))
+    
   });
-});
 
 /* ================= PROFIT UPGRADE ================= */
 
@@ -465,7 +458,7 @@ if (user.upgradeLevel >= 100) {
 
 /* ================= TOP 10 LEAGUE ================= */
 
-app.get("/top/:league", async (req, res) => {
+app.get("/top-league/:league", async (req, res) => {
   const league = req.params.league;
 
   const topUsers = await User.find({ league })
