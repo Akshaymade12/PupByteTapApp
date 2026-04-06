@@ -116,7 +116,7 @@ if(leagueText) leagueText.innerText = data.league;
 
   let currentLeague;
 
-  for (let league of leagues) {
+  for (let league of LEAGUES) {
     if (coins >= league.min && coins < league.max) {
       currentLeague = league;
       break;
@@ -172,7 +172,7 @@ tapBtn.addEventListener("click", async () => {
       profitEl.innerText = data.profitPerHour;
       showPlusOne(data.tapPower);
     } else {
-      console.log(data);
+  alert(data.message || "Tap failed");
     }
 
   } catch (e) {
@@ -229,8 +229,7 @@ window.open(url,"_blank");
   const res = await fetch("/daily-combo");
   const data = await res.json();
 
-  const container = document.getElementById("combo");
-  container.innerHTML = "";
+  if (!container) return;
 
   data.combo.forEach(card => {
     container.innerHTML += `
@@ -613,7 +612,7 @@ async function loadMyRank() {
 
   el.innerHTML = `
     <div class="user-row" style="background:#00f7ff22;">
-      <span>#${data.rank}</span>
+      <span>#${data.rank || "-"}</span>
       <span>You</span>
       <span>${Math.floor(data.coins)}</span>
     </div>
