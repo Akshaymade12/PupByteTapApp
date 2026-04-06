@@ -589,9 +589,6 @@ app.get("/top-global", async (req, res) => {
   res.json(topUsers);
 });
 
-
-
-
 /* ================= USER RANK ================= */
 
 app.get("/rank/:id", async (req, res) => {
@@ -658,10 +655,10 @@ app.post("/claim-reward", async (req, res) => {
   res.json({ success: true });
 });
 
-/* ================= Error Fix ================= */
+/* ================= ROOT ================= */
 
 app.get("/", (req, res) => {
-    res.sendFile(__dirname + "/index.html");
+  res.sendFile(__dirname + "/index.html");
 });
 
 /* ================= WEEKLY LEAGUE RESET ================= */
