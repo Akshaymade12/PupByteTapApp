@@ -142,7 +142,7 @@ const LEAGUES = [
 
 function getLeagueByTaps(taps) {
   return LEAGUES.find(
-    league => taps >= league.min && taps < league.max
+    l => taps >= l.min && taps < l.max
   );
 }
 
@@ -152,7 +152,7 @@ function getLeague(coins) {
 }
 
 const league = LEAGUES.find(
-  l => user.coins >= l.min && user.coins < l.max
+  l => taps >= l.min && taps < l.max
 );
 
 if (!league) {
