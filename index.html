@@ -46,32 +46,24 @@
 
   </div>
   
-<!-- ================= MINE SECTION ================= -->
-  
+  <!-- ================= MINE ================= -->
   <div id="mineSection" style="display:none;">
 
-<h2 style="text-align:center;color:white;">⛏ Mining Center</h2>
+    <h2>⛏ Mining Center</h2>
 
-    <!-- ================= DAILY COMBO CARD ================= -->
-  
-  <div id="mineSection">
+    <div class="combo-header">
+      <h3>Daily Combo</h3>
+      <button onclick="claimCombo()">Claim</button>
+    </div>
 
-  <!-- DAILY COMBO -->
-  <div class="combo-header">
-    <h3>Daily Combo</h3>
-    <button id="claimBtn" onclick="claimCombo()">Claim</button>
-  </div>
+    <div id="combo" class="combo-box"></div>
 
-  <div id="combo" class="combo-box"></div>
-
-<div class="mine-card">
-  <p>Mining Power</p>
-  <button id="startMining">Start Mining</button>
-</div>
+    <div class="mine-card">
+      <p>Mining Power</p>
+      <button>Start Mining</button>
+    </div>
 
   </div>
-  
-
   
 <!-- =============== tasksSection ========================== -->
   
@@ -291,5 +283,6 @@ Join Discord
   
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="script.js"></script>
+  
 </body>
 </html>
