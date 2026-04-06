@@ -83,6 +83,7 @@ if (!data || data.success === false) {
       if (accountUserName) accountUserName.innerText = user.first_name || "User";
       if (accountCoins) accountCoins.innerText = Math.floor(data.coins);
       if (accountReferrals) accountReferrals.innerText = data.referrals || 0;
+     if (streakCount) streakCount.innerText = data.streak || 0;
 
       if (accountRefLink) {
         accountRefLink.value = `https://t.me/PupByteTapBot?start=${telegramId}`;
