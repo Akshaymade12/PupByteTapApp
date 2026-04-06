@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PupByte Tap Bot</title>
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
   
@@ -112,6 +112,94 @@
 
   </div>
 
+  <!-- ================= LEAGUE SECTION ================= -->
+  <div id="leagueSection" style="display:none;">
+    <div class="section-header">
+      <button class="back-nav-btn" id="closeLeagueBtn">← Back</button>
+      <h2 id="leagueName">Bronze League</h2>
+    </div>
+
+    <div class="league-info-card">
+      <div class="league-rank-box">
+        <p>Your Rank</p>
+        <h3 id="myRankDisplay">#--</h3>
+      </div>
+      <div class="league-coins-box">
+        <p>Your Coins</p>
+        <h3 id="myCoinsDisplay">0</h3>
+      </div>
+    </div>
+
+    <div class="leaderboard-container">
+      <h3>Top Players</h3>
+      <div id="leagueTop" class="leaderboard-list">
+        <!-- Leaderboard items will be injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ACCOUNT SECTION ================= -->
+  <div id="accountSection" style="display:none;">
+    <h2 class="page-title">😎 Account</h2>
+    
+    <div class="account-card">
+      <div class="account-item">
+        <span>Player ID:</span>
+        <span id="accountUserId">--</span>
+      </div>
+      <div class="account-item">
+        <span>Name:</span>
+        <span id="accountUserName">--</span>
+      </div>
+      <div class="account-item">
+        <span>Total Coins:</span>
+        <span id="accountCoins">0</span>
+      </div>
+      <div class="account-item">
+        <span>Referrals:</span>
+        <span id="accountReferrals">0</span>
+      </div>
+      <div class="account-item">
+        <span>Wallet:</span>
+        <span id="walletStatus">Not Connected</span>
+      </div>
+    </div>
+
+    <div class="airdrop-card">
+      <h3>Airdrop Eligibility</h3>
+      <div class="eligibility-status" id="airdropStatus">Not Eligible</div>
+      <div class="conditions-list">
+        <div class="condition-item">
+          <span id="condCoins">❌</span> Min 50,000 Coins
+        </div>
+        <div class="condition-item">
+          <span id="condWallet">❌</span> Wallet Connected
+        </div>
+        <div class="condition-item">
+          <span id="condRefs">❌</span> Min 5 Referrals
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SKILLS SECTION ================= -->
+  <div id="skillsSection" style="display:none;">
+    <div class="coming-soon">
+      <div class="cs-icon">🤖</div>
+      <h2>Coming Soon</h2>
+      <p>Skills feature is under development</p>
+    </div>
+  </div>
+
+  <!-- ================= CASHIER SECTION ================= -->
+  <div id="cashierSection" style="display:none;">
+    <div class="coming-soon">
+      <div class="cs-icon">💰</div>
+      <h2>Coming Soon</h2>
+      <p>Cashier feature is under development</p>
+    </div>
+  </div>
+
   <!-- ================= BOOTS SECTION ================= -->
   <div id="boostSection" style="display:none;">
 
@@ -151,7 +239,7 @@
 </div>
   
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="script.js?v=5"></script>
+<script src="script.js?v=6"></script>
 
 </body>
 </html>
