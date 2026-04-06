@@ -1,5 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+const tg = window.Telegram.WebApp;
+const user = tg.initDataUnsafe.user;
+
+const telegramId = user ? user.id.toString() : null;
+const initData = tg.initData;
+ 
  /* ================= TELEGRAM SAFE INIT ================= */
 
   const tg = window.Telegram?.WebApp;
@@ -513,41 +519,116 @@ if(nextBtn){
     }
   }
 }
-  
-/* ================= NAVIGATION ================= */
-
- const navEarn = document.getElementById("navEarn");
-const navMine = document.getElementById("navMine");
-const navTasks = document.getElementById("navTasks");
-const navAccount = document.getElementById("navAccount");
-const navSkills = document.getElementById("navSkills");
-const navCashier = document.getElementById("navCashier");
-
-const sections = document.querySelectorAll(
-"#earnSection,#mineSection,#tasksSection,#accountSection,#skillsSection,#cashierSection"
-);
-
-function switchSection(sectionId, navBtn){
-
-sections.forEach(sec => sec.style.display="none");
-
-document.getElementById(sectionId).style.display="block";
-
-document.querySelectorAll(".nav-item")
-.forEach(btn=>btn.classList.remove("active"));
-
-navBtn.classList.add("active");
-
+ 
+/* ================= NAVIGATION SHOW ================= */
+ 
+function hideAllSections() {
+  document.getElementById("earnSection").style.display = "none";
+  document.getElementById("mineSection").style.display = "none";
+  document.getElementById("tasksSection").style.display = "none";
+  document.getElementById("accountSection").style.display = "none";
+  document.getElementById("skillsSection").style.display = "none";
+  document.getElementById("cashierSection").style.display = "none";
 }
 
-navEarn.onclick = ()=>switchSection("earnSection",navEarn);
-navMine.onclick = ()=>switchSection("mineSection",navMine);
-navTasks.onclick = ()=>switchSection("tasksSection",navTasks);
-navAccount.onclick = ()=>switchSection("accountSection",navAccount);
-navSkills.onclick = ()=>switchSection("skillsSection",navSkills);
-navCashier.onclick = ()=>switchSection("cashierSection",navCashier);
-  
+document.getElementById("navEarn").onclick = () => {
+  hideAllSections();
+  document.getElementById("earnSection").style.display = "block";
+};
 
+document.getElementById("navMine").onclick = () => {
+  hideAllSections();
+  document.getElementById("mineSection").style.display = "block";
+};
+
+document.getElementById("navTasks").onclick = () => {
+  hideAllSections();
+  document.getElementById("tasksSection").style.display = "block";
+};
+
+document.getElementById("navAccount").onclick = () => {
+  hideAllSections();
+  document.getElementById("accountSection").style.display = "block";
+  loadAccount();
+};
+
+document.getElementById("navSkills").onclick = () => {
+  hideAllSections();
+  document.getElementById("skillsSection").style.display = "block";
+};
+
+document.getElementById("navCashier").onclick = () => {
+  hideAllSections();
+  document.getElementById("cashierSection").style.display = "block";
+};
+
+/* ================= LEAGUE OPEN ================= */
+ 
+ document.getElementById("openLeague").onclick = async () => {
+
+  document.getElementById("leagueSection").style.display = "block";
+  document.getElementById("earnSection").style.display = "none";
+
+  const res = await fetch("/league/" + telegramId);
+  const data = await res.json();
+
+  document.getElementById("leagueName").innerText = data.league;
+
+  const top = await fetch("/top-league/" + data.league);
+  const players = await top.json();
+
+  const box = document.getElementById("leagueTop");
+  box.innerHTML = "";
+
+  players.forEach((p, i) => {
+    box.innerHTML += `<div>#${i+1} - ${p.telegramId} - ${p.coins}</div>`;
+  });
+
+  const rankRes = await fetch("/rank/" + telegramId);
+  const rankData = await rankRes.json();
+
+  document.getElementById("myRank").innerHTML =
+    `Rank: #${rankData.rank} | Coins: ${rankData.coins}`;
+};
+
+/* ================= ACCOUNT SHOW ================= */
+ 
+async function loadAccount() {
+
+  const res = await fetch("/rank/" + telegramId);
+  const data = await res.json();
+
+  document.getElementById("accountUserId").innerText = telegramId;
+  document.getElementById("accountCoins").innerText = data.coins;
+
+  // referrals load (optional)
+  document.getElementById("accountReferrals").innerText = "0";
+
+  // airdrop logic
+  let eligible = "Not Eligible";
+  if (data.coins >= 5000) eligible = "Eligible";
+
+  const el = document.createElement("p");
+  el.innerHTML = `<strong>Airdrop:</strong> ${eligible}`;
+  
+  document.querySelector(".account-card").appendChild(el);
+}
+ 
+/* ================= SHILLS SHOW  ================= */
+ 
+ document.getElementById("navSkills").onclick = () => {
+  hideAllSections();
+  document.getElementById("skillsSection").style.display = "block";
+  document.getElementById("skillsSection").innerHTML =
+    "<h2 style='text-align:center'>🚧 Coming Soon</h2>";
+};
+
+document.getElementById("navCashier").onclick = () => {
+  hideAllSections();
+  document.getElementById("cashierSection").style.display = "block";
+  document.getElementById("cashierSection").innerHTML =
+    "<h2 style='text-align:center'>💰 Coming Soon</h2>";
+};
  
   /* ================= GLOBAL TOP ================= */
 
