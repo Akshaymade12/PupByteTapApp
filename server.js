@@ -47,29 +47,28 @@ const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true, unique: true },
   coins: { type: Number, default: 0 },
   suspiciousCount: { type: Number, default: 0 },
-isBlocked: { type: Boolean, default: false },
-lastCoinUpdate: { type: Date, default: null },
+  isBlocked: { type: Boolean, default: false },
+  lastCoinUpdate: { type: Date, default: null },
   profitPerHour: { type: Number, default: 10 },
   energy: { type: Number, default: 100 },
   maxEnergy: { type: Number, default: 100 },
   tapLevel: { type: Number, default: 1 },
   tapPower: { type: Number, default: 1 },
   tapCount: { type: Number, default: 0 },
-tapResetTime: { type: Number, default: Date.now() },
+  tapResetTime: { type: Number, default: Date.now() },
   dailyComboClaimed: { type: String, default: "" },
   upgradeLevel: { type: Number, default: 0 },
   lastTap: { type: Number, default: 0 },
   referredBy: { type: String, default: null },
-referrals: { type: Number, default: 0 },
+  referrals: { type: Number, default: 0 },
   completedTasks: { type: [String], default: [] },
-leagueRewardsClaimed: { type: [String], default: [] },
+  leagueRewardsClaimed: { type: [String], default: [] },
   league: { type: String, default: "Wood" },
   lastActive: { type: Date, default: Date.now },
   lastDailyClaim: { type: Date, default: null },
   lastSpin: { type: Date, default: null },
   lastEnergyUpdate: { type: Number, default: Date.now },
   rewardClaimed: { type: Boolean, default: false }
-  
 });
 
 const User = mongoose.model("User", userSchema);
@@ -104,23 +103,10 @@ function verifyTelegram(initData) {
 /* ================= COMMON USER VALIDATION ================= */
 
 async function getValidUser(telegramId, initData) {
-
-  if (!verifyTelegram(initData)) {
-    return null;
-  }
-
-  if (!telegramId || telegramId.length < 5) {
-    return null;
-  }
-
+  if (!verifyTelegram(initData)) return null;
+  if (!telegramId || telegramId.length < 5) return null;
   const user = await User.findOne({ telegramId });
-
-  if (!user) return null;
-
-  if (user.isBlocked) {
-    return null;
-  }
-
+  if (!user || user.isBlocked) return null;
   return user;
 }
 
@@ -142,9 +128,7 @@ const LEAGUES = [
 ];
 
 function getLeagueByTaps(taps) {
-  return LEAGUES.find(
-    l => taps >= l.min && taps < l.max
-  );
+  return LEAGUES.find(l => taps >= l.min && taps < l.max);
 }
 
 function getLeague(coins) {
@@ -157,10 +141,7 @@ function getLeague(coins) {
 async function applyOfflineMining(user) {
   rechargeEnergy(user);
   const now = new Date();
-  const seconds = user.lastActive
-  ? (now - user.lastActive) / 1000
-  : 0;
-
+  const seconds = user.lastActive ? (now - user.lastActive) / 1000 : 0;
   if (seconds > 0) {
     const earned = (user.profitPerHour / 3600) * seconds;
     user.coins += Math.floor(earned);
@@ -173,22 +154,17 @@ async function applyOfflineMining(user) {
 /* ================= TELEGRAM START HANDLER ================= */
 
 bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
-
   const telegramId = msg.from.id.toString();
   const refId = match[1];
-
   let user = await User.findOne({ telegramId });
 
   if (!user) {
-
     user = await User.create({
       telegramId,
       referredBy: refId && refId !== telegramId ? refId : null
     });
-
     if (refId && refId !== telegramId) {
       const refUser = await User.findOne({ telegramId: refId });
-
       if (refUser) {
         refUser.coins += 500;
         refUser.referrals += 1;
@@ -197,38 +173,23 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
     }
   }
 
-  bot.sendMessage(
-    msg.chat.id,
-    "🚀 Welcome to PupByte Tap Bot!\nTap to earn coins!",
-    {
-      reply_markup: {
-        inline_keyboard: [[
-          {
-            text: "🔥 Open App",
-            web_app: {
-              url: "https://pupbytetapapp.onrender.com"
-            }
-          }
-        ]]
-      }
+  bot.sendMessage(msg.chat.id, "🚀 Welcome to PupByte Tap Bot!\nTap to earn coins!", {
+    reply_markup: {
+      inline_keyboard: [[{ text: "🔥 Open App", web_app: { url: "https://pupbytetapapp.onrender.com" } }]]
     }
-  );
-
+  });
 });
 
 /* ================= ENERGY RECHARGE ================= */
 
 function rechargeEnergy(user) {
   const now = Date.now();
-
   if (!user.lastEnergyUpdate) {
     user.lastEnergyUpdate = now;
     return;
   }
-
   const diff = (now - user.lastEnergyUpdate) / 1000;
   const energyToAdd = Math.floor(diff * 2);
-
   if (energyToAdd > 0) {
     user.energy = Math.min(user.maxEnergy, user.energy + energyToAdd);
     user.lastEnergyUpdate = now;
@@ -239,67 +200,35 @@ function rechargeEnergy(user) {
 
 function getTodayCombo() {
   const today = new Date().toDateString();
-
   let seed = 0;
-  for (let i = 0; i < today.length; i++) {
-    seed += today.charCodeAt(i);
-  }
-
-  const CARDS = [
-    { id: "A" },
-    { id: "B" },
-    { id: "C" }
-  ];
-
-  const shuffled = [...CARDS].sort((a, b) => {
-    return (a.id.charCodeAt(0) + seed) - (b.id.charCodeAt(0) + seed);
-  });
-
-  return shuffled.slice(0, 3);
+  for (let i = 0; i < today.length; i++) seed += today.charCodeAt(i);
+  const CARDS = [{ id: "A" }, { id: "B" }, { id: "C" }];
+  return [...CARDS].sort((a, b) => (a.id.charCodeAt(0) + seed) - (b.id.charCodeAt(0) + seed)).slice(0, 3);
 }
 
 app.get("/daily-combo", async (req, res) => {
-  const combo = getTodayCombo();
-
-  res.json({
-    success: true,
-    combo
-  });
+  res.json({ success: true, combo: getTodayCombo() });
 });
 
 app.post("/claim-combo", async (req, res) => {
   const { telegramId, initData } = req.body;
-
   const user = await getValidUser(telegramId, initData);
   if (!user) return res.json({ success: false });
-
   const today = new Date().toDateString();
-
-  if (user.dailyComboClaimed === today) {
-    return res.json({ success: false, message: "Already claimed" });
-  }
-
-  const reward = 5000;
-
-  user.coins += reward;
+  if (user.dailyComboClaimed === today) return res.json({ success: false, message: "Already claimed" });
+  user.coins += 5000;
   user.dailyComboClaimed = today;
-
   await user.save();
-
-  res.json({ success: true, reward });
+  res.json({ success: true, reward: 5000 });
 });
 
 /* ================= LOAD USER ================= */
 
 app.post("/load", async (req, res) => {
-
   const { telegramId, initData } = req.body;
-
   const user = await getValidUser(telegramId, initData);
-  if (!user) return res.json({ success:false });
-
+  if (!user) return res.json({ success: false });
   await applyOfflineMining(user);
-
   res.json({
     coins: user.coins,
     energy: user.energy,
@@ -316,135 +245,90 @@ app.post("/load", async (req, res) => {
 /* ================= TAP ================= */
 
 app.post("/tap", async (req, res) => {
-
   const { telegramId, initData } = req.body;
-
   const user = await getValidUser(telegramId, initData);
-  if (!user) return res.json({ success:false });
+  if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
-
   const now = Date.now();
   const tapGap = now - user.lastTap;
 
-  /* ===== ANTI AUTO CLICK ===== */
+  if (tapGap < 80) user.suspiciousCount += 2;
+  else if (tapGap < 150) user.suspiciousCount += 1;
+  else user.suspiciousCount = Math.max(0, user.suspiciousCount - 1);
 
-  if (tapGap < 80) {
-    user.suspiciousCount += 2;
-  } else if (tapGap < 150) {
-    user.suspiciousCount += 1;
-  } else {
-    user.suspiciousCount = Math.max(0, user.suspiciousCount - 1);
-  }
-
-  /* ===== SOFT BLOCK ===== */
-
-  if (user.suspiciousCount >= 20) {
-    return res.json({ success:false, message:"Slow down" });
-  }
-
-  /* ===== HARD BLOCK ===== */
-
+  if (user.suspiciousCount >= 20) return res.json({ success: false, message: "Slow down" });
   if (user.suspiciousCount >= 40) {
     user.isBlocked = true;
     await user.save();
-    return res.json({ success:false, message:"User blocked" });
+    return res.json({ success: false, message: "User blocked" });
   }
 
-  /* ===== ENERGY CHECK ===== */
-
-  if (user.energy < user.tapPower) {
-    return res.json({ success:false });
-  }
-
-  /* ===== TAP LIMIT PER MINUTE ===== */
+  if (user.energy < user.tapPower) return res.json({ success: false });
 
   if (Date.now() - user.tapResetTime > 60000) {
     user.tapCount = 0;
     user.tapResetTime = Date.now();
   }
-
-  if (user.tapCount >= 120) {
-    return res.json({ success:false, message:"Too fast" });
-  }
+  if (user.tapCount >= 120) return res.json({ success: false, message: "Too fast" });
 
   user.tapCount += 1;
-
-  /* ===== COIN ADD ===== */
-
   user.coins += user.tapPower;
   user.energy -= user.tapPower;
-
   user.lastTap = now;
   user.lastCoinUpdate = new Date();
-
   user.league = getLeague(user.coins);
-
   await user.save();
 
   res.json({
-  success:true,
-  coins:user.coins,
-  energy:user.energy,
-  tapPower:user.tapPower,
-  profitPerHour:user.profitPerHour,
-  league: user.league
-    
+    success: true,
+    coins: user.coins,
+    energy: user.energy,
+    tapPower: user.tapPower,
+    profitPerHour: user.profitPerHour,
+    league: user.league
+  });
 });
 
 /* ================= TAP UPGRADE ================= */
 
 app.post("/upgrade-tap", async (req, res) => {
   const { telegramId, initData } = req.body;
-const user = await getValidUser(telegramId, initData);
-if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId, initData);
+  if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
-
   const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
-
-  if (user.coins < cost)
-    return res.json({ success: false, required: cost });
+  if (user.coins < cost) return res.json({ success: false, required: cost });
 
   user.coins -= cost;
   user.tapLevel += 1;
-
-  if (user.tapLevel % 2 === 0)
-    user.tapPower += 1;
-
+  if (user.tapLevel % 2 === 0) user.tapPower += 1;
   await user.save();
 
   res.json({
     success: true,
     coins: user.coins,
     nextCost: Math.floor(40 * Math.pow(1.7, user.tapLevel))
-    
   });
+});
 
 /* ================= PROFIT UPGRADE ================= */
 
 app.post("/upgrade-profit", async (req, res) => {
   const { telegramId, initData } = req.body;
-const user = await getValidUser(telegramId, initData);
-if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId, initData);
+  if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
-
-  // 🔒 Profit exploit protection
-  
-if (user.upgradeLevel >= 100) {
-  return res.json({ success: false, message: "Max level reached" });
-}
+  if (user.upgradeLevel >= 100) return res.json({ success: false, message: "Max level reached" });
   
   const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
-
-  if (user.coins < cost)
-    return res.json({ success: false, required: cost });
+  if (user.coins < cost) return res.json({ success: false, required: cost });
 
   user.coins -= cost;
   user.profitPerHour += 3 + user.upgradeLevel;
   user.upgradeLevel += 1;
-
   await user.save();
 
   res.json({
@@ -458,13 +342,7 @@ if (user.upgradeLevel >= 100) {
 /* ================= TOP 10 LEAGUE ================= */
 
 app.get("/top-league/:league", async (req, res) => {
-  const league = req.params.league;
-
-  const topUsers = await User.find({ league })
-  .sort({ coins: -1 })
-  .limit(10)
-  .select("telegramId coins");
-  
+  const topUsers = await User.find({ league: req.params.league }).sort({ coins: -1 }).limit(10).select("telegramId coins");
   res.json(topUsers);
 });
 
@@ -472,28 +350,18 @@ app.get("/top-league/:league", async (req, res) => {
 
 app.post("/complete-task", async (req, res) => {
   const { telegramId, initData, taskId } = req.body;
-
   const user = await getValidUser(telegramId, initData);
-  if (!user) return res.json({ success: false });
-
-  if (!taskId) return res.json({ success: false });
-
-  if (user.completedTasks.includes(taskId)) {
-    return res.json({ success: false, message: "Already completed" });
-  }
+  if (!user || !taskId) return res.json({ success: false });
+  if (user.completedTasks.includes(taskId)) return res.json({ success: false, message: "Already completed" });
 
   let reward = 0;
-
   if (taskId === "telegram_join") reward = 1000;
   if (taskId === "twitter_follow") reward = 500;
-
   if (reward === 0) return res.json({ success: false });
 
   user.coins += reward;
   user.completedTasks.push(taskId);
-
   await user.save();
-
   res.json({ success: true, reward });
 });
 
@@ -501,28 +369,21 @@ app.post("/complete-task", async (req, res) => {
 
 app.post("/claim-league", async (req, res) => {
   const { telegramId, initData } = req.body;
-const user = await getValidUser(telegramId, initData);
-if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId, initData);
+  if (!user) return res.json({ success: false });
 
   const league = user.league;
-
-  if (user.leagueRewardsClaimed.includes(league)) {
-    return res.json({ success: false });
-  }
+  if (user.leagueRewardsClaimed.includes(league)) return res.json({ success: false });
 
   let reward = 0;
-
   if (league === "Bronze") reward = 2000;
-  if (league === "Silver") reward = 5000;
-  if (league === "Gold") reward = 10000;
-
+  else if (league === "Silver") reward = 5000;
+  else if (league === "Gold") reward = 10000;
   if (reward === 0) return res.json({ success: false });
 
   user.coins += reward;
   user.leagueRewardsClaimed.push(league);
-
   await user.save();
-
   res.json({ success: true, reward });
 });
 
@@ -530,31 +391,19 @@ if (!user) return res.json({ success: false });
 
 app.post("/spin", async (req, res) => {
   const { telegramId, initData } = req.body;
-const user = await getValidUser(telegramId, initData);
-if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId, initData);
+  if (!user) return res.json({ success: false });
 
   const now = new Date();
+  if (user.lastSpin && (now - user.lastSpin) < 24 * 60 * 60 * 1000) return res.json({ success: false, message: "Already spun today" });
 
-  // 24 hour restriction
-  if (user.lastSpin && (now - user.lastSpin) < 24 * 60 * 60 * 1000) {
-    return res.json({ success: false, message: "Already spun today" });
-  }
-
-  // random reward
   const rewards = [100, 200, 300, 500, 800, 1000];
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
-
-  // 🔒 Cheat protection
-if (!rewards.includes(reward)) {
-  return res.json({ success: false });
-}
   
   user.coins += reward;
   user.lastSpin = now;
   user.league = getLeague(user.coins);
-  
   await user.save();
-
   res.json({ success: true, reward, coins: user.coins });
 });
 
@@ -562,106 +411,53 @@ if (!rewards.includes(reward)) {
 
 app.post("/daily-reward", async (req, res) => {
   const { telegramId, initData } = req.body;
-const user = await getValidUser(telegramId, initData);
-if (!user) return res.json({ success: false });
+  const user = await getValidUser(telegramId, initData);
+  if (!user) return res.json({ success: false });
 
   const now = new Date();
+  if (user.lastDailyClaim && (now - user.lastDailyClaim) / (1000 * 60 * 60) < 24) return res.json({ success: false, message: "Already claimed" });
 
-  if (user.lastDailyClaim) {
-    const diff = now - user.lastDailyClaim;
-    const hours = diff / (1000 * 60 * 60);
-
-    if (hours < 24) {
-      return res.json({ success: false, message: "Already claimed" });
-    }
-  }
-
-  const reward = 1000;
-
-  user.coins += reward;
+  user.coins += 1000;
   user.lastDailyClaim = now;
   user.league = getLeague(user.coins);
-  
   await user.save();
-
-  res.json({ success: true, reward });
+  res.json({ success: true, reward: 1000 });
 });
 
 /* ================= GLOBAL TOP ================= */
 
 app.get("/top-global", async (req, res) => {
-
-  const topUsers = await User.find({})
-    .sort({ coins: -1 })
-    .limit(10)
-    .select("telegramId coins league");
-
+  const topUsers = await User.find({}).sort({ coins: -1 }).limit(10).select("telegramId coins league");
   res.json(topUsers);
 });
 
 /* ================= USER RANK ================= */
 
 app.get("/rank/:id", async (req, res) => {
-
-  const telegramId = req.params.id;
-
-  const user = await User.findOne({ telegramId });
+  const user = await User.findOne({ telegramId: req.params.id });
   if (!user) return res.json({});
-
-  const rank =
-    await User.countDocuments({ coins: { $gt: user.coins } }) + 1;
-
-  res.json({
-    rank,
-    league: user.league,
-    coins: user.coins
-  });
+  const rank = await User.countDocuments({ coins: { $gt: user.coins } }) + 1;
+  res.json({ rank, league: user.league, coins: user.coins });
 });
 
 /* ================= SECURE LEAGUE API ================= */
 
 app.get("/league/:telegramId", async (req, res) => {
-
-  const user = await User.findOne({
-    telegramId: req.params.telegramId
-  });
-
-  if (!user)
-    return res.status(404).json({ error: "Not found" });
-
-  const league = LEAGUES.find(
-    l => user.coins >= l.min && user.coins < l.max
-  );
-
-  res.json({
-    coins: user.coins,
-    league: league.name,
-    min: league.min,
-    max: league.max
-  });
+  const user = await User.findOne({ telegramId: req.params.telegramId });
+  if (!user) return res.status(404).json({ error: "Not found" });
+  const league = LEAGUES.find(l => user.coins >= l.min && user.coins < l.max);
+  res.json({ coins: user.coins, league: league.name, min: league.min, max: league.max });
 });
-
 
 /* ================= LEAGUE REWARD CLAIM ================= */
 
 app.post("/claim-reward", async (req, res) => {
-
-  const user = await User.findOne({
-    telegramId: req.body.telegramId
-  });
-
-  if (!user)
-    return res.status(404).json({ error: "User not found" });
-
-  if (user.rewardClaimed) {
-    return res.json({ error: "Already claimed" });
-  }
-
-  user.coins += 1000; // reward amount
+  const user = await User.findOne({ telegramId: req.body.telegramId });
+  if (!user) return res.status(404).json({ error: "User not found" });
+  if (user.rewardClaimed) return res.json({ error: "Already claimed" });
+  user.coins += 1000;
   user.rewardClaimed = true;
-
   await user.save();
-
   res.json({ success: true });
 });
 
@@ -674,17 +470,11 @@ app.get("/", (req, res) => {
 /* ================= WEEKLY LEAGUE RESET ================= */
 
 cron.schedule("0 0 * * 0", async () => {
-  console.log("Weekly reset running...");
-
-  await User.updateMany({}, {
-    tapCount: 0
-  });
-
-  console.log("Weekly reset completed");
+  await User.updateMany({}, { tapCount: 0 });
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
+
