@@ -6,6 +6,7 @@
 }
 
 body{
+  margin:0;
   font-family:'Segoe UI',sans-serif;
   background: radial-gradient(circle at top,#1f1b3a,#0f0c29);
   color:white;
@@ -57,6 +58,18 @@ body{
   display:flex;
   justify-content:center;
   margin-top:40px;
+  position:relative; /* ADD THIS */
+}
+
+.coin-circle{
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:radial-gradient(circle,#ffd700,#b8860b);
+  box-shadow:0 0 50px rgba(255,215,0,0.6);
 }
 
 .tap-button{
@@ -65,12 +78,9 @@ body{
 }
 
 .main-coin{
-  width:180px;
-  height:180px;
-  border-radius:50%;
-  transition:0.1s;
-  filter:drop-shadow(0 0 25px #00f7ff);
-  animation:coinGlow 2s infinite alternate;
+  width:160px;
+  height:160px;
+  object-fit:cover; /* ADD */
 }
 
 @keyframes coinGlow{
@@ -192,9 +202,10 @@ button:active{
 }
 
 .nav-item{
-  color:#aaa;
-  font-size:13px;
-  transition:0.3s;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  font-size:12px;
 }
 
 .nav-item.active{
@@ -271,4 +282,15 @@ button:active{
   border-right:15px solid transparent;
   border-bottom:25px solid gold;
   margin:auto;
+}
+
+#mineSection,
+#tasksSection,
+#boostSection,
+#accountSection,
+#skillsSection,
+#cashierSection,
+#leagueSection,
+#missionPage{
+  display:none;
 }
