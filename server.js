@@ -242,6 +242,12 @@ function getTodayCombo() {
     seed += today.charCodeAt(i);
   }
 
+  const CARDS = [
+    { id: "A" },
+    { id: "B" },
+    { id: "C" }
+  ];
+
   const shuffled = [...CARDS].sort((a, b) => {
     return (a.id.charCodeAt(0) + seed) - (b.id.charCodeAt(0) + seed);
   });
@@ -380,6 +386,8 @@ app.post("/tap", async (req, res) => {
   tapPower:user.tapPower,
   profitPerHour:user.profitPerHour,
   league: user.league
+});
+  
 });
 
 /* ================= TAP UPGRADE ================= */
