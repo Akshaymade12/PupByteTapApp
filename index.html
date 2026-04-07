@@ -43,19 +43,37 @@
   </div>
 
   <!-- ================= MINE SECTION ================= -->
-  <div id="mineSection" style="display:none;">
-    <div class="combo-header">
+<div id="mineSection" style="display:none;">
+
+  <!-- DAILY COMBO BRACKET -->
+  <div class="daily-combo-wrap">
+    <div class="daily-combo-top">
       <h3>Daily Combo</h3>
-      <button id="claimBtn">Claim</button>
+      <button id="claimBtn" class="combo-claim-btn">+5,000,000</button>
     </div>
 
     <div id="combo" class="combo-box"></div>
+  </div>
 
-    <div class="mine-card">
-      <p>Mining Power</p>
-      <button id="startMining">Start Mining</button>
+  <!-- SECTION TABS -->
+  <div class="mine-tabs-wrap">
+    <div class="mine-tabs">
+      <button id="mineTabMarket" class="mine-tab active">Market</button>
+      <button id="mineTabTeam" class="mine-tab">Team</button>
+      <button id="mineTabLegal" class="mine-tab">Legal</button>
+      <button id="mineTabSpecial" class="mine-tab">Special</button>
     </div>
   </div>
+
+  <!-- TAB CONTENT PLACEHOLDER -->
+  <div id="mineTabContent" class="mine-tab-content">
+    <div class="mine-placeholder-card">Market section</div>
+    <div class="mine-placeholder-card">Team section</div>
+    <div class="mine-placeholder-card">Legal section</div>
+    <div class="mine-placeholder-card">Special section</div>
+  </div>
+
+</div>
 
 <!-- ================= TASKS SECTION ================= -->
   
