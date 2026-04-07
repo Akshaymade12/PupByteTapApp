@@ -305,7 +305,12 @@ async function loadSpecialTaskClaimStatus() {
     const res = await fetch("/special-task-status/" + telegramId);
     const data = await res.json();
 
-    refreshSpecialTaskUI(data.success && data.claimed);
+    if (data.success && data.claimed) {
+      localStorage.removeItem("specialTasksDone");
+      refreshSpecialTaskUI(true);
+    } else {
+      refreshSpecialTaskUI(false);
+    }
   } catch (e) {
     console.log("special task status error", e);
     refreshSpecialTaskUI(false);
@@ -330,7 +335,12 @@ window.claimSpecialTask = async function() {
       refreshSpecialTaskUI(true);
       loadUser();
       loadTaskStatus();
+      localStorage.removeItem("specialTasksDone");
     } else {
+      if (data.message === "Already claimed") {
+        refreshSpecialTaskUI(true);
+        localStorage.removeItem("specialTasksDone");
+      }
       alert(data.message || "Cannot claim");
     }
   } catch (e) {
