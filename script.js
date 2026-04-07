@@ -253,6 +253,22 @@ function refreshSpecialTaskUI(claimed = false) {
     telegram_group: document.getElementById("taskTelegramGroup")
   };
 
+  if (claimed) {
+    SPECIAL_TASK_KEYS.forEach(key => {
+      const btn = map[key];
+      if (!btn) return;
+      btn.innerText = "✅";
+      btn.disabled = true;
+    });
+
+    const specialClaimBtn = document.getElementById("specialClaimBtn");
+    if (specialClaimBtn) {
+      specialClaimBtn.innerText = "Claimed ✅";
+      specialClaimBtn.disabled = true;
+    }
+    return;
+  }
+
   SPECIAL_TASK_KEYS.forEach(key => {
     const btn = map[key];
     if (!btn) return;
@@ -269,12 +285,6 @@ function refreshSpecialTaskUI(claimed = false) {
   const specialClaimBtn = document.getElementById("specialClaimBtn");
   if (!specialClaimBtn) return;
 
-  if (claimed) {
-    specialClaimBtn.innerText = "Claimed ✅";
-    specialClaimBtn.disabled = true;
-    return;
-  }
-
   const allDone = SPECIAL_TASK_KEYS.every(key => state[key]);
 
   if (allDone) {
@@ -286,7 +296,19 @@ function refreshSpecialTaskUI(claimed = false) {
   }
 }
 
-window.markSpecialTask = function(taskKey, url) {
+window.markSpecialTask = async function(taskKey, url) {
+  try {
+    const res = await fetch("/special-task-status/" + telegramId);
+    const data = await res.json();
+
+    if (data.success && data.claimed) {
+      refreshSpecialTaskUI(true);
+      return;
+    }
+  } catch (e) {
+    console.log("special status check error", e);
+  }
+
   const state = getSpecialTasksState();
   state[taskKey] = true;
   saveSpecialTasksState(state);
