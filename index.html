@@ -57,54 +57,100 @@
     </div>
   </div>
 
-  <!-- ================= TASKS SECTION ================= -->
-  <div id="tasksSection" style="display:none;">
-    <h2 class="page-title">📋 Tasks</h2>
+<!-- ================= TASKS SECTION ================= -->
+<div id="tasksSection" style="display:none;">
 
-    <div class="task-card" onclick="openMission()">
-      <div class="task-icon">🚀</div>
-      <div class="task-info">
-        <h3>Join Our Socials</h3>
-        <p>Reward 5000 Coins</p>
+  <div class="task-tabs-wrap">
+    <div class="task-tabs">
+      <button id="tabSpecial" class="task-tab active">Special</button>
+      <button id="tabLeague" class="task-tab">League</button>
+      <button id="tabRef" class="task-tab">Ref</button>
+    </div>
+  </div>
+
+  <!-- SPECIAL TAB -->
+  <div id="specialTabContent" class="task-tab-content">
+    <div class="task-card2">
+      <div class="task-left">
+        <div class="task-emoji">📋</div>
+        <div>
+          <h3>Join Our Socials</h3>
+          <p>Reward 5000 Coins</p>
+        </div>
       </div>
-      <div class="task-arrow">›</div>
+      <button class="task-go-btn" onclick="openTaskLink('https://t.me/PupByteOfficial')">Go</button>
+    </div>
+
+    <div class="task-card2">
+      <div class="task-left">
+        <div class="task-emoji">📋</div>
+        <div>
+          <h3>Follow Instagram</h3>
+          <p>Reward 1000 Coins</p>
+        </div>
+      </div>
+      <button class="task-go-btn" onclick="openTaskLink('https://www.instagram.com/pupbyte_official')">Go</button>
+    </div>
+
+    <div class="task-card2">
+      <div class="task-left">
+        <div class="task-emoji">📋</div>
+        <div>
+          <h3>Follow X</h3>
+          <p>Reward 1000 Coins</p>
+        </div>
+      </div>
+      <button class="task-go-btn" onclick="openTaskLink('https://x.com/PupByteCoin')">Go</button>
+    </div>
+
+    <div class="task-card2">
+      <div class="task-left">
+        <div class="task-emoji">📋</div>
+        <div>
+          <h3>Join Discord</h3>
+          <p>Reward 1000 Coins</p>
+        </div>
+      </div>
+      <button class="task-go-btn" onclick="openTaskLink('https://discord.gg/BU8EazB2Q')">Go</button>
+    </div>
+
+    <div class="task-card2">
+      <div class="task-left">
+        <div class="task-emoji">📋</div>
+        <div>
+          <h3>Join Telegram Group</h3>
+          <p>Reward 1000 Coins</p>
+        </div>
+      </div>
+      <button class="task-go-btn" onclick="openTaskLink('https://t.me/+D_WSaoaTr2hmYTY1')">Go</button>
+    </div>
+
+    <div class="task-card2">
+      <div class="task-left">
+        <div class="task-emoji">✅</div>
+        <div>
+          <h3>Verify Special Tasks</h3>
+          <p>Claim after joining socials</p>
+        </div>
+      </div>
+      <button class="task-claim-btn" onclick="claimSpecialTask()">Claim</button>
     </div>
   </div>
 
-  <!-- ================= SOCIAL MISSION PAGE ================= -->
-  <div id="missionPage" style="display:none;">
-    <h2>Social Missions</h2>
-
-    <div class="mission-card">
-      Follow Instagram
-      <button onclick="openLink('https://www.instagram.com/pupbyte_official')">Go</button>
-    </div>
-
-    <div class="mission-card">
-      Follow X
-      <button onclick="openLink('https://x.com/PupByteCoin')">Go</button>
-    </div>
-
-    <div class="mission-card">
-      Join Telegram Channel
-      <button onclick="openLink('https://t.me/PupByteOfficial')">Go</button>
-    </div>
-
-    <div class="mission-card">
-      Join Telegram Group
-      <button onclick="openLink('https://t.me/+D_WSaoaTr2hmYTY1')">Go</button>
-    </div>
-
-    <div class="mission-card">
-      Join Discord
-      <button onclick="openLink('https://discord.gg/BU8EazB2Q')">Go</button>
-    </div>
-
-    <button class="verify-btn" onclick="verifyTask()">Verify Task</button>
-    <button class="back-btn" onclick="closeMission()">⬅ Back</button>
+  <!-- LEAGUE TAB -->
+  <div id="leagueTabContent" class="task-tab-content" style="display:none;">
+    <div id="leagueRewardsList"></div>
   </div>
 
+  <!-- REF TAB -->
+  <div id="refTabContent" class="task-tab-content" style="display:none;">
+    <div id="refRewardsList"></div>
+  </div>
+
+</div>
+  
   <!-- ================= LEAGUE SECTION ================= -->
+  
   <div id="leagueSection" style="display:none;">
     <div class="section-header">
       <button class="back-nav-btn" id="closeLeagueBtn">← Back</button>
