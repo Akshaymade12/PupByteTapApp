@@ -393,7 +393,7 @@ const rankData = await rankRes.json();
  
 // ================= DAILY REWARD =================
 
-const dailyPopup = document.getElementById("dailyPopup");
+const popup = document.getElementById("dailyRewardPopup");
 const dailyGrid = document.getElementById("dailyGrid");
 const claimDailyBtn = document.getElementById("claimDailyBtn");
 
