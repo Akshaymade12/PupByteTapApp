@@ -423,29 +423,37 @@ function renderDaily(currentDay){
 }
 
 // claim
-if(claimDailyBtn){
-  claimDailyBtn.onclick = async ()=>{
-    try{
-      const res = await fetch("/daily-reward",{
-        method:"POST",
-        headers:{ "Content-Type":"application/json"},
-        body: JSON.stringify({ telegramId })
+const claimBtn = document.getElementById("claimDailyBtn");
+
+if (claimBtn) {
+  claimBtn.onclick = async () => {
+    try {
+      const res = await fetch("/daily-reward", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId, initData })
       });
 
       const data = await res.json();
 
-      if(data.success){
-        alert("🔥 +" + data.reward);
-        coinsEl.innerText = Math.floor(data.coins);
+      if (data.success) {
+        alert("💰 +" + data.reward);
+
+        // ✅ UI update
+        loadUser();
+
+        // ✅ GRID update
         renderDaily(data.day);
-               // ✅ POPUP CLOSE
-        dailyPopup.style.display = "none";
-      }else{
-        alert(data.message);
+
+        // ✅ POPUP CLOSE (FIXED)
+        document.getElementById("dailyRewardPopup").style.display = "none";
+
+      } else {
+        alert(data.message || "Already claimed");
       }
 
-    }catch(err){
-      console.log("Daily error:", err);
+    } catch (e) {
+      console.log("Claim error", e);
     }
   };
 }
