@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PupByte Tap Bot</title>
-<link rel="stylesheet" href="style.css?v=6">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PupByte Tap Bot</title>
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
-  
+
 <div class="app">
 
   <!-- TOP BAR -->
@@ -21,14 +21,13 @@
   <!-- RANK + WALLET -->
   <div class="card-row">
     <div class="glass-card" id="openLeague">
-      🏆 <span id="currentLeagueText">Bronze</span>
+      🏆 <span id="currentLeagueText">Wood</span>
     </div>
     <div class="glass-card">👛 Connect Wallet</div>
   </div>
 
   <!-- ================= EARN SECTION ================= -->
   <div id="earnSection">
-
     <div class="coin-wrapper">
       <div class="coin-circle">
         <button id="tapBtn" class="tap-button">
@@ -41,12 +40,10 @@
       <div>⚡ <span id="energy">100</span>/100</div>
       <button id="openBoost" class="boost-btn">🔥 Boost</button>
     </div>
-
   </div>
-  
-  <!-- ================= MINE ================= -->
-  <div id="mineSection" style="display:none;">
 
+  <!-- ================= MINE SECTION ================= -->
+  <div id="mineSection" style="display:none;">
     <div class="combo-header">
       <h3>Daily Combo</h3>
       <button id="claimBtn">Claim</button>
@@ -58,12 +55,10 @@
       <p>Mining Power</p>
       <button id="startMining">Start Mining</button>
     </div>
-
   </div>
-  
-  <!-- =============== tasksSection ========================== -->
-  <div id="tasksSection" style="display:none;">
 
+  <!-- ================= TASKS SECTION ================= -->
+  <div id="tasksSection" style="display:none;">
     <h2 class="page-title">📋 Tasks</h2>
 
     <div class="task-card" onclick="openMission()">
@@ -74,12 +69,10 @@
       </div>
       <div class="task-arrow">›</div>
     </div>
-
   </div>
 
-  <!-- SOCIAL MISSION PAGE -->
+  <!-- ================= SOCIAL MISSION PAGE ================= -->
   <div id="missionPage" style="display:none;">
-
     <h2>Social Missions</h2>
 
     <div class="mission-card">
@@ -109,14 +102,13 @@
 
     <button class="verify-btn" onclick="verifyTask()">Verify Task</button>
     <button class="back-btn" onclick="closeMission()">⬅ Back</button>
-
   </div>
 
   <!-- ================= LEAGUE SECTION ================= -->
   <div id="leagueSection" style="display:none;">
     <div class="section-header">
       <button class="back-nav-btn" id="closeLeagueBtn">← Back</button>
-      <h2 id="leagueName">Bronze League</h2>
+      <h2 id="leagueName">Wood League</h2>
     </div>
 
     <div class="league-info-card">
@@ -132,62 +124,59 @@
 
     <div class="leaderboard-container">
       <h3>Top Players</h3>
-      <div id="leagueTop" class="leaderboard-list">
-        <!-- Leaderboard items will be injected here -->
-      </div>
+      <div id="leagueTop" class="leaderboard-list"></div>
     </div>
   </div>
 
   <!-- ================= ACCOUNT SECTION ================= -->
-  
-<div id="accountSection" style="display:none;">
-  <h2 class="page-title">😎 Account</h2>
-  
-  <div class="account-card">
-    <div class="account-item">
-      <span>Player ID:</span>
-      <span id="accountUserId">--</span>
+  <div id="accountSection" style="display:none;">
+    <h2 class="page-title">😎 Account</h2>
+
+    <div class="account-card">
+      <div class="account-item">
+        <span>Player ID:</span>
+        <span id="accountUserId">--</span>
+      </div>
+      <div class="account-item">
+        <span>Name:</span>
+        <span id="accountUserName">--</span>
+      </div>
+      <div class="account-item">
+        <span>Total Coins:</span>
+        <span id="accountCoins">0</span>
+      </div>
+      <div class="account-item">
+        <span>Daily Claims:</span>
+        <span id="totalClaims">0</span>
+      </div>
+      <div class="account-item">
+        <span>Referrals:</span>
+        <span id="accountReferrals">0</span>
+      </div>
+      <div class="account-item">
+        <span>Wallet:</span>
+        <span id="walletStatus">Not Connected</span>
+      </div>
     </div>
-    <div class="account-item">
-      <span>Name:</span>
-      <span id="accountUserName">--</span>
+
+    <div class="airdrop-card">
+      <h3>Airdrop Eligibility</h3>
+      <div class="eligibility-status" id="airdropStatus">Not Eligible</div>
     </div>
-    <div class="account-item">
-      <span>Total Coins:</span>
-      <span id="accountCoins">0</span>
-    </div>
-    <div class="account-item">
-      <span>Daily Claims:</span>
-      <span id="totalClaims">0</span>
-    </div>
-    <div class="account-item">
-      <span>Referrals:</span>
-      <span id="accountReferrals">0</span>
-    </div>
-    <div class="account-item">
-      <span>Wallet:</span>
-      <span id="walletStatus">Not Connected</span>
+
+    <div class="conditions-list">
+      <div class="condition-item">
+        <span id="condCoins">❌</span> Min 50,000 Coins
+      </div>
+      <div class="condition-item">
+        <span id="condWallet">❌</span> Wallet Connected
+      </div>
+      <div class="condition-item">
+        <span id="condRefs">❌</span> Min 5 Referrals
+      </div>
     </div>
   </div>
 
-  <div class="airdrop-card">
-    <h3>Airdrop Eligibility</h3>
-    <div class="eligibility-status" id="airdropStatus">Not Eligible</div>
-  </div>
-
-  <div class="conditions-list">
-    <div class="condition-item">
-      <span id="condCoins">❌</span> Min 50,000 Coins
-    </div>
-    <div class="condition-item">
-      <span id="condWallet">❌</span> Wallet Connected
-    </div>
-    <div class="condition-item">
-      <span id="condRefs">❌</span> Min 5 Referrals
-    </div>
-  </div>
-</div>
-  
   <!-- ================= SKILLS SECTION ================= -->
   <div id="skillsSection" style="display:none;">
     <div class="coming-soon">
@@ -206,9 +195,8 @@
     </div>
   </div>
 
-  <!-- ================= BOOTS SECTION ================= -->
+  <!-- ================= BOOST SECTION ================= -->
   <div id="boostSection" style="display:none;">
-
     <div class="boost-header">
       <button id="backBtn">← Back</button>
       <h2>🔥 Boots</h2>
@@ -229,10 +217,9 @@
         Upgrade Profit (<span id="profitCost">150</span>)
       </button>
     </div>
-
   </div>
 
-  <!-- BOTTOM NAV -->
+  <!-- ================= BOTTOM NAV ================= -->
   <div class="bottom-nav">
     <div id="navEarn" class="nav-item active">💰 Earn</div>
     <div id="navMine" class="nav-item">⛏ Mine</div>
@@ -241,20 +228,20 @@
     <div id="navSkills" class="nav-item">🤖 Skills</div>
     <div id="navCashier" class="nav-item">💰 Cashier</div>
   </div>
-  
-  <!-- ✅ DAILY POPUP YAHAN ADD KARO -->
-<div id="dailyRewardPopup" class="daily-popup" style="display:none;">
-  <div class="daily-box">
-    <h2>Daily Reward</h2>
-    <div id="dailyGrid" class="daily-grid"></div>
-    <button id="claimDailyBtn">Claim</button>
+
+  <!-- ================= DAILY POPUP ================= -->
+  <div id="dailyRewardPopup" class="daily-popup" style="display:none;">
+    <div class="daily-box">
+      <h2>Daily Reward</h2>
+      <div id="dailyGrid" class="daily-grid"></div>
+      <button id="claimDailyBtn">Claim</button>
+    </div>
   </div>
+
 </div>
-  
-</div>
-  
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="script.js?v=6"></script>
+<script src="script.js?v=7"></script>
 
 </body>
 </html>
