@@ -71,9 +71,9 @@ const userSchema = new mongoose.Schema({
   lastSpin: { type: Date, default: null },
   lastEnergyUpdate: { type: Number, default: Date.now },
   rewardClaimed: { type: Boolean, default: false },
-  streak: { type: Number, default: 0 },
-lastStreakDate: { type: Date, default: null }
-});
+  streakDay: { type: Number, default: 0 }, // current day (1–10)
+lastClaim: { type: Date, default: null },
+totalClaims: { type: Number, default: 0 };
 
 const User = mongoose.model("User", userSchema);
 
@@ -278,56 +278,57 @@ app.post("/upgrade-profit", async (req, res) => {
   });
 });
 
-/* ================= DAILY REWARD ================= */
+/* ================= DAILY REWARD / DAILY STREAK ================= */
 
 app.post("/daily-reward", async (req, res) => {
-  const { telegramId } = req.body;
+  try {
+    const { telegramId } = req.body;
 
-  const user = await getValidUser(telegramId);
-  if (!user) return res.json({ success: false });
+    const user = await User.findOne({ telegramId });
+    if (!user) return res.json({ success: false });
 
-  user.coins += 1000;
-  await user.save();
+    const rewards = [500,1000,2500,5000,15000,25000,100000,500000,1000000,5000000];
 
-  res.json({ success: true });
-});
+    const now = new Date();
 
-/* ================= DAILY STREAK ================= */
+    if (user.lastClaim) {
+      const diff = (now - user.lastClaim) / (1000 * 60 * 60);
 
-app.post("/daily-streak", async (req, res) => {
-  const { telegramId } = req.body;
+      // ❌ already claimed
+      if (diff < 24) {
+        return res.json({ success: false, message: "Come tomorrow" });
+      }
 
-  const user = await getValidUser(telegramId);
-  if (!user) return res.json({ success: false });
+      // ❌ missed day → reset
+      if (diff > 48) {
+        user.streakDay = 0;
+      }
+    }
 
-  const today = new Date().toDateString();
+    // ✅ next day
+    user.streakDay += 1;
 
-  if (user.lastStreakDate === today) {
-    return res.json({ success: false, message: "Already claimed today" });
+    if (user.streakDay > 10) user.streakDay = 1;
+
+    const reward = rewards[user.streakDay - 1];
+
+    user.coins += reward;
+    user.totalClaims += 1;
+    user.lastClaim = now;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      reward,
+      day: user.streakDay,
+      totalClaims: user.totalClaims,
+      coins: user.coins
+    });
+
+  } catch (e) {
+    res.json({ success: false });
   }
-
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  if (user.lastStreakDate === yesterday.toDateString()) {
-    user.streak += 1;
-  } else {
-    user.streak = 1;
-  }
-
-  const reward = user.streak * 200; // 🔥 reward formula
-
-  user.coins += reward;
-  user.lastStreakDate = today;
-
-  await user.save();
-
-  res.json({
-    success: true,
-    streak: user.streak,
-    reward: reward,
-    coins: user.coins
-  });
 });
 
 /* ================= GLOBAL TOP ================= */
