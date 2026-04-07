@@ -84,6 +84,8 @@ if (!data || data.success === false) {
       if (accountCoins) accountCoins.innerText = Math.floor(data.coins);
       if (accountReferrals) accountReferrals.innerText = data.referrals || 0;
      if (streakCount) streakCount.innerText = data.streak || 0;
+     if (document.getElementById("totalClaims")) {
+  document.getElementById("totalClaims").innerText = data.totalClaims || 0;
 
       if (accountRefLink) {
         accountRefLink.value = `https://t.me/PupByteTapBot?start=${telegramId}`;
@@ -384,27 +386,48 @@ const rankData = await rankRes.json();
  
 /* ================= DAILY STREAK ================= */
  
- if (claimStreakBtn) {
-  claimStreakBtn.onclick = async () => {
-    const res = await fetch("/daily-streak", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ telegramId })
-    });
+const dailyPopup = document.getElementById("dailyPopup");
+const dailyGrid = document.getElementById("dailyGrid");
+const claimDailyBtn = document.getElementById("claimDailyBtn");
 
-    const data = await res.json();
+const rewards = [500,1000,2500,5000,15000,25000,100000,500000,1000000,5000000];
 
-    if (data.success) {
-      alert(`🔥 Streak: ${data.streak}\n🎁 Reward: ${data.reward}`);
-      if (streakCount) streakCount.innerText = data.streak;
-      coinsEl.innerText = data.coins;
-    } else {
-      alert(data.message);
-    }
-  };
- }
+// 🔥 show popup on load
+setTimeout(() => {
+  dailyPopup.style.display = "flex";
+  renderDaily(1); // temp
+}, 1000);
+
+// 🎯 render UI
+function renderDaily(currentDay){
+  dailyGrid.innerHTML = "";
+  rewards.forEach((r,i)=>{
+    dailyGrid.innerHTML += `
+      <div class="day-card ${i+1 === currentDay ? 'active-day':''}">
+        Day ${i+1}<br>${r}
+      </div>
+    `;
+  });
+}
+
+// 🔥 claim
+claimDailyBtn.onclick = async ()=>{
+  const res = await fetch("/daily-reward",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body: JSON.stringify({ telegramId })
+  });
+
+  const data = await res.json();
+
+  if(data.success){
+    alert("🔥 +" + data.reward);
+    coinsEl.innerText = Math.floor(data.coins);
+    renderDaily(data.day);
+  }else{
+    alert(data.message);
+  }
+};
  
   /* ================= +1 Animation ================= */
 
