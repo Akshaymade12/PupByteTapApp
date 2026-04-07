@@ -542,9 +542,11 @@ window.claimRefReward = async function(rewardKey) {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
-      appState.btcPairs = data.btcPairs || null;
-      renderMarketSection();
+  coinsEl.innerText = Math.floor(data.coins || 0);
+  appState.btcPairs = data.btcPairs || null;
+  renderMarketSection();
+  loadUser();
+    
     } else {
       alert(data.message || "Upgrade failed");
     }
