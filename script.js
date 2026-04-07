@@ -219,7 +219,122 @@ const refTabContent = document.getElementById("refTabContent");
 window.openTaskLink = function(url){
   window.open(url, "_blank");
 };
+  
+/* ================= TASK STATUS VERIFY ================= */
+  
+  const SPECIAL_TASK_KEYS = [
+  "telegram_channel",
+  "instagram",
+  "x",
+  "discord",
+  "telegram_group"
+];
 
+function getSpecialTasksState() {
+  try {
+    return JSON.parse(localStorage.getItem("specialTasksDone") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveSpecialTasksState(state) {
+  localStorage.setItem("specialTasksDone", JSON.stringify(state));
+}
+
+function refreshSpecialTaskUI(claimed = false) {
+  const state = getSpecialTasksState();
+
+  const map = {
+    telegram_channel: document.getElementById("taskTelegramChannel"),
+    instagram: document.getElementById("taskInstagram"),
+    x: document.getElementById("taskX"),
+    discord: document.getElementById("taskDiscord"),
+    telegram_group: document.getElementById("taskTelegramGroup")
+  };
+
+  SPECIAL_TASK_KEYS.forEach(key => {
+    const btn = map[key];
+    if (!btn) return;
+
+    if (state[key]) {
+      btn.innerText = "✅";
+      btn.disabled = false;
+    } else {
+      btn.innerText = "Go";
+      btn.disabled = false;
+    }
+  });
+
+  const specialClaimBtn = document.getElementById("specialClaimBtn");
+  if (!specialClaimBtn) return;
+
+  if (claimed) {
+    specialClaimBtn.innerText = "Claimed ✅";
+    specialClaimBtn.disabled = true;
+    return;
+  }
+
+  const allDone = SPECIAL_TASK_KEYS.every(key => state[key]);
+
+  if (allDone) {
+    specialClaimBtn.innerText = "Claim";
+    specialClaimBtn.disabled = false;
+  } else {
+    specialClaimBtn.innerText = "Complete All";
+    specialClaimBtn.disabled = true;
+  }
+}
+
+window.markSpecialTask = function(taskKey, url) {
+  const state = getSpecialTasksState();
+  state[taskKey] = true;
+  saveSpecialTasksState(state);
+
+  refreshSpecialTaskUI(false);
+  window.open(url, "_blank");
+};
+
+async function loadSpecialTaskClaimStatus() {
+  try {
+    const res = await fetch("/special-task-status/" + telegramId);
+    const data = await res.json();
+
+    refreshSpecialTaskUI(data.success && data.claimed);
+  } catch (e) {
+    console.log("special task status error", e);
+    refreshSpecialTaskUI(false);
+  }
+}
+
+window.claimSpecialTask = async function() {
+  try {
+    const state = getSpecialTasksState();
+    const clickedTasks = Object.keys(state).filter(key => state[key]);
+
+    const res = await fetch("/claim-special-task", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData, clickedTasks })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Claimed +" + data.reward + " coins");
+      refreshSpecialTaskUI(true);
+      loadUser();
+      loadTaskStatus();
+    } else {
+      alert(data.message || "Cannot claim");
+    }
+  } catch (e) {
+    console.log("Claim special task error", e);
+  }
+};
+  
+/* ================= SWITCH TASK ================= */
+  
 function switchTaskTab(tabName){
   if (specialTabContent) specialTabContent.style.display = "none";
   if (leagueTabContent) leagueTabContent.style.display = "none";
@@ -504,12 +619,13 @@ window.claimRefReward = async function(rewardKey) {
     };
   }
 
-  document.getElementById("navTasks").onclick = () => {
+document.getElementById("navTasks").onclick = () => {
   hideAllSections();
   tasksSection.style.display = "block";
   document.getElementById("navTasks").classList.add("active");
   switchTaskTab("special");
   loadTaskStatus();
+  loadSpecialTaskClaimStatus();
 };
 
   if (navAccount) {
