@@ -110,9 +110,10 @@ function verifyTelegram(initData) {
 async function getValidUser(telegramId, initData) {
   if (!telegramId) return null;
 
+  if (!verifyTelegram(initData)) return null;
+
   let user = await User.findOne({ telegramId });
 
-  // 🔥 AUTO CREATE USER (IMPORTANT FIX)
   if (!user) {
     user = await User.create({ telegramId });
   }
@@ -179,7 +180,7 @@ async function applyOfflineMining(user) {
 app.post("/load", async (req, res) => {
   const { telegramId } = req.body;
 
-  const user = await getValidUser(telegramId);
+  const user = await getValidUser(telegramId, req.body.initData);
   if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
@@ -205,14 +206,18 @@ app.post("/load", async (req, res) => {
 app.post("/tap", async (req, res) => {
   const { telegramId } = req.body;
 
-  const user = await getValidUser(telegramId);
+  const user = await getValidUser(telegramId, req.body.initData);
   if (!user) return res.json({ success: false });
 
   await applyOfflineMining(user);
 
-  if (user.energy <= 0)
-    return res.json({ success: false });
-
+  if (user.energy < user.tapPower) {
+  return res.json({
+    success: false,
+    message: "Not enough energy"
+  });
+  }
+  
   user.coins += user.tapPower;
   user.energy -= user.tapPower;
   user.league = getLeague(user.coins);
@@ -233,7 +238,7 @@ app.post("/tap", async (req, res) => {
 app.post("/upgrade-tap", async (req, res) => {
   const { telegramId } = req.body;
 
-  const user = await getValidUser(telegramId);
+  const user = await getValidUser(telegramId, req.body.initData);
   if (!user) return res.json({ success: false });
 
   const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
@@ -260,7 +265,7 @@ app.post("/upgrade-tap", async (req, res) => {
 app.post("/upgrade-profit", async (req, res) => {
   const { telegramId } = req.body;
 
-  const user = await getValidUser(telegramId);
+  const user = await getValidUser(telegramId, req.body.initData);
   if (!user) return res.json({ success: false });
 
   const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
@@ -349,7 +354,7 @@ app.get("/top-global", async (req, res) => {
 app.post("/complete-task", async (req, res) => {
   const { telegramId, taskId } = req.body;
 
-  const user = await getValidUser(telegramId);
+  const user = await getValidUser(telegramId, req.body.initData);
   if (!user) return res.json({ success: false });
 
   if (user.completedTasks.includes(taskId))
