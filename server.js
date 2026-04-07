@@ -463,10 +463,12 @@ app.get("/task-status/:telegramId", async (req, res) => {
 
 app.post("/claim-special-task", async (req, res) => {
   try {
-    const { telegramId } = req.body;
+    const { telegramId, initData } = req.body;
 
-    const user = await getValidUser(telegramId);
-    if (!user) return res.json({ success: false, message: "User not found" });
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
 
     const taskId = "special_socials";
 
@@ -486,6 +488,7 @@ app.post("/claim-special-task", async (req, res) => {
       coins: user.coins
     });
   } catch (e) {
+    console.log("claim-special-task error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
@@ -494,10 +497,12 @@ app.post("/claim-special-task", async (req, res) => {
 
 app.post("/claim-league-reward", async (req, res) => {
   try {
-    const { telegramId, leagueName } = req.body;
+    const { telegramId, leagueName, initData } = req.body;
 
-    const user = await getValidUser(telegramId);
-    if (!user) return res.json({ success: false, message: "User not found" });
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
 
     const rewardItem = LEAGUE_REWARDS.find(x => x.league === leagueName);
     if (!rewardItem) {
@@ -527,6 +532,7 @@ app.post("/claim-league-reward", async (req, res) => {
       coins: user.coins
     });
   } catch (e) {
+    console.log("claim-league-reward error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
@@ -535,12 +541,16 @@ app.post("/claim-league-reward", async (req, res) => {
 
 app.post("/claim-ref-reward", async (req, res) => {
   try {
-    const { telegramId, rewardKey } = req.body;
+    const { telegramId, rewardKey, initData } = req.body;
 
-    const user = await getValidUser(telegramId);
-    if (!user) return res.json({ success: false, message: "User not found" });
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
 
-    if (!user.refRewardsClaimed) user.refRewardsClaimed = [];
+    if (!user.refRewardsClaimed) {
+      user.refRewardsClaimed = [];
+    }
 
     const rewardItem = REF_REWARDS.find(x => x.key === rewardKey);
     if (!rewardItem) {
@@ -567,6 +577,7 @@ app.post("/claim-ref-reward", async (req, res) => {
       coins: user.coins
     });
   } catch (e) {
+    console.log("claim-ref-reward error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
