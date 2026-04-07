@@ -11,7 +11,6 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 /* ================= ENV ================= */
-
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -21,13 +20,11 @@ if (!BOT_TOKEN || !MONGO_URI) {
 }
 
 /* ================= DB ================= */
-
 mongoose.connect(MONGO_URI)
-.then(() => console.log("MongoDB Connected ✅"))
-.catch(err => console.log(err));
+  .then(() => console.log("MongoDB Connected ✅"))
+  .catch(err => console.log(err));
 
 /* ================= BOT ================= */
-
 const bot = new TelegramBot(BOT_TOKEN);
 bot.setWebHook(`https://pupbytetapapp.onrender.com/bot${BOT_TOKEN}`);
 
@@ -37,14 +34,12 @@ app.post(`/bot${BOT_TOKEN}`, (req, res) => {
 });
 
 /* ================= RATE LIMIT ================= */
-
 app.use(rateLimit({
   windowMs: 60 * 1000,
   max: 120
 }));
 
 /* ================= SCHEMA ================= */
-
 const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true, unique: true },
   coins: { type: Number, default: 0 },
@@ -71,24 +66,25 @@ const userSchema = new mongoose.Schema({
   lastSpin: { type: Date, default: null },
   lastEnergyUpdate: { type: Number, default: Date.now },
   rewardClaimed: { type: Boolean, default: false },
-  streakDay: { type: Number, default: 0 }, // current day (1–10)
-lastClaim: { type: Date, default: null },
-totalClaims: { type: Number, default: 0 }
+  streakDay: { type: Number, default: 0 },
+  lastClaim: { type: Date, default: null },
+  totalClaims: { type: Number, default: 0 }
 });
 
 const User = mongoose.model("User", userSchema);
 
 /* ================= TELEGRAM VERIFY ================= */
-
 function verifyTelegram(initData) {
   if (!initData) return false;
 
   const urlParams = new URLSearchParams(initData);
   const hash = urlParams.get("hash");
+  if (!hash) return false;
+
   urlParams.delete("hash");
 
   const dataCheckString = [...urlParams.entries()]
-    .sort()
+    .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `${key}=${value}`)
     .join("\n");
 
@@ -105,12 +101,13 @@ function verifyTelegram(initData) {
   return hmac === hash;
 }
 
-/* ================= FIXED USER VALIDATION ================= */
-
+/* ================= VALID USER ================= */
 async function getValidUser(telegramId, initData) {
   if (!telegramId) return null;
 
-  if (!verifyTelegram(initData)) return null;
+  if (!verifyTelegram(initData)) {
+    return null;
+  }
 
   let user = await User.findOne({ telegramId });
 
@@ -124,7 +121,6 @@ async function getValidUser(telegramId, initData) {
 }
 
 /* ================= LEAGUE ================= */
-
 const LEAGUES = [
   { name: "Wood", min: 0, max: 1000 },
   { name: "Bronze", min: 1000, max: 5000 },
@@ -146,7 +142,6 @@ function getLeague(coins) {
 }
 
 /* ================= ENERGY ================= */
-
 function rechargeEnergy(user) {
   const now = Date.now();
   const diff = (now - user.lastEnergyUpdate) / 1000;
@@ -159,7 +154,6 @@ function rechargeEnergy(user) {
 }
 
 /* ================= OFFLINE ================= */
-
 async function applyOfflineMining(user) {
   rechargeEnergy(user);
 
@@ -176,146 +170,166 @@ async function applyOfflineMining(user) {
 }
 
 /* ================= LOAD ================= */
-
 app.post("/load", async (req, res) => {
-  const { telegramId } = req.body;
+  try {
+    const { telegramId, initData } = req.body;
 
-  const user = await getValidUser(telegramId, req.body.initData);
-  if (!user) return res.json({ success: false });
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) return res.json({ success: false, message: "Invalid user" });
 
-  await applyOfflineMining(user);
+    await applyOfflineMining(user);
 
-  res.json({
-    success: true, // 🔥 FIX
-    coins: user.coins,
-    energy: user.energy,
-    profitPerHour: user.profitPerHour,
-    tapLevel: user.tapLevel,
-    tapPower: user.tapPower,
-    league: user.league,
-    referrals: user.referrals,
-    streak: user.streakDay,
-  totalClaims: user.totalClaims,
-    nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
-    nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
-  });
+    return res.json({
+      success: true,
+      coins: user.coins,
+      energy: user.energy,
+      profitPerHour: user.profitPerHour,
+      tapLevel: user.tapLevel,
+      tapPower: user.tapPower,
+      league: user.league,
+      referrals: user.referrals,
+      streak: user.streakDay,
+      totalClaims: user.totalClaims,
+      nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
+      nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
+    });
+  } catch (e) {
+    console.log("/load error", e);
+    res.json({ success: false });
+  }
 });
 
 /* ================= TAP ================= */
-
 app.post("/tap", async (req, res) => {
-  const { telegramId } = req.body;
+  try {
+    const { telegramId, initData } = req.body;
 
-  const user = await getValidUser(telegramId, req.body.initData);
-  if (!user) return res.json({ success: false });
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) return res.json({ success: false, message: "Invalid user" });
 
-  await applyOfflineMining(user);
+    await applyOfflineMining(user);
 
-  if (user.energy < user.tapPower) {
-  return res.json({
-    success: false,
-    message: "Not enough energy"
-  });
+    if (user.energy < user.tapPower) {
+      return res.json({
+        success: false,
+        message: "Not enough energy"
+      });
+    }
+
+    user.coins += user.tapPower;
+    user.energy -= user.tapPower;
+    user.lastActive = new Date();
+    user.league = getLeague(user.coins);
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      coins: user.coins,
+      energy: user.energy,
+      tapPower: user.tapPower,
+      profitPerHour: user.profitPerHour,
+      league: user.league
+    });
+  } catch (e) {
+    console.log("/tap error", e);
+    res.json({ success: false, message: "Server error" });
   }
-  
-  user.coins += user.tapPower;
-  user.energy -= user.tapPower;
-  user.league = getLeague(user.coins);
-
-  await user.save();
-
-  res.json({
-    success: true,
-    coins: user.coins,
-    energy: user.energy,
-    tapPower: user.tapPower,
-    profitPerHour: user.profitPerHour,
-    league: user.league
-  });
 });
+
 /* ================= UPGRADE TAP ================= */
-
 app.post("/upgrade-tap", async (req, res) => {
-  const { telegramId } = req.body;
+  try {
+    const { telegramId, initData } = req.body;
 
-  const user = await getValidUser(telegramId, req.body.initData);
-  if (!user) return res.json({ success: false });
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) return res.json({ success: false, message: "Invalid user" });
 
-  const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
+    const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
-  if (user.coins < cost)
-    return res.json({ success: false });
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
 
-  user.coins -= cost;
-  user.tapLevel += 1;
+    user.coins -= cost;
+    user.tapLevel += 1;
 
-  if (user.tapLevel % 2 === 0)
-    user.tapPower += 1;
+    if (user.tapLevel % 2 === 0) {
+      user.tapPower += 1;
+    }
 
-  await user.save();
+    user.league = getLeague(user.coins);
 
-  res.json({
-    success: true,
-    coins: user.coins
-  });
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      tapLevel: user.tapLevel,
+      tapPower: user.tapPower
+    });
+  } catch (e) {
+    console.log("/upgrade-tap error", e);
+    res.json({ success: false, message: "Server error" });
+  }
 });
 
 /* ================= UPGRADE PROFIT ================= */
-
 app.post("/upgrade-profit", async (req, res) => {
-  const { telegramId } = req.body;
+  try {
+    const { telegramId, initData } = req.body;
 
-  const user = await getValidUser(telegramId, req.body.initData);
-  if (!user) return res.json({ success: false });
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) return res.json({ success: false, message: "Invalid user" });
 
-  const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
+    const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
-  if (user.coins < cost)
-    return res.json({ success: false });
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
 
-  user.coins -= cost;
-  user.profitPerHour += 5;
-  user.upgradeLevel += 1;
+    user.coins -= cost;
+    user.profitPerHour += 5;
+    user.upgradeLevel += 1;
+    user.league = getLeague(user.coins);
 
-  await user.save();
+    await user.save();
 
-  res.json({
-    success: true,
-    coins: user.coins,
-    profitPerHour: user.profitPerHour
-  });
+    res.json({
+      success: true,
+      coins: user.coins,
+      profitPerHour: user.profitPerHour
+    });
+  } catch (e) {
+    console.log("/upgrade-profit error", e);
+    res.json({ success: false, message: "Server error" });
+  }
 });
 
-/* ================= DAILY REWARD / DAILY STREAK ================= */
-
+/* ================= DAILY REWARD ================= */
 app.post("/daily-reward", async (req, res) => {
   try {
-    const { telegramId } = req.body;
+    const { telegramId, initData } = req.body;
 
-    const user = await User.findOne({ telegramId });
-    if (!user) return res.json({ success: false });
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) return res.json({ success: false, message: "Invalid user" });
 
-    const rewards = [500,1000,2500,5000,15000,25000,100000,500000,1000000,5000000];
-
+    const rewards = [500, 1000, 2500, 5000, 15000, 25000, 100000, 500000, 1000000, 5000000];
     const now = new Date();
 
     if (user.lastClaim) {
       const diff = (now - user.lastClaim) / (1000 * 60 * 60);
 
-      // ❌ already claimed
       if (diff < 24) {
         return res.json({ success: false, message: "Come tomorrow" });
       }
 
-      // ❌ missed day → reset
       if (diff > 48) {
         user.streakDay = 0;
       }
     }
 
-    // ✅ next day
     user.streakDay += 1;
-
     if (user.streakDay > 10) user.streakDay = 1;
 
     const reward = rewards[user.streakDay - 1];
@@ -323,6 +337,8 @@ app.post("/daily-reward", async (req, res) => {
     user.coins += reward;
     user.totalClaims += 1;
     user.lastClaim = now;
+    user.lastActive = now;
+    user.league = getLeague(user.coins);
 
     await user.save();
 
@@ -333,101 +349,119 @@ app.post("/daily-reward", async (req, res) => {
       totalClaims: user.totalClaims,
       coins: user.coins
     });
-
   } catch (e) {
+    console.log("/daily-reward error", e);
     res.json({ success: false });
   }
 });
 
 /* ================= GLOBAL TOP ================= */
-
 app.get("/top-global", async (req, res) => {
-  const users = await User.find({})
-    .sort({ coins: -1 })
-    .limit(10);
-
-  res.json(users);
+  try {
+    const users = await User.find({}).sort({ coins: -1 }).limit(10);
+    res.json(users);
+  } catch (e) {
+    console.log("/top-global error", e);
+    res.json([]);
+  }
 });
 
 /* ================= TASK ================= */
-
 app.post("/complete-task", async (req, res) => {
-  const { telegramId, taskId } = req.body;
+  try {
+    const { telegramId, taskId, initData } = req.body;
 
-  const user = await getValidUser(telegramId, req.body.initData);
-  if (!user) return res.json({ success: false });
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) return res.json({ success: false, message: "Invalid user" });
 
-  if (user.completedTasks.includes(taskId))
-    return res.json({ success: false, message: "Already done" });
+    if (user.completedTasks.includes(taskId)) {
+      return res.json({ success: false, message: "Already done" });
+    }
 
-  user.coins += 1000;
-  user.completedTasks.push(taskId);
+    user.coins += 1000;
+    user.completedTasks.push(taskId);
+    user.league = getLeague(user.coins);
 
-  await user.save();
+    await user.save();
 
-  res.json({ success: true, reward: 1000 });
+    res.json({ success: true, reward: 1000 });
+  } catch (e) {
+    console.log("/complete-task error", e);
+    res.json({ success: false, message: "Server error" });
+  }
 });
 
 /* ================= DAILY COMBO ================= */
-
 app.get("/daily-combo", async (req, res) => {
-  const combo = ["A", "B", "C"];
-  res.json({ combo });
+  res.json({ combo: ["A", "B", "C"] });
 });
 
 /* ================= LEAGUE API ================= */
-
 app.get("/league/:telegramId", async (req, res) => {
-  const user = await User.findOne({ telegramId: req.params.telegramId });
-  if (!user) return res.json({});
+  try {
+    const user = await User.findOne({ telegramId: String(req.params.telegramId) });
+    if (!user) return res.json({ league: "Wood", coins: 0 });
 
-  const league = getLeague(user.coins);
+    const league = getLeague(user.coins);
 
-  res.json({
-    league: league,
-    coins: user.coins
-  });
+    res.json({
+      league,
+      coins: user.coins
+    });
+  } catch (e) {
+    console.log("/league error", e);
+    res.json({ league: "Wood", coins: 0 });
+  }
 });
 
 /* ================= TOP LEAGUE ================= */
-
 app.get("/top-league/:league", async (req, res) => {
-  const users = await User.find({ league: req.params.league })
-    .sort({ coins: -1 })
-    .limit(10);
+  try {
+    const users = await User.find({ league: req.params.league })
+      .sort({ coins: -1 })
+      .limit(10);
 
-  res.json(users);
+    res.json(users);
+  } catch (e) {
+    console.log("/top-league error", e);
+    res.json([]);
+  }
 });
 
 /* ================= USER RANK ================= */
-
 app.get("/rank/:telegramId", async (req, res) => {
-  const user = await User.findOne({ telegramId: req.params.telegramId });
-  if (!user) return res.json({});
+  try {
+    const user = await User.findOne({ telegramId: String(req.params.telegramId) });
+    if (!user) return res.json({ rank: 0, coins: 0, referrals: 0 });
 
-  const rank = await User.countDocuments({ coins: { $gt: user.coins } }) + 1;
+    const rank = await User.countDocuments({ coins: { $gt: user.coins } }) + 1;
 
-  res.json({
-    rank: rank,
-    coins: user.coins,
-    referrals: user.referrals
-  });
+    res.json({
+      rank,
+      coins: user.coins,
+      referrals: user.referrals
+    });
+  } catch (e) {
+    console.log("/rank error", e);
+    res.json({ rank: 0, coins: 0, referrals: 0 });
+  }
 });
 
 /* ================= ROOT ================= */
-
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
 /* ================= CRON ================= */
-
 cron.schedule("0 0 * * 0", async () => {
-  await User.updateMany({}, { suspiciousCount: 0 });
+  try {
+    await User.updateMany({}, { suspiciousCount: 0 });
+  } catch (e) {
+    console.log("cron error", e);
+  }
 });
 
 /* ================= START ================= */
-
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
