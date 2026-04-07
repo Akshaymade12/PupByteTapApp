@@ -53,7 +53,15 @@ const copyRefBtn = document.getElementById("copyRefBtn");
   const rewards = [500, 1000, 2500, 5000, 15000, 25000, 100000, 500000, 1000000, 5000000];
 
   let appState = {
-  btcPairs: null
+  btcPairs: null,
+  ethPairs: {
+    level: 1,
+    upgrading: false,
+    currentProfit: 8,
+    nextCost: 400,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  }
 };
 
 let btcPairsTimerInterval = null;
@@ -618,38 +626,81 @@ function renderMarketSection() {
     upgradeEndTime: null
   };
 
-  const isMax = btc.level >= 20;
-  const isUpgrading = btc.upgrading;
+  const eth = appState.ethPairs || {
+    level: 1,
+    upgrading: false,
+    currentProfit: 8,
+    nextCost: 400,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
 
-  let buttonHtml = "";
-  let middleHtml = "";
+  const btcIsMax = btc.level >= 20;
+  const btcIsUpgrading = btc.upgrading;
 
-  if (isUpgrading && btc.upgradeEndTime) {
+  let btcButtonHtml = "";
+  let btcMiddleHtml = "";
+
+  if (btcIsUpgrading && btc.upgradeEndTime) {
     const secondsLeft = Math.max(
       0,
       Math.floor((new Date(btc.upgradeEndTime).getTime() - Date.now()) / 1000)
     );
 
-    middleHtml = `
+    btcMiddleHtml = `
       <div class="mine-card-profit-label">Upgrade time</div>
       <div class="mine-card-profit-value" id="btcPairsCountdown">${formatCountdown(secondsLeft)}</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (isMax) {
-    middleHtml = `
+    btcButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (btcIsMax) {
+    btcMiddleHtml = `
       <div class="mine-card-profit-label">Profit per hour</div>
       <div class="mine-card-profit-value">+${btc.currentProfit}</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+    btcButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
   } else {
-    middleHtml = `
+    btcMiddleHtml = `
       <div class="mine-card-profit-label">Profit per hour</div>
       <div class="mine-card-profit-value">+${btc.currentProfit}</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeBtcPairs()">Upgrade</button>`;
+    btcButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeBtcPairs()">Upgrade</button>`;
+  }
+
+  const ethIsMax = eth.level >= 20;
+  const ethIsUpgrading = eth.upgrading;
+
+  let ethButtonHtml = "";
+  let ethMiddleHtml = "";
+
+  if (ethIsUpgrading && eth.upgradeEndTime) {
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(eth.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    ethMiddleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value">${formatCountdown(secondsLeft)}</div>
+    `;
+
+    ethButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (ethIsMax) {
+    ethMiddleHtml = `
+      <div class="mine-card-profit-label">Profit per hour</div>
+      <div class="mine-card-profit-value">+${eth.currentProfit}</div>
+    `;
+
+    ethButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+  } else {
+    ethMiddleHtml = `
+      <div class="mine-card-profit-label">Profit per hour</div>
+      <div class="mine-card-profit-value">+${eth.currentProfit}</div>
+    `;
+
+    ethButtonHtml = `<button class="mine-card-upgrade-btn">Upgrade</button>`;
   }
 
   mineTabContent.innerHTML = `
@@ -667,11 +718,32 @@ function renderMarketSection() {
           <div class="mine-card-level">lvl ${btc.level}</div>
         </div>
 
-        ${middleHtml}
+        ${btcMiddleHtml}
 
         <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : btc.nextCost}</span></div>
-          ${buttonHtml}
+          <div class="mine-card-cost">🪙 <span>${btcIsMax ? "MAX" : btc.nextCost}</span></div>
+          ${btcButtonHtml}
+        </div>
+      </div>
+
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="models/ethpairs.png" alt="ETH Pairs" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">ETH Pairs</h3>
+              <div class="mine-card-subtitle">Ethereum market</div>
+            </div>
+          </div>
+
+          <div class="mine-card-level">lvl ${eth.level}</div>
+        </div>
+
+        ${ethMiddleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${ethIsMax ? "MAX" : eth.nextCost}</span></div>
+          ${ethButtonHtml}
         </div>
       </div>
     </div>
