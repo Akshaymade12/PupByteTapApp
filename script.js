@@ -544,24 +544,73 @@ window.claimRefReward = async function(rewardKey) {
     };
   }
 
-  /* ================= DAILY COMBO ================= */
-  const comboContainer = document.getElementById("combo");
+/* ================= DAILY COMBO ================= */
+const comboContainer = document.getElementById("combo");
 
-  async function loadDailyCombo() {
-    try {
-      const res = await fetch("/daily-combo");
-      const data = await res.json();
+/* ================= MINE TABS ================= */
 
-      if (!comboContainer) return;
+const mineTabMarket = document.getElementById("mineTabMarket");
+const mineTabTeam = document.getElementById("mineTabTeam");
+const mineTabLegal = document.getElementById("mineTabLegal");
+const mineTabSpecial = document.getElementById("mineTabSpecial");
+const mineTabContent = document.getElementById("mineTabContent");
 
-      comboContainer.innerHTML = "";
-      (data.combo || []).forEach(() => {
-        comboContainer.innerHTML += `<div class="combo-card">?</div>`;
-      });
-    } catch (e) {
-      console.log("Daily combo error", e);
-    }
+function switchMineTab(tabName) {
+  if (!mineTabContent) return;
+
+  [mineTabMarket, mineTabTeam, mineTabLegal, mineTabSpecial].forEach(btn => {
+    if (btn) btn.classList.remove("active");
+  });
+
+  if (tabName === "market") {
+    if (mineTabMarket) mineTabMarket.classList.add("active");
+    mineTabContent.innerHTML = `
+      <div class="mine-placeholder-card">Market section</div>
+    `;
   }
+
+  if (tabName === "team") {
+    if (mineTabTeam) mineTabTeam.classList.add("active");
+    mineTabContent.innerHTML = `
+      <div class="mine-placeholder-card">Team section</div>
+    `;
+  }
+
+  if (tabName === "legal") {
+    if (mineTabLegal) mineTabLegal.classList.add("active");
+    mineTabContent.innerHTML = `
+      <div class="mine-placeholder-card">Legal section</div>
+    `;
+  }
+
+  if (tabName === "special") {
+    if (mineTabSpecial) mineTabSpecial.classList.add("active");
+    mineTabContent.innerHTML = `
+      <div class="mine-placeholder-card">Special section</div>
+    `;
+  }
+}
+
+if (mineTabMarket) mineTabMarket.onclick = () => switchMineTab("market");
+if (mineTabTeam) mineTabTeam.onclick = () => switchMineTab("team");
+if (mineTabLegal) mineTabLegal.onclick = () => switchMineTab("legal");
+if (mineTabSpecial) mineTabSpecial.onclick = () => switchMineTab("special");
+
+async function loadDailyCombo() {
+  try {
+    const res = await fetch("/daily-combo");
+    const data = await res.json();
+
+    if (!comboContainer) return;
+
+    comboContainer.innerHTML = "";
+    (data.combo || []).forEach(() => {
+      comboContainer.innerHTML += `<div class="combo-card">?</div>`;
+    });
+  } catch (e) {
+    console.log("Daily combo error", e);
+  }
+}
 
   /* ================= PROFIT UPGRADE ================= */
   if (upgradeProfitBtn) {
@@ -634,12 +683,13 @@ window.claimRefReward = async function(rewardKey) {
   }
 
   if (navMine) {
-    navMine.onclick = () => {
-      hideAllSections();
-      if (mineSection) mineSection.style.display = "block";
-      navMine.classList.add("active");
-    };
-  }
+  navMine.onclick = () => {
+    hideAllSections();
+    if (mineSection) mineSection.style.display = "block";
+    navMine.classList.add("active");
+    switchMineTab("market");
+  };
+}
 
 document.getElementById("navTasks").onclick = () => {
   hideAllSections();
