@@ -292,7 +292,12 @@ window.markSpecialTask = function(taskKey, url) {
   saveSpecialTasksState(state);
 
   refreshSpecialTaskUI(false);
-  window.open(url, "_blank");
+
+  if (url.includes("t.me")) {
+    tg.openTelegramLink(url);
+  } else {
+    tg.openLink(url);
+  }
 };
 
 async function loadSpecialTaskClaimStatus() {
@@ -373,11 +378,12 @@ async function loadTaskStatus() {
 
     renderLeagueRewards(data.leagueRewards || []);
     renderRefRewards(data.refRewards || []);
+    loadSpecialTaskClaimStatus();
   } catch (e) {
     console.log("Task status error", e);
   }
 }
-
+  
 function renderLeagueRewards(items) {
   const box = document.getElementById("leagueRewardsList");
   if (!box) return;
@@ -433,28 +439,6 @@ function renderRefRewards(items) {
     `;
   });
 }
-
-window.claimSpecialTask = async function() {
-  try {
-    const res = await fetch("/claim-special-task", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId, initData })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      alert("Claimed +" + data.reward + " coins");
-      loadUser();
-      loadTaskStatus();
-    } else {
-      alert(data.message || "Already claimed");
-    }
-  } catch (e) {
-    console.log("Claim special task error", e);
-  }
-};
 
 window.claimLeagueReward = async function(leagueName) {
   try {
