@@ -183,21 +183,185 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ================= SOCIAL MISSIONS ================= */
-  window.openMission = function () {
-    if (tasksSection) tasksSection.style.display = "none";
-    if (missionPage) missionPage.style.display = "block";
-  };
+/* ================= TASK TABS ================= */
 
-  window.closeMission = function () {
-    if (missionPage) missionPage.style.display = "none";
-    if (tasksSection) tasksSection.style.display = "block";
-  };
+const tabSpecial = document.getElementById("tabSpecial");
+const tabLeague = document.getElementById("tabLeague");
+const tabRef = document.getElementById("tabRef");
 
-  window.openLink = function (url) {
-    window.open(url, "_blank");
-  };
+const specialTabContent = document.getElementById("specialTabContent");
+const leagueTabContent = document.getElementById("leagueTabContent");
+const refTabContent = document.getElementById("refTabContent");
 
+window.openTaskLink = function(url){
+  window.open(url, "_blank");
+};
+
+function switchTaskTab(tabName){
+  if (specialTabContent) specialTabContent.style.display = "none";
+  if (leagueTabContent) leagueTabContent.style.display = "none";
+  if (refTabContent) refTabContent.style.display = "none";
+
+  if (tabSpecial) tabSpecial.classList.remove("active");
+  if (tabLeague) tabLeague.classList.remove("active");
+  if (tabRef) tabRef.classList.remove("active");
+
+  if (tabName === "special") {
+    if (specialTabContent) specialTabContent.style.display = "block";
+    if (tabSpecial) tabSpecial.classList.add("active");
+  }
+
+  if (tabName === "league") {
+    if (leagueTabContent) leagueTabContent.style.display = "block";
+    if (tabLeague) tabLeague.classList.add("active");
+  }
+
+  if (tabName === "ref") {
+    if (refTabContent) refTabContent.style.display = "block";
+    if (tabRef) tabRef.classList.add("active");
+  }
+}
+
+if (tabSpecial) tabSpecial.onclick = () => switchTaskTab("special");
+if (tabLeague) tabLeague.onclick = () => switchTaskTab("league");
+if (tabRef) tabRef.onclick = () => switchTaskTab("ref");
+
+async function loadTaskStatus() {
+  try {
+    const res = await fetch("/task-status/" + telegramId);
+    const data = await res.json();
+
+    if (!data.success) return;
+
+    renderLeagueRewards(data.leagueRewards || []);
+    renderRefRewards(data.refRewards || []);
+  } catch (e) {
+    console.log("Task status error", e);
+  }
+}
+
+function renderLeagueRewards(items) {
+  const box = document.getElementById("leagueRewardsList");
+  if (!box) return;
+
+  box.innerHTML = "";
+
+  items.forEach(item => {
+    box.innerHTML += `
+      <div class="task-card2">
+        <div class="task-left">
+          <div class="task-emoji">🏆</div>
+          <div>
+            <h3>${item.league} League Reward</h3>
+            <p>${item.reward} Coins</p>
+          </div>
+        </div>
+        ${
+          item.claimed
+            ? `<div class="reward-done">Claimed</div>`
+            : item.unlocked
+            ? `<button class="task-claim-btn" onclick="claimLeagueReward('${item.league}')">Claim</button>`
+            : `<button class="task-claim-btn" disabled>Locked</button>`
+        }
+      </div>
+    `;
+  });
+}
+
+function renderRefRewards(items) {
+  const box = document.getElementById("refRewardsList");
+  if (!box) return;
+
+  box.innerHTML = "";
+
+  items.forEach(item => {
+    box.innerHTML += `
+      <div class="task-card2">
+        <div class="task-left">
+          <div class="task-emoji">👥</div>
+          <div>
+            <h3>${item.refs} Successful Referrals</h3>
+            <p>${item.reward} Coins</p>
+          </div>
+        </div>
+        ${
+          item.claimed
+            ? `<div class="reward-done">Claimed</div>`
+            : item.unlocked
+            ? `<button class="task-claim-btn" onclick="claimRefReward('${item.key}')">Claim</button>`
+            : `<button class="task-claim-btn" disabled>Locked</button>`
+        }
+      </div>
+    `;
+  });
+}
+
+window.claimSpecialTask = async function() {
+  try {
+    const res = await fetch("/claim-special-task", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Claimed +" + data.reward + " coins");
+      loadUser();
+      loadTaskStatus();
+    } else {
+      alert(data.message || "Already claimed");
+    }
+  } catch (e) {
+    console.log("Claim special task error", e);
+  }
+};
+
+window.claimLeagueReward = async function(leagueName) {
+  try {
+    const res = await fetch("/claim-league-reward", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData, leagueName })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Claimed +" + data.reward + " coins");
+      loadUser();
+      loadTaskStatus();
+    } else {
+      alert(data.message || "Cannot claim");
+    }
+  } catch (e) {
+    console.log("Claim league reward error", e);
+  }
+};
+
+window.claimRefReward = async function(rewardKey) {
+  try {
+    const res = await fetch("/claim-ref-reward", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData, rewardKey })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Claimed +" + data.reward + " coins");
+      loadUser();
+      loadTaskStatus();
+    } else {
+      alert(data.message || "Cannot claim");
+    }
+  } catch (e) {
+    console.log("Claim ref reward error", e);
+  }
+};
+  
   /* ================= TAP UPGRADE ================= */
   if (upgradeTapBtn) {
     upgradeTapBtn.onclick = async () => {
@@ -317,13 +481,13 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  if (navTasks) {
-    navTasks.onclick = () => {
-      hideAllSections();
-      if (tasksSection) tasksSection.style.display = "block";
-      navTasks.classList.add("active");
-    };
-  }
+  document.getElementById("navTasks").onclick = () => {
+  hideAllSections();
+  tasksSection.style.display = "block";
+  document.getElementById("navTasks").classList.add("active");
+  switchTaskTab("special");
+  loadTaskStatus();
+};
 
   if (navAccount) {
     navAccount.onclick = () => {
