@@ -103,7 +103,7 @@ if (accountRefLink) {
 }
       
 // ✅ Copy button
-if (copyRefBtn) {
+if (copyRefBtn && accountRefLink) {
   copyRefBtn.onclick = async () => {
     try {
       await navigator.clipboard.writeText(accountRefLink.value);
@@ -543,9 +543,9 @@ window.claimRefReward = async function(rewardKey) {
 
     if (data.success) {
   coinsEl.innerText = Math.floor(data.coins || 0);
-  appState.btcPairs = data.btcPairs || null;
-  renderMarketSection();
-  loadUser();
+appState.btcPairs = data.btcPairs || null;
+renderMarketSection();
+loadUser();
     
     } else {
       alert(data.message || "Upgrade failed");
@@ -862,14 +862,16 @@ async function loadDailyCombo() {
   };
 }
 
-document.getElementById("navTasks").onclick = () => {
-  hideAllSections();
-  tasksSection.style.display = "block";
-  document.getElementById("navTasks").classList.add("active");
-  switchTaskTab("special");
-  loadTaskStatus();
-  loadSpecialTaskClaimStatus();
-};
+if (navTasks) {
+  navTasks.onclick = () => {
+    hideAllSections();
+    if (tasksSection) tasksSection.style.display = "block";
+    navTasks.classList.add("active");
+    switchTaskTab("special");
+    loadTaskStatus();
+    loadSpecialTaskClaimStatus();
+  };
+}
 
   if (navAccount) {
     navAccount.onclick = () => {
