@@ -55,9 +55,11 @@ const claimStreakBtn = document.getElementById("claimStreakBtn");
   const accountRefLink = document.getElementById("accountRefLink");
   const copyRefBtn = document.getElementById("copyRefBtn");
 
- if(dailyPopup){
-  dailyPopup.addEventListener("click", (e)=>{
-    if(e.target === dailyPopup){
+ const dailyPopup = document.getElementById("dailyRewardPopup");
+
+if (dailyPopup) {
+  dailyPopup.addEventListener("click", (e) => {
+    if (e.target === dailyPopup) {
       dailyPopup.style.display = "none";
     }
   });
@@ -75,7 +77,8 @@ const claimStreakBtn = document.getElementById("claimStreakBtn");
       const data = await res.json();
 
 if (!data || data.success === false) {
-  console.log("User load failed ❌");
+  console.log("User load failed ❌", data);
+  alert("User data load failed");
   return;
 }
       coinsEl.innerText = Math.floor(data.coins);
@@ -116,13 +119,19 @@ if (!data || data.success === false) {
   
   function updateLeagueProgress(coins) {
     const LEAGUES = [
-      { name: "Bronze", min: 0, max: 1000 },
-      { name: "Silver", min: 1000, max: 5000 },
-      { name: "Gold", min: 5000, max: 15000 },
-      { name: "Platinum", min: 15000, max: 50000 },
-      { name: "Diamond", min: 50000, max: Infinity }
-    ];
-
+  { name: "Wood", min: 0, max: 1000 },
+  { name: "Bronze", min: 1000, max: 5000 },
+  { name: "Silver", min: 5000, max: 15000 },
+  { name: "Gold", min: 15000, max: 50000 },
+  { name: "Platinum", min: 50000, max: 100000 },
+  { name: "Diamond", min: 100000, max: 250000 },
+  { name: "Master", min: 250000, max: 500000 },
+  { name: "Elite", min: 500000, max: 1000000 },
+  { name: "Champion", min: 1000000, max: 2500000 },
+  { name: "Legend", min: 2500000, max: 5000000 },
+  { name: "Grandmaster", min: 5000000, max: 10000000 },
+  { name: "Immortal", min: 10000000, max: Infinity }
+];
     let currentLeague;
     for (let league of LEAGUES) {
       if (coins >= league.min && coins < league.max) {
@@ -159,12 +168,18 @@ if (!data || data.success === false) {
         const data = await res.json();
 
         if (data.success) {
-          coinsEl.innerText = Math.floor(data.coins);
-          energyEl.innerText = data.energy;
-          profitEl.innerText = data.profitPerHour;
-          showPlusOne(data.tapPower);
-        } else {
-          alert(data.message || "Tap failed");
+  coinsEl.innerText = Math.floor(data.coins);
+  energyEl.innerText = data.energy;
+  profitEl.innerText = data.profitPerHour;
+
+  const leagueText = document.getElementById("currentLeagueText");
+  if (leagueText) leagueText.innerText = data.league;
+
+  if (accountCoins) accountCoins.innerText = Math.floor(data.coins);
+
+  showPlusOne(data.tapPower);
+} else {
+  alert(data.message || "Tap failed");
         }
       } catch (e) {
         console.log("Tap error", e);
@@ -393,7 +408,7 @@ const rankData = await rankRes.json();
  
 // ================= DAILY REWARD =================
 
-const popup = document.getElementById("dailyRewardPopup");
+const dailyPopup = document.getElementById("dailyRewardPopup");
 const dailyGrid = document.getElementById("dailyGrid");
 const claimDailyBtn = document.getElementById("claimDailyBtn");
 
