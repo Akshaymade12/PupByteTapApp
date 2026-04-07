@@ -43,7 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const accountUserName = document.getElementById("accountUserName");
   const accountCoins = document.getElementById("accountCoins");
   const accountReferrals = document.getElementById("accountReferrals");
-
+const accountRefLink = document.getElementById("accountRefLink");
+const copyRefBtn = document.getElementById("copyRefBtn");
+  
   const dailyPopup = document.getElementById("dailyRewardPopup");
   const dailyGrid = document.getElementById("dailyGrid");
   const claimDailyBtn = document.getElementById("claimDailyBtn");
@@ -88,6 +90,25 @@ document.addEventListener("DOMContentLoaded", () => {
       if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
       if (accountReferrals) accountReferrals.innerText = data.referrals || 0;
 
+      // ✅ Referral link set karo
+if (accountRefLink) {
+  accountRefLink.value = `https://t.me/PupByteTapBot?start=${telegramId}`;
+}
+
+// ✅ Copy button
+if (copyRefBtn) {
+  copyRefBtn.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(accountRefLink.value);
+      alert("Referral link copied ✅");
+    } catch (e) {
+      accountRefLink.select();
+      document.execCommand("copy");
+      alert("Referral link copied ✅");
+    }
+  };
+}
+      
       const totalClaimsEl = document.getElementById("totalClaims");
       if (totalClaimsEl) totalClaimsEl.innerText = data.totalClaims || 0;
 
