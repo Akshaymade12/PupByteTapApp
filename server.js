@@ -186,8 +186,10 @@ async function finalizeBtcPairsUpgrade(user) {
     new Date(user.btcPairs.upgradeEndTime).getTime() <= Date.now()
   ) {
     if (user.btcPairs.level < 20) {
+      const oldProfit = getBtcPairsProfit(user.btcPairs.level);
       user.btcPairs.level += 1;
-      user.profitPerHour += getBtcPairsProfit(user.btcPairs.level);
+      const newProfit = getBtcPairsProfit(user.btcPairs.level);
+      user.profitPerHour += (newProfit - oldProfit);
     }
 
     user.btcPairs.upgrading = false;
@@ -310,8 +312,9 @@ app.post("/upgrade-tap", async (req, res) => {
     const { telegramId, initData } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
-    await finalizeBtcPairsUpgrade(user);
-    if (!user) return res.json({ success: false, message: "Invalid user" });
+if (!user) return res.json({ success: false, message: "Invalid user" });
+
+await finalizeBtcPairsUpgrade(user);
 
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
@@ -348,9 +351,10 @@ app.post("/upgrade-profit", async (req, res) => {
     const { telegramId, initData } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
-    await finalizeBtcPairsUpgrade(user);
-    if (!user) return res.json({ success: false, message: "Invalid user" });
+if (!user) return res.json({ success: false, message: "Invalid user" });
 
+await finalizeBtcPairsUpgrade(user);
+    
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
     if (user.coins < cost) {
