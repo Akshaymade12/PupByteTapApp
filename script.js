@@ -52,6 +52,11 @@ const copyRefBtn = document.getElementById("copyRefBtn");
 
   const rewards = [500, 1000, 2500, 5000, 15000, 25000, 100000, 500000, 1000000, 5000000];
 
+  let appState = {
+  btcPairs: null
+};
+
+let btcPairsTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -121,7 +126,9 @@ if (copyRefBtn) {
       if (upgradeProfitBtn) {
         upgradeProfitBtn.innerText = `Upgrade Profit (${data.nextProfitCost})`;
       }
-
+      
+appState.btcPairs = data.btcPairs || null;
+      
       loadDailyCombo();
     } catch (e) {
       console.log("Load user error", e);
@@ -521,6 +528,30 @@ window.claimRefReward = async function(rewardKey) {
     console.log("Claim ref reward error", e);
   }
 };
+
+ /* ================= UPGRADE BTC PAIRS ================= */
+  
+  window.upgradeBtcPairs = async function() {
+  try {
+    const res = await fetch("/upgrade-btc-pairs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.btcPairs = data.btcPairs || null;
+      renderMarketSection();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade btc pairs error", e);
+  }
+};
   
   /* ================= TAP UPGRADE ================= */
   if (upgradeTapBtn) {
@@ -547,6 +578,22 @@ window.claimRefReward = async function(rewardKey) {
 /* ================= DAILY COMBO ================= */
 const comboContainer = document.getElementById("combo");
 
+/* ================= COUNTDOWN TIMER ================= */
+  
+function formatCountdown(seconds) {
+  const total = Math.max(0, Math.floor(seconds));
+
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+
+  if (h > 0) {
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+  
 /* ================= MARKET CARD HELPERS ================= */
 
 function getCardProfit(level) {
@@ -560,69 +607,115 @@ function getCardCost(level) {
 function renderMarketSection() {
   if (!mineTabContent) return;
 
-  const cards = [
-    {
-      id: "btc_pairs",
-      name: "BTC Pairs",
-      subtitle: "Bitcoin market",
-      icon: "models/btcpairs.png",
-      level: 1
-    },
-    {
-      id: "eth_pairs",
-      name: "ETH Pairs",
-      subtitle: "Ethereum market",
-      icon: "models/btcpairs.png",
-      level: 1
-    },
-    {
-      id: "fan_tokens",
-      name: "Fan Tokens",
-      subtitle: "Sports trading",
-      icon: "models/btcpairs.png",
-      level: 1
-    },
-    {
-      id: "top10_cmc",
-      name: "Top 10 CMC",
-      subtitle: "Top coin basket",
-      icon: "models/btcpairs.png",
-      level: 1
-    }
-  ];
+  const btc = appState.btcPairs || {
+    level: 1,
+    upgrading: false,
+    currentProfit: 10,
+    nextCost: 500,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
+  const isMax = btc.level >= 20;
+  const isUpgrading = btc.upgrading;
+
+  let buttonHtml = "";
+  let middleHtml = "";
+
+  if (isUpgrading && btc.upgradeEndTime) {
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(btc.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    middleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value" id="btcPairsCountdown">${formatCountdown(secondsLeft)}</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (isMax) {
+    middleHtml = `
+      <div class="mine-card-profit-label">Profit per hour</div>
+      <div class="mine-card-profit-value">+${btc.currentProfit}</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+  } else {
+    middleHtml = `
+      <div class="mine-card-profit-label">Profit per hour</div>
+      <div class="mine-card-profit-value">+${btc.currentProfit}</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeBtcPairs()">Upgrade</button>`;
+  }
 
   mineTabContent.innerHTML = `
     <div class="mine-cards-grid">
-      ${cards.map(card => {
-        const profit = getCardProfit(card.level);
-        const cost = getCardCost(card.level);
-
-        return `
-          <div class="mine-card-box">
-            <div class="mine-card-top">
-              <div class="mine-card-left">
-                <img src="${card.icon}" alt="${card.name}" class="mine-card-icon">
-                <div class="mine-card-title-wrap">
-                  <h3 class="mine-card-title">${card.name}</h3>
-                  <div class="mine-card-subtitle">${card.subtitle}</div>
-                </div>
-              </div>
-
-              <div class="mine-card-level">lvl ${card.level}</div>
-            </div>
-
-            <div class="mine-card-profit-label">Profit per hour</div>
-            <div class="mine-card-profit-value">+${profit}</div>
-
-            <div class="mine-card-bottom">
-              <div class="mine-card-cost">🪙 <span>${cost}</span></div>
-              <button class="mine-card-upgrade-btn">Upgrade</button>
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="models/btcpairs.png" alt="BTC Pairs" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">BTC Pairs</h3>
+              <div class="mine-card-subtitle">Bitcoin market</div>
             </div>
           </div>
-        `;
-      }).join("")}
+
+          <div class="mine-card-level">lvl ${btc.level}</div>
+        </div>
+
+        ${middleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : btc.nextCost}</span></div>
+          ${buttonHtml}
+        </div>
+      </div>
     </div>
   `;
+
+  startBtcPairsCountdown();
+}
+  
+/* ================= BTC PAIRS COUNTDOWN ================= */
+  
+function startBtcPairsCountdown() {
+  if (btcPairsTimerInterval) {
+    clearInterval(btcPairsTimerInterval);
+    btcPairsTimerInterval = null;
+  }
+
+  if (!appState.btcPairs || !appState.btcPairs.upgrading || !appState.btcPairs.upgradeEndTime) {
+    return;
+  }
+
+  btcPairsTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("btcPairsCountdown");
+
+    if (!countdownEl || !appState.btcPairs?.upgradeEndTime) {
+      clearInterval(btcPairsTimerInterval);
+      btcPairsTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.btcPairs.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(btcPairsTimerInterval);
+      btcPairsTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("market");
+        }
+      });
+    }
+  }, 1000);
 }
   
 /* ================= MINE TABS ================= */
