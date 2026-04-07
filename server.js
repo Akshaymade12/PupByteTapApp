@@ -395,31 +395,36 @@ app.post("/upgrade-btc-pairs", async (req, res) => {
       };
     }
 
-    await finalizeBtcPairsUpgrade(user);
+async function finalizeBtcPairsUpgrade(user) {
+  if (!user.btcPairs) {
+    user.btcPairs = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
 
-    const level = user.btcPairs.level;
+  if (
+    user.btcPairs.upgrading &&
+    user.btcPairs.upgradeEndTime &&
+    new Date(user.btcPairs.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.btcPairs.level < 20) {
+      const oldProfit = getBtcPairsProfit(user.btcPairs.level);
+      user.btcPairs.level += 1;
+      const newProfit = getBtcPairsProfit(user.btcPairs.level);
 
-    if (level >= 20) {
-      return res.json({ success: false, message: "Max level reached" });
+      user.profitPerHour += (newProfit - oldProfit);
     }
 
-    if (user.btcPairs.upgrading) {
-      return res.json({ success: false, message: "Upgrade already in progress" });
-    }
-
-    const cost = getBtcPairsCost(level);
-    const upgradeTime = getBtcPairsUpgradeTime(level);
-
-    if (user.coins < cost) {
-      return res.json({ success: false, message: "Not enough coins" });
-    }
-
-    user.coins -= cost;
-    user.btcPairs.upgrading = true;
-    user.btcPairs.upgradeStartTime = new Date();
-    user.btcPairs.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+    user.btcPairs.upgrading = false;
+    user.btcPairs.upgradeStartTime = null;
+    user.btcPairs.upgradeEndTime = null;
 
     await user.save();
+  }
+}
 
     res.json({
       success: true,
