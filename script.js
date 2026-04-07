@@ -430,6 +430,8 @@ if(claimDailyBtn){
         alert("🔥 +" + data.reward);
         coinsEl.innerText = Math.floor(data.coins);
         renderDaily(data.day);
+               // ✅ POPUP CLOSE
+        dailyPopup.style.display = "none";
       }else{
         alert(data.message);
       }
