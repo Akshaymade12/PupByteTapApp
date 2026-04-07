@@ -297,6 +297,12 @@ function refreshSpecialTaskUI(claimed = false) {
 }
 
 window.markSpecialTask = async function(taskKey, url) {
+  const specialClaimBtn = document.getElementById("specialClaimBtn");
+
+  if (specialClaimBtn && specialClaimBtn.disabled) {
+    return;
+  }
+
   try {
     const res = await fetch("/special-task-status/" + telegramId);
     const data = await res.json();
