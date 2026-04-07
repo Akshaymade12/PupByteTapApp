@@ -55,6 +55,13 @@ const claimStreakBtn = document.getElementById("claimStreakBtn");
   const accountRefLink = document.getElementById("accountRefLink");
   const copyRefBtn = document.getElementById("copyRefBtn");
 
+ if(dailyPopup){
+  dailyPopup.addEventListener("click", (e)=>{
+    if(e.target === dailyPopup){
+      dailyPopup.style.display = "none";
+    }
+  });
+}
   /* ================= LOAD USER ================= */
 
   async function loadUser() {
@@ -394,9 +401,10 @@ const rewards = [500,1000,2500,5000,15000,25000,100000,500000,1000000,5000000];
 
 // show popup
 setTimeout(() => {
-  if(dailyPopup){
+  if(dailyPopup && !localStorage.getItem("dailySeen")){
     dailyPopup.style.display = "flex";
-    renderDaily(1); // ✅ default day
+    renderDaily(1); // default ya baad me dynamic kar sakte
+    localStorage.setItem("dailySeen", "true");
   }
 }, 1000);
 
