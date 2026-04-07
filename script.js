@@ -396,7 +396,7 @@ const rewards = [500,1000,2500,5000,15000,25000,100000,500000,1000000,5000000];
 setTimeout(() => {
   if(dailyPopup){
     dailyPopup.style.display = "flex";
-    renderDaily(data.day);
+    renderDaily(1); // ✅ default day
   }
 }, 1000);
 
