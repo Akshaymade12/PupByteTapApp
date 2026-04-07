@@ -479,3 +479,140 @@ button:active{
   font-size:18px;
   font-weight:600;
 }
+
+.mine-cards-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
+}
+
+.mine-card-box{
+  position:relative;
+  overflow:hidden;
+  padding:16px;
+  border-radius:22px;
+  background: linear-gradient(180deg, rgba(28,32,54,0.95), rgba(18,20,38,0.96));
+  border:1px solid rgba(255,255,255,0.07);
+  box-shadow:
+    0 0 20px rgba(0, 170, 255, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.mine-card-box::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background: radial-gradient(circle at top right, rgba(63,208,255,0.12), transparent 35%);
+}
+
+.mine-card-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+.mine-card-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+
+.mine-card-icon{
+  width:54px;
+  height:54px;
+  border-radius:18px;
+  object-fit:cover;
+  background: rgba(255,255,255,0.06);
+  box-shadow: 0 0 18px rgba(255, 200, 0, 0.12);
+  flex-shrink:0;
+}
+
+.mine-card-title-wrap{
+  min-width:0;
+}
+
+.mine-card-title{
+  margin:0;
+  color:#fff;
+  font-size:18px;
+  font-weight:800;
+  line-height:1.1;
+}
+
+.mine-card-subtitle{
+  margin-top:4px;
+  color:rgba(255,255,255,0.62);
+  font-size:13px;
+  line-height:1.2;
+}
+
+.mine-card-level{
+  padding:7px 12px;
+  border-radius:999px;
+  background: rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.08);
+  color:#fff;
+  font-size:13px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.mine-card-profit-label{
+  color:rgba(255,255,255,0.60);
+  font-size:13px;
+  margin-bottom:4px;
+}
+
+.mine-card-profit-value{
+  color:#fff;
+  font-size:28px;
+  font-weight:800;
+  margin-bottom:16px;
+}
+
+.mine-card-bottom{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:8px;
+}
+
+.mine-card-cost{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#fff;
+  font-size:15px;
+  font-weight:700;
+}
+
+.mine-card-cost span{
+  color:#ffd75e;
+}
+
+.mine-card-upgrade-btn{
+  border:none;
+  outline:none;
+  padding:12px 18px;
+  border-radius:14px;
+  background: linear-gradient(90deg, #32d7ff, #d300ff);
+  color:#fff;
+  font-size:14px;
+  font-weight:800;
+  box-shadow: 0 0 18px rgba(83, 174, 255, 0.18);
+}
+
+.mine-card-upgrade-btn:active{
+  transform:scale(0.98);
+}
+
+@media (max-width: 640px){
+  .mine-cards-grid{
+    grid-template-columns: 1fr;
+  }
+}
