@@ -76,6 +76,7 @@ lastClaim: { type: Date, default: null },
 totalClaims: { type: Number, default: 0 }
 
 const User = mongoose.model("User", userSchema);
+});
 
 /* ================= TELEGRAM VERIFY ================= */
 
