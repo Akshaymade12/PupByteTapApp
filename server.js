@@ -77,6 +77,7 @@ btcPairs: {
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
 }
+});
 
 const User = mongoose.model("User", userSchema);
 
