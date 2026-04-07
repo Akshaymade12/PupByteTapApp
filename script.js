@@ -1,7 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
- 
- /* ================= TELEGRAM SAFE INIT ================= */
-
+  /* ================= TELEGRAM SAFE INIT ================= */
   const tg = window.Telegram?.WebApp;
 
   if (!tg) {
@@ -11,7 +9,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   tg.expand();
 
-  // ✅ SAFE USER FETCH (FIXED)
   let user;
   if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
     user = tg.initDataUnsafe.user;
@@ -20,15 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
     throw new Error("User not found");
   }
 
-  const telegramId = user.id;
-  const userId = user.id; // ✅ for tap API
+  const telegramId = String(user.id);
   const initData = tg.initData;
 
   /* ================= ELEMENTS ================= */
-
- const streakCount = document.getElementById("streakCount");
-const claimStreakBtn = document.getElementById("claimStreakBtn");
- 
   const coinsEl = document.getElementById("coins");
   const energyEl = document.getElementById("energy");
   const profitEl = document.getElementById("profit");
@@ -44,95 +36,96 @@ const claimStreakBtn = document.getElementById("claimStreakBtn");
   const accountSection = document.getElementById("accountSection");
   const skillsSection = document.getElementById("skillsSection");
   const cashierSection = document.getElementById("cashierSection");
-  
-  const dailyRewardBtn = document.getElementById("dailyRewardBtn");
-  const spinBtn = document.getElementById("spinBtn");
+  const mineSection = document.getElementById("mineSection");
+  const missionPage = document.getElementById("missionPage");
 
   const accountUserId = document.getElementById("accountUserId");
   const accountUserName = document.getElementById("accountUserName");
   const accountCoins = document.getElementById("accountCoins");
   const accountReferrals = document.getElementById("accountReferrals");
-  const accountRefLink = document.getElementById("accountRefLink");
-  const copyRefBtn = document.getElementById("copyRefBtn");
 
- const dailyPopup = document.getElementById("dailyRewardPopup");
+  const dailyPopup = document.getElementById("dailyRewardPopup");
+  const dailyGrid = document.getElementById("dailyGrid");
+  const claimDailyBtn = document.getElementById("claimDailyBtn");
 
-if (dailyPopup) {
-  dailyPopup.addEventListener("click", (e) => {
-    if (e.target === dailyPopup) {
-      dailyPopup.style.display = "none";
-    }
-  });
-}
+  const rewards = [500, 1000, 2500, 5000, 15000, 25000, 100000, 500000, 1000000, 5000000];
+
+  if (dailyPopup) {
+    dailyPopup.addEventListener("click", (e) => {
+      if (e.target === dailyPopup) {
+        dailyPopup.style.display = "none";
+      }
+    });
+  }
+
   /* ================= LOAD USER ================= */
-
   async function loadUser() {
     try {
       const res = await fetch("/load", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegramId: telegramId, initData: initData })
+        body: JSON.stringify({ telegramId, initData })
       });
-      
+
       const data = await res.json();
 
-if (!data || data.success === false) {
-  console.log("User load failed ❌", data);
-  alert("User data load failed");
-  return;
-}
-      coinsEl.innerText = Math.floor(data.coins);
+      if (!data || data.success === false) {
+        console.log("User load failed ❌", data);
+        return;
+      }
+
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      energyEl.innerText = data.energy || 0;
+      profitEl.innerText = data.profitPerHour || 0;
+
       const leagueText = document.getElementById("currentLeagueText");
-      if(leagueText) leagueText.innerText = data.league;
-      
-      updateLeagueProgress(data.coins);
-      energyEl.innerText = data.energy;
-      profitEl.innerText = data.profitPerHour;
+      if (leagueText) leagueText.innerText = data.league || "Wood";
+
+      updateLeagueProgress(data.coins || 0);
 
       if (accountUserId) accountUserId.innerText = telegramId;
       if (accountUserName) accountUserName.innerText = user.first_name || "User";
-      if (accountCoins) accountCoins.innerText = Math.floor(data.coins);
+      if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
       if (accountReferrals) accountReferrals.innerText = data.referrals || 0;
-     if (streakCount) streakCount.innerText = data.streak || 0;
-     if (document.getElementById("totalClaims")) {
-  document.getElementById("totalClaims").innerText = data.totalClaims || 0;
-     }
-     
-      if (accountRefLink) {
-        accountRefLink.value = `https://t.me/PupByteTapBot?start=${telegramId}`;
+
+      const totalClaimsEl = document.getElementById("totalClaims");
+      if (totalClaimsEl) totalClaimsEl.innerText = data.totalClaims || 0;
+
+      if (upgradeTapBtn) {
+        upgradeTapBtn.innerText = `Upgrade Tap (${data.nextTapCost})`;
       }
 
-      if (upgradeTapBtn)
-        upgradeTapBtn.innerText = `Upgrade Tap (${data.nextTapCost})`;
-
-      if (upgradeProfitBtn)
+      if (upgradeProfitBtn) {
         upgradeProfitBtn.innerText = `Upgrade Profit (${data.nextProfitCost})`;
-      
+      }
+
       loadDailyCombo();
     } catch (e) {
       console.log("Load user error", e);
     }
   }
+
   loadUser();
-  
-/* ================= LEAGUE PROGRESS ================= */
-  
+
+  /* ================= LEAGUE PROGRESS ================= */
   function updateLeagueProgress(coins) {
     const LEAGUES = [
-  { name: "Wood", min: 0, max: 1000 },
-  { name: "Bronze", min: 1000, max: 5000 },
-  { name: "Silver", min: 5000, max: 15000 },
-  { name: "Gold", min: 15000, max: 50000 },
-  { name: "Platinum", min: 50000, max: 100000 },
-  { name: "Diamond", min: 100000, max: 250000 },
-  { name: "Master", min: 250000, max: 500000 },
-  { name: "Elite", min: 500000, max: 1000000 },
-  { name: "Champion", min: 1000000, max: 2500000 },
-  { name: "Legend", min: 2500000, max: 5000000 },
-  { name: "Grandmaster", min: 5000000, max: 10000000 },
-  { name: "Immortal", min: 10000000, max: Infinity }
-];
-    let currentLeague;
+      { name: "Wood", min: 0, max: 1000 },
+      { name: "Bronze", min: 1000, max: 5000 },
+      { name: "Silver", min: 5000, max: 15000 },
+      { name: "Gold", min: 15000, max: 50000 },
+      { name: "Platinum", min: 50000, max: 100000 },
+      { name: "Diamond", min: 100000, max: 250000 },
+      { name: "Master", min: 250000, max: 500000 },
+      { name: "Elite", min: 500000, max: 1000000 },
+      { name: "Champion", min: 1000000, max: 2500000 },
+      { name: "Legend", min: 2500000, max: 5000000 },
+      { name: "Grandmaster", min: 5000000, max: 10000000 },
+      { name: "Immortal", min: 10000000, max: Infinity }
+    ];
+
+    let currentLeague = LEAGUES[0];
+
     for (let league of LEAGUES) {
       if (coins >= league.min && coins < league.max) {
         currentLeague = league;
@@ -140,14 +133,11 @@ if (!data || data.success === false) {
       }
     }
 
-    if (!currentLeague) return;
-    
     const leagueText = document.getElementById("currentLeagueText");
-    if(leagueText) leagueText.innerText = currentLeague.name;
+    if (leagueText) leagueText.innerText = currentLeague.name;
   }
 
   /* ================= TAP ================= */
-
   let tapping = false;
 
   if (tapBtn) {
@@ -156,353 +146,391 @@ if (!data || data.success === false) {
       tapping = true;
 
       tapBtn.style.transform = "scale(0.9)";
-      setTimeout(() => tapBtn.style.transform = "scale(1)", 100);
+      setTimeout(() => {
+        tapBtn.style.transform = "scale(1)";
+      }, 100);
 
       try {
         const res = await fetch("/tap", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telegramId: telegramId, initData: initData })
+          body: JSON.stringify({ telegramId, initData })
         });
 
         const data = await res.json();
 
         if (data.success) {
-  coinsEl.innerText = Math.floor(data.coins);
-  energyEl.innerText = data.energy;
-  profitEl.innerText = data.profitPerHour;
+          coinsEl.innerText = Math.floor(data.coins || 0);
+          energyEl.innerText = data.energy || 0;
+          profitEl.innerText = data.profitPerHour || 0;
 
-  const leagueText = document.getElementById("currentLeagueText");
-  if (leagueText) leagueText.innerText = data.league;
+          const leagueText = document.getElementById("currentLeagueText");
+          if (leagueText) leagueText.innerText = data.league || "Wood";
 
-  if (accountCoins) accountCoins.innerText = Math.floor(data.coins);
+          if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
 
-  showPlusOne(data.tapPower);
-} else {
-  alert(data.message || "Tap failed");
+          showPlusOne(data.tapPower || 1);
+        } else {
+          alert(data.message || "Tap failed");
         }
       } catch (e) {
         console.log("Tap error", e);
       }
 
-      setTimeout(() => tapping = false, 120);
+      setTimeout(() => {
+        tapping = false;
+      }, 120);
     });
   }
-  
-/* ===== SOCIAL MISSIONS ===== */
-  
-  window.openMission = function(){
-    document.getElementById("tasksSection").style.display="none";
-    document.getElementById("missionPage").style.display="block";
-  }
 
-  window.closeMission = function(){
-    document.getElementById("missionPage").style.display="none";
-    document.getElementById("tasksSection").style.display="block";
-  }
+  /* ================= SOCIAL MISSIONS ================= */
+  window.openMission = function () {
+    if (tasksSection) tasksSection.style.display = "none";
+    if (missionPage) missionPage.style.display = "block";
+  };
 
-  window.openLink = function(url){
-    window.open(url,"_blank");
-  }
+  window.closeMission = function () {
+    if (missionPage) missionPage.style.display = "none";
+    if (tasksSection) tasksSection.style.display = "block";
+  };
+
+  window.openLink = function (url) {
+    window.open(url, "_blank");
+  };
 
   /* ================= TAP UPGRADE ================= */
-
   if (upgradeTapBtn) {
     upgradeTapBtn.onclick = async () => {
-      const res = await fetch("/upgrade-tap", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegramId, initData })
-      });
+      try {
+        const res = await fetch("/upgrade-tap", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegramId, initData })
+        });
 
-      const data = await res.json();
-      if (data.success) loadUser();
-      else alert("Not enough coins");
+        const data = await res.json();
+        if (data.success) {
+          loadUser();
+        } else {
+          alert(data.message || "Not enough coins");
+        }
+      } catch (e) {
+        console.log("Upgrade tap error", e);
+      }
     };
   }
-  
-/* ================= DAILY COMBO CARD ================= */
-  const container = document.getElementById("combo");
+
+  /* ================= DAILY COMBO ================= */
+  const comboContainer = document.getElementById("combo");
+
   async function loadDailyCombo() {
     try {
       const res = await fetch("/daily-combo");
       const data = await res.json();
-      if (!container) return;
-      container.innerHTML = "";
-      data.combo.forEach(card => {
-        container.innerHTML += `<div class="combo-card">?</div>`;
+
+      if (!comboContainer) return;
+
+      comboContainer.innerHTML = "";
+      (data.combo || []).forEach(() => {
+        comboContainer.innerHTML += `<div class="combo-card">?</div>`;
       });
-    } catch (e) {}
+    } catch (e) {
+      console.log("Daily combo error", e);
+    }
   }
 
   /* ================= PROFIT UPGRADE ================= */
-
   if (upgradeProfitBtn) {
     upgradeProfitBtn.onclick = async () => {
-      const res = await fetch("/upgrade-profit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegramId, initData })
-      });
+      try {
+        const res = await fetch("/upgrade-profit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegramId, initData })
+        });
 
-      const data = await res.json();
-      if (data.success) loadUser();
-      else alert("Not enough coins");
+        const data = await res.json();
+        if (data.success) {
+          loadUser();
+        } else {
+          alert(data.message || "Not enough coins");
+        }
+      } catch (e) {
+        console.log("Upgrade profit error", e);
+      }
     };
   }
 
-  /* ================= OPEN BOOST ================= */
-
+  /* ================= BOOST OPEN/CLOSE ================= */
   const openBoostBtn = document.getElementById("openBoost");
   const backBtn = document.getElementById("backBtn");
 
   if (openBoostBtn) {
     openBoostBtn.onclick = () => {
-      earnSection.style.display = "none";
-      boostSection.style.display = "block";
+      if (earnSection) earnSection.style.display = "none";
+      if (boostSection) boostSection.style.display = "block";
     };
   }
 
   if (backBtn) {
     backBtn.onclick = () => {
-      boostSection.style.display = "none";
-      earnSection.style.display = "block";
+      if (boostSection) boostSection.style.display = "none";
+      if (earnSection) earnSection.style.display = "block";
     };
   }
 
-/* ================= NAVIGATION SHOW ================= */
- 
+  /* ================= NAVIGATION ================= */
   function hideAllSections() {
-    earnSection.style.display = "none";
-    document.getElementById("mineSection").style.display = "none";
-    tasksSection.style.display = "none";
-    accountSection.style.display = "none";
-    skillsSection.style.display = "none";
-    cashierSection.style.display = "none";
-    leagueSection.style.display = "none";
-    document.getElementById("missionPage").style.display = "none";
-    boostSection.style.display = "none";
-    
-    // Remove active class from all nav items
+    if (earnSection) earnSection.style.display = "none";
+    if (mineSection) mineSection.style.display = "none";
+    if (tasksSection) tasksSection.style.display = "none";
+    if (accountSection) accountSection.style.display = "none";
+    if (skillsSection) skillsSection.style.display = "none";
+    if (cashierSection) cashierSection.style.display = "none";
+    if (leagueSection) leagueSection.style.display = "none";
+    if (missionPage) missionPage.style.display = "none";
+    if (boostSection) boostSection.style.display = "none";
+
     document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
   }
 
-  document.getElementById("navEarn").onclick = () => {
-    hideAllSections();
-    earnSection.style.display = "block";
-    document.getElementById("navEarn").classList.add("active");
-  };
+  const navEarn = document.getElementById("navEarn");
+  const navMine = document.getElementById("navMine");
+  const navTasks = document.getElementById("navTasks");
+  const navAccount = document.getElementById("navAccount");
+  const navSkills = document.getElementById("navSkills");
+  const navCashier = document.getElementById("navCashier");
 
-  document.getElementById("navMine").onclick = () => {
-    hideAllSections();
-    document.getElementById("mineSection").style.display = "block";
-    document.getElementById("navMine").classList.add("active");
-  };
-
-  document.getElementById("navTasks").onclick = () => {
-    hideAllSections();
-    tasksSection.style.display = "block";
-    document.getElementById("navTasks").classList.add("active");
-  };
-
-  document.getElementById("navAccount").onclick = () => {
-    hideAllSections();
-    accountSection.style.display = "block";
-    document.getElementById("navAccount").classList.add("active");
-    loadAccount();
-  };
-
-  document.getElementById("navSkills").onclick = () => {
-    hideAllSections();
-    skillsSection.style.display = "block";
-    document.getElementById("navSkills").classList.add("active");
-  };
-
-  document.getElementById("navCashier").onclick = () => {
-    hideAllSections();
-    cashierSection.style.display = "block";
-    document.getElementById("navCashier").classList.add("active");
-  };
-
-  /* ================= LEAGUE OPEN ================= */
- 
-  const openLeagueBtn = document.getElementById("openLeague");
-
-if (openLeagueBtn) {
-  openLeagueBtn.onclick = async () => {
-    hideAllSections();
-    leagueSection.style.display = "block";
-
-    try {
-      const res = await fetch("/league/" + telegramId);
-      const data = await res.json();
-      document.getElementById("leagueName").innerText = data.league + " League";
-      
-      const topRes = await fetch("/top-league/" + data.league);
-      const players = await topRes.json();
-
-      const box = document.getElementById("leagueTop");
-      box.innerHTML = "";
-
-      players.forEach((p, i) => {
-        box.innerHTML += `
-          <div class="leaderboard-item">
-            <span class="rank">#${i+1}</span>
-            <span class="name">Player ${p.telegramId}</span>
-            <span class="coins">${Math.floor(p.coins)}</span>
-          </div>`;
-      });
-
-      const rankRes = await fetch("/rank/" + telegramId);
-const rankData = await rankRes.json();
-  
-      document.getElementById("myRankDisplay").innerText = "#" + (rankData.rank || "--");
-      document.getElementById("myCoinsDisplay").innerText = Math.floor(rankData.coins);
-    } catch (e) {
-      console.log("League error", e);
-    }
-  };
-}
-
-  if(document.getElementById("closeLeagueBtn")){
-    document.getElementById("closeLeagueBtn").onclick = ()=>{
+  if (navEarn) {
+    navEarn.onclick = () => {
       hideAllSections();
-      earnSection.style.display = "block";
-      document.getElementById("navEarn").classList.add("active");
-    }
+      if (earnSection) earnSection.style.display = "block";
+      navEarn.classList.add("active");
+    };
   }
 
-  /* ================= ACCOUNT SHOW ================= */
- 
+  if (navMine) {
+    navMine.onclick = () => {
+      hideAllSections();
+      if (mineSection) mineSection.style.display = "block";
+      navMine.classList.add("active");
+    };
+  }
+
+  if (navTasks) {
+    navTasks.onclick = () => {
+      hideAllSections();
+      if (tasksSection) tasksSection.style.display = "block";
+      navTasks.classList.add("active");
+    };
+  }
+
+  if (navAccount) {
+    navAccount.onclick = () => {
+      hideAllSections();
+      if (accountSection) accountSection.style.display = "block";
+      navAccount.classList.add("active");
+      loadAccount();
+    };
+  }
+
+  if (navSkills) {
+    navSkills.onclick = () => {
+      hideAllSections();
+      if (skillsSection) skillsSection.style.display = "block";
+      navSkills.classList.add("active");
+    };
+  }
+
+  if (navCashier) {
+    navCashier.onclick = () => {
+      hideAllSections();
+      if (cashierSection) cashierSection.style.display = "block";
+      navCashier.classList.add("active");
+    };
+  }
+
+  /* ================= LEAGUE OPEN ================= */
+  const openLeagueBtn = document.getElementById("openLeague");
+
+  if (openLeagueBtn) {
+    openLeagueBtn.onclick = async () => {
+      hideAllSections();
+      if (leagueSection) leagueSection.style.display = "block";
+
+      try {
+        const res = await fetch("/league/" + telegramId);
+        const data = await res.json();
+
+        const leagueNameEl = document.getElementById("leagueName");
+        if (leagueNameEl) leagueNameEl.innerText = (data.league || "Wood") + " League";
+
+        const topRes = await fetch("/top-league/" + (data.league || "Wood"));
+        const players = await topRes.json();
+
+        const box = document.getElementById("leagueTop");
+        if (box) {
+          box.innerHTML = "";
+
+          players.forEach((p, i) => {
+            box.innerHTML += `
+              <div class="leaderboard-item">
+                <span class="rank">#${i + 1}</span>
+                <span class="name">Player ${p.telegramId}</span>
+                <span class="coins">${Math.floor(p.coins || 0)}</span>
+              </div>
+            `;
+          });
+        }
+
+        const rankRes = await fetch("/rank/" + telegramId);
+        const rankData = await rankRes.json();
+
+        const myRankDisplay = document.getElementById("myRankDisplay");
+        const myCoinsDisplay = document.getElementById("myCoinsDisplay");
+
+        if (myRankDisplay) myRankDisplay.innerText = "#" + (rankData.rank || "--");
+        if (myCoinsDisplay) myCoinsDisplay.innerText = Math.floor(rankData.coins || 0);
+      } catch (e) {
+        console.log("League error", e);
+      }
+    };
+  }
+
+  const closeLeagueBtn = document.getElementById("closeLeagueBtn");
+  if (closeLeagueBtn) {
+    closeLeagueBtn.onclick = () => {
+      hideAllSections();
+      if (earnSection) earnSection.style.display = "block";
+      if (navEarn) navEarn.classList.add("active");
+    };
+  }
+
+  /* ================= ACCOUNT ================= */
   async function loadAccount() {
     try {
       const res = await fetch("/rank/" + telegramId);
       const data = await res.json();
 
-      document.getElementById("accountUserId").innerText = telegramId;
-      document.getElementById("accountUserName").innerText = user.first_name || "User";
-      document.getElementById("accountCoins").innerText = Math.floor(data.coins);
-      document.getElementById("accountReferrals").innerText = data.referrals || 0;
+      const accountUserIdEl = document.getElementById("accountUserId");
+      const accountUserNameEl = document.getElementById("accountUserName");
+      const accountCoinsEl = document.getElementById("accountCoins");
+      const accountReferralsEl = document.getElementById("accountReferrals");
 
-      // airdrop logic
-      const condCoins = data.coins >= 50000;
-      const condWallet = false; // Placeholder for wallet connection
+      if (accountUserIdEl) accountUserIdEl.innerText = telegramId;
+      if (accountUserNameEl) accountUserNameEl.innerText = user.first_name || "User";
+      if (accountCoinsEl) accountCoinsEl.innerText = Math.floor(data.coins || 0);
+      if (accountReferralsEl) accountReferralsEl.innerText = data.referrals || 0;
+
+      const condCoins = (data.coins || 0) >= 50000;
+      const condWallet = false;
       const condRefs = (data.referrals || 0) >= 5;
 
-      document.getElementById("condCoins").innerText = condCoins ? "✅" : "❌";
-      document.getElementById("condWallet").innerText = condWallet ? "✅" : "❌";
-      document.getElementById("condRefs").innerText = condRefs ? "✅" : "❌";
-
+      const condCoinsEl = document.getElementById("condCoins");
+      const condWalletEl = document.getElementById("condWallet");
+      const condRefsEl = document.getElementById("condRefs");
       const airdropStatus = document.getElementById("airdropStatus");
-      if (condCoins && condWallet && condRefs) {
-        airdropStatus.innerText = "Eligible";
-        airdropStatus.className = "eligibility-status eligible";
-      } else {
-        airdropStatus.innerText = "Not Eligible";
-        airdropStatus.className = "eligibility-status";
+
+      if (condCoinsEl) condCoinsEl.innerText = condCoins ? "✅" : "❌";
+      if (condWalletEl) condWalletEl.innerText = condWallet ? "✅" : "❌";
+      if (condRefsEl) condRefsEl.innerText = condRefs ? "✅" : "❌";
+
+      if (airdropStatus) {
+        if (condCoins && condWallet && condRefs) {
+          airdropStatus.innerText = "Eligible";
+          airdropStatus.className = "eligibility-status eligible";
+        } else {
+          airdropStatus.innerText = "Not Eligible";
+          airdropStatus.className = "eligibility-status";
+        }
       }
     } catch (e) {
       console.log("Account error", e);
     }
   }
- 
-// ================= DAILY REWARD =================
 
-const dailyPopup = document.getElementById("dailyRewardPopup");
-const dailyGrid = document.getElementById("dailyGrid");
-const claimDailyBtn = document.getElementById("claimDailyBtn");
-
-const rewards = [500,1000,2500,5000,15000,25000,100000,500000,1000000,5000000];
-
-// show popup
-setTimeout(() => {
-  if(dailyPopup && !localStorage.getItem("dailySeen")){
-    dailyPopup.style.display = "flex";
-    renderDaily(1); // default ya baad me dynamic kar sakte
-    localStorage.setItem("dailySeen", "true");
-  }
-}, 1000);
-
-// render
-function renderDaily(currentDay){
-  if(!dailyGrid) return;
-
-  dailyGrid.innerHTML = "";
-  rewards.forEach((r,i)=>{
-    dailyGrid.innerHTML += `
-      <div class="day-card ${i+1 === currentDay ? 'active-day':''}">
-        Day ${i+1}<br>${r}
-      </div>
-    `;
-  });
-}
-
-// claim
-const claimBtn = document.getElementById("claimDailyBtn");
-
-if (claimBtn) {
-  claimBtn.onclick = async () => {
-    try {
-      const res = await fetch("/daily-reward", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegramId, initData })
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        alert("💰 +" + data.reward);
-
-        // ✅ UI update
-        loadUser();
-
-        // ✅ GRID update
-        renderDaily(data.day);
-
-        // ✅ POPUP CLOSE (FIXED)
-        document.getElementById("dailyRewardPopup").style.display = "none";
-
-      } else {
-        alert(data.message || "Already claimed");
-      }
-
-    } catch (e) {
-      console.log("Claim error", e);
+  /* ================= DAILY REWARD ================= */
+  setTimeout(() => {
+    if (dailyPopup && !localStorage.getItem("dailySeen")) {
+      dailyPopup.style.display = "flex";
+      renderDaily(1);
+      localStorage.setItem("dailySeen", "true");
     }
-  };
-}
- 
-  /* ================= +1 Animation ================= */
+  }, 1000);
 
+  function renderDaily(currentDay) {
+    if (!dailyGrid) return;
+
+    dailyGrid.innerHTML = "";
+    rewards.forEach((r, i) => {
+      dailyGrid.innerHTML += `
+        <div class="day-card ${i + 1 === currentDay ? "active-day" : ""}">
+          Day ${i + 1}<br>${r}
+        </div>
+      `;
+    });
+  }
+
+  if (claimDailyBtn) {
+    claimDailyBtn.onclick = async () => {
+      try {
+        const res = await fetch("/daily-reward", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegramId, initData })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          alert("💰 +" + data.reward);
+          loadUser();
+          renderDaily(data.day);
+          if (dailyPopup) dailyPopup.style.display = "none";
+        } else {
+          alert(data.message || "Already claimed");
+        }
+      } catch (e) {
+        console.log("Claim error", e);
+      }
+    };
+  }
+
+  /* ================= +1 ANIMATION ================= */
   function showPlusOne(amount) {
+    const wrapper = document.querySelector(".coin-wrapper");
+    if (!wrapper) return;
+
     const plus = document.createElement("div");
     plus.className = "plus-one";
     plus.innerText = "+" + amount;
-    document.querySelector(".coin-wrapper").appendChild(plus);
+    wrapper.appendChild(plus);
+
     setTimeout(() => plus.remove(), 800);
   }
 
   /* ================= VERIFY TASK ================= */
+  window.verifyTask = async function () {
+    try {
+      const res = await fetch("/complete-task", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          telegramId,
+          initData,
+          taskId: "telegram_join"
+        })
+      });
 
-  window.verifyTask = async function(){
-    const res = await fetch("/complete-task",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json"},
-      body:JSON.stringify({
-        telegramId: telegramId,
-        initData: initData,
-        taskId: "telegram_join"
-      })
-    });
-
-    const data = await res.json();
-    if(data.success){
-      alert("Task completed +" + data.reward + " coins");
-      loadUser();
-    }else{
-      alert(data.message);
+      const data = await res.json();
+      if (data.success) {
+        alert("Task completed +" + data.reward + " coins");
+        loadUser();
+      } else {
+        alert(data.message || "Task failed");
+      }
+    } catch (e) {
+      console.log("Verify task error", e);
     }
-  }
-
+  };
 });
