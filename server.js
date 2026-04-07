@@ -73,7 +73,7 @@ const userSchema = new mongoose.Schema({
   rewardClaimed: { type: Boolean, default: false },
   streakDay: { type: Number, default: 0 }, // current day (1–10)
 lastClaim: { type: Date, default: null },
-totalClaims: { type: Number, default: 0 };
+totalClaims: { type: Number, default: 0 }
 
 const User = mongoose.model("User", userSchema);
 
