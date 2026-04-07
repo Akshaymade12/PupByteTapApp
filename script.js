@@ -384,22 +384,26 @@ const rankData = await rankRes.json();
     }
   }
  
-/* ================= DAILY STREAK ================= */
- 
+// ================= DAILY REWARD =================
+
 const dailyPopup = document.getElementById("dailyPopup");
 const dailyGrid = document.getElementById("dailyGrid");
 const claimDailyBtn = document.getElementById("claimDailyBtn");
 
 const rewards = [500,1000,2500,5000,15000,25000,100000,500000,1000000,5000000];
 
-// 🔥 show popup on load
+// show popup
 setTimeout(() => {
-  dailyPopup.style.display = "flex";
-  renderDaily(1); // temp
+  if(dailyPopup){
+    dailyPopup.style.display = "flex";
+    renderDaily(1);
+  }
 }, 1000);
 
-// 🎯 render UI
+// render
 function renderDaily(currentDay){
+  if(!dailyGrid) return;
+
   dailyGrid.innerHTML = "";
   rewards.forEach((r,i)=>{
     dailyGrid.innerHTML += `
@@ -410,24 +414,31 @@ function renderDaily(currentDay){
   });
 }
 
-// 🔥 claim
-claimDailyBtn.onclick = async ()=>{
-  const res = await fetch("/daily-reward",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json"},
-    body: JSON.stringify({ telegramId })
-  });
+// claim
+if(claimDailyBtn){
+  claimDailyBtn.onclick = async ()=>{
+    try{
+      const res = await fetch("/daily-reward",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json"},
+        body: JSON.stringify({ telegramId })
+      });
 
-  const data = await res.json();
+      const data = await res.json();
 
-  if(data.success){
-    alert("🔥 +" + data.reward);
-    coinsEl.innerText = Math.floor(data.coins);
-    renderDaily(data.day);
-  }else{
-    alert(data.message);
-  }
-};
+      if(data.success){
+        alert("🔥 +" + data.reward);
+        coinsEl.innerText = Math.floor(data.coins);
+        renderDaily(data.day);
+      }else{
+        alert(data.message);
+      }
+
+    }catch(err){
+      console.log("Daily error:", err);
+    }
+  };
+}
  
   /* ================= +1 Animation ================= */
 
