@@ -249,16 +249,17 @@ app.post("/load", async (req, res) => {
       streak: user.streakDay,
       totalClaims: user.totalClaims,
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
-nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
+      nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
 
-btcPairs: {
-  level: user.btcPairs?.level || 1,
-  upgrading: user.btcPairs?.upgrading || false,
-  currentProfit: getBtcPairsProfit(user.btcPairs?.level || 1),
-  nextCost: (user.btcPairs?.level || 1) >= 20 ? 0 : getBtcPairsCost(user.btcPairs?.level || 1),
-  upgradeTime: (user.btcPairs?.level || 1) >= 20 ? 0 : getBtcPairsUpgradeTime(user.btcPairs?.level || 1),
-  upgradeEndTime: user.btcPairs?.upgradeEndTime || null
-}
+      btcPairs: {
+        level: user.btcPairs?.level || 1,
+        upgrading: user.btcPairs?.upgrading || false,
+        currentProfit: getBtcPairsProfit(user.btcPairs?.level || 1),
+        nextCost: (user.btcPairs?.level || 1) >= 20 ? 0 : getBtcPairsCost(user.btcPairs?.level || 1),
+        upgradeTime: (user.btcPairs?.level || 1) >= 20 ? 0 : getBtcPairsUpgradeTime(user.btcPairs?.level || 1),
+        upgradeEndTime: user.btcPairs?.upgradeEndTime || null
+      }
+    });
   } catch (e) {
     console.log("/load error", e);
     res.json({ success: false });
