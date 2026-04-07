@@ -547,6 +547,50 @@ window.claimRefReward = async function(rewardKey) {
 /* ================= DAILY COMBO ================= */
 const comboContainer = document.getElementById("combo");
 
+/* ================= MARKET CARD HELPERS ================= */
+
+function getCardProfit(level) {
+  return 10 * Math.pow(2, level - 1);
+}
+
+function getCardCost(level) {
+  return 500 * Math.pow(4, level - 1);
+}
+
+function renderMarketSection() {
+  if (!mineTabContent) return;
+
+  const level = 1;
+  const profit = getCardProfit(level);
+  const cost = getCardCost(level);
+
+  mineTabContent.innerHTML = `
+    <div class="mine-cards-grid">
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="models/btcpairs.png" alt="BTC Pairs" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">BTC Pairs</h3>
+              <div class="mine-card-subtitle">Bitcoin trading market</div>
+            </div>
+          </div>
+
+          <div class="mine-card-level">lvl ${level}</div>
+        </div>
+
+        <div class="mine-card-profit-label">Profit per hour</div>
+        <div class="mine-card-profit-value">+${profit}</div>
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${cost}</span></div>
+          <button class="mine-card-upgrade-btn">Upgrade</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+  
 /* ================= MINE TABS ================= */
 
 const mineTabMarket = document.getElementById("mineTabMarket");
@@ -564,9 +608,7 @@ function switchMineTab(tabName) {
 
   if (tabName === "market") {
     if (mineTabMarket) mineTabMarket.classList.add("active");
-    mineTabContent.innerHTML = `
-      <div class="mine-placeholder-card">Market section</div>
-    `;
+    renderMarketSection();
   }
 
   if (tabName === "team") {
