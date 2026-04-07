@@ -90,11 +90,13 @@ const copyRefBtn = document.getElementById("copyRefBtn");
       if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
       if (accountReferrals) accountReferrals.innerText = data.referrals || 0;
 
+      console.log("Telegram ID:", telegramId);
+      
       // ✅ Referral link set karo
 if (accountRefLink) {
-  accountRefLink.value = `https://t.me/PupByteTapBot?start=${telegramId}`;
+  accountRefLink.value = `https://t.me/PupByteTapBot?start=${String(telegramId)}`;
 }
-
+      
 // ✅ Copy button
 if (copyRefBtn) {
   copyRefBtn.onclick = async () => {
