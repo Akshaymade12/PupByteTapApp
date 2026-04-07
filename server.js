@@ -432,11 +432,11 @@ app.get("/task-status/:telegramId", async (req, res) => {
     }
 
     const leagueRewards = LEAGUE_REWARDS.map(item => ({
-      league: item.league,
-      reward: item.reward,
-      claimed: user.leagueRewardsClaimed.includes(item.league),
-      unlocked: LEAGUES.findIndex(x => x.name === user.league) >= LEAGUES.findIndex(x => x.name === item.league)
-    }));
+  league: item.league,
+  reward: item.reward,
+  claimed: user.leagueRewardsClaimed.includes(item.league),
+  unlocked: LEAGUES.findIndex(x => x.name === user.league) > LEAGUES.findIndex(x => x.name === item.league)
+}));
 
     const refRewards = REF_REWARDS.map(item => ({
       refs: item.refs,
@@ -539,33 +539,33 @@ app.post("/claim-league-reward", async (req, res) => {
 
 /* ================= CLAIM REF REWARD ================= */
 
-app.post("/claim-ref-reward", async (req, res) => {
+app.post("/claim-league-reward", async (req, res) => {
   try {
-    const { telegramId, rewardKey, initData } = req.body;
+    const { telegramId, leagueName, initData } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
     if (!user) {
       return res.json({ success: false, message: "User not found" });
     }
 
-    if (!user.refRewardsClaimed) {
-      user.refRewardsClaimed = [];
-    }
-
-    const rewardItem = REF_REWARDS.find(x => x.key === rewardKey);
+    const rewardItem = LEAGUE_REWARDS.find(x => x.league === leagueName);
     if (!rewardItem) {
-      return res.json({ success: false, message: "Invalid reward" });
+      return res.json({ success: false, message: "Invalid league" });
     }
 
-    if (user.referrals < rewardItem.refs) {
-      return res.json({ success: false, message: "Referral target not completed" });
+    const currentIndex = LEAGUES.findIndex(x => x.name === user.league);
+    const targetIndex = LEAGUES.findIndex(x => x.name === leagueName);
+
+    // Reward tabhi mile jab user next league me pahunch chuka ho
+    if (currentIndex <= targetIndex) {
+      return res.json({ success: false, message: "League not completed yet" });
     }
 
-    if (user.refRewardsClaimed.includes(rewardKey)) {
+    if (user.leagueRewardsClaimed.includes(leagueName)) {
       return res.json({ success: false, message: "Already claimed" });
     }
 
-    user.refRewardsClaimed.push(rewardKey);
+    user.leagueRewardsClaimed.push(leagueName);
     user.coins += rewardItem.reward;
     user.league = getLeague(user.coins);
 
@@ -577,7 +577,7 @@ app.post("/claim-ref-reward", async (req, res) => {
       coins: user.coins
     });
   } catch (e) {
-    console.log("claim-ref-reward error", e);
+    console.log("claim-league-reward error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
