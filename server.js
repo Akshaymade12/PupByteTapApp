@@ -578,33 +578,33 @@ app.post("/claim-league-reward", async (req, res) => {
 
 /* ================= CLAIM REF REWARD ================= */
 
-app.post("/claim-league-reward", async (req, res) => {
+app.post("/claim-ref-reward", async (req, res) => {
   try {
-    const { telegramId, leagueName, initData } = req.body;
+    const { telegramId, rewardKey, initData } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
     if (!user) {
       return res.json({ success: false, message: "User not found" });
     }
 
-    const rewardItem = LEAGUE_REWARDS.find(x => x.league === leagueName);
+    if (!user.refRewardsClaimed) {
+      user.refRewardsClaimed = [];
+    }
+
+    const rewardItem = REF_REWARDS.find(x => x.key === rewardKey);
     if (!rewardItem) {
-      return res.json({ success: false, message: "Invalid league" });
+      return res.json({ success: false, message: "Invalid reward" });
     }
 
-    const currentIndex = LEAGUES.findIndex(x => x.name === user.league);
-    const targetIndex = LEAGUES.findIndex(x => x.name === leagueName);
-
-    // Reward tabhi mile jab user next league me pahunch chuka ho
-    if (currentIndex <= targetIndex) {
-      return res.json({ success: false, message: "League not completed yet" });
+    if (user.referrals < rewardItem.refs) {
+      return res.json({ success: false, message: "Referral target not completed" });
     }
 
-    if (user.leagueRewardsClaimed.includes(leagueName)) {
+    if (user.refRewardsClaimed.includes(rewardKey)) {
       return res.json({ success: false, message: "Already claimed" });
     }
 
-    user.leagueRewardsClaimed.push(leagueName);
+    user.refRewardsClaimed.push(rewardKey);
     user.coins += rewardItem.reward;
     user.league = getLeague(user.coins);
 
@@ -616,7 +616,7 @@ app.post("/claim-league-reward", async (req, res) => {
       coins: user.coins
     });
   } catch (e) {
-    console.log("claim-league-reward error", e);
+    console.log("claim-ref-reward error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
