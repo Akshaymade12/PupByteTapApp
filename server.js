@@ -60,6 +60,7 @@ const userSchema = new mongoose.Schema({
   referrals: { type: Number, default: 0 },
   completedTasks: { type: [String], default: [] },
   leagueRewardsClaimed: { type: [String], default: [] },
+  refRewardsClaimed: { type: [String], default: [] },
   league: { type: String, default: "Wood" },
   lastActive: { type: Date, default: Date.now },
   lastDailyClaim: { type: Date, default: null },
@@ -387,6 +388,185 @@ app.post("/complete-task", async (req, res) => {
     res.json({ success: true, reward: 1000 });
   } catch (e) {
     console.log("/complete-task error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= TASK REWARDS DATA ================= */
+
+const LEAGUE_REWARDS = [
+  { league: "Wood", reward: 1000 },
+  { league: "Bronze", reward: 10000 },
+  { league: "Silver", reward: 20000 },
+  { league: "Gold", reward: 50000 },
+  { league: "Platinum", reward: 100000 },
+  { league: "Diamond", reward: 200000 },
+  { league: "Master", reward: 300000 },
+  { league: "Elite", reward: 500000 },
+  { league: "Champion", reward: 700000 },
+  { league: "Legend", reward: 1000000 },
+  { league: "Grandmaster", reward: 1500000 },
+  { league: "Immortal", reward: 2500000 }
+];
+
+const REF_REWARDS = [
+  { refs: 2, reward: 2000, key: "ref_2" },
+  { refs: 5, reward: 5000, key: "ref_5" },
+  { refs: 10, reward: 10000, key: "ref_10" }
+];
+
+/* ================= TASK STATUS ================= */
+
+app.get("/task-status/:telegramId", async (req, res) => {
+  try {
+    const user = await User.findOne({ telegramId: req.params.telegramId });
+    if (!user) {
+      return res.json({
+        success: false,
+        specialDone: false,
+        leagueRewards: [],
+        refRewards: [],
+        referrals: 0,
+        league: "Wood"
+      });
+    }
+
+    const leagueRewards = LEAGUE_REWARDS.map(item => ({
+      league: item.league,
+      reward: item.reward,
+      claimed: user.leagueRewardsClaimed.includes(item.league),
+      unlocked: LEAGUES.findIndex(x => x.name === user.league) >= LEAGUES.findIndex(x => x.name === item.league)
+    }));
+
+    const refRewards = REF_REWARDS.map(item => ({
+      refs: item.refs,
+      reward: item.reward,
+      key: item.key,
+      claimed: (user.refRewardsClaimed || []).includes(item.key),
+      unlocked: user.referrals >= item.refs
+    }));
+
+    res.json({
+      success: true,
+      specialDone: user.completedTasks.includes("special_socials"),
+      leagueRewards,
+      refRewards,
+      referrals: user.referrals,
+      league: user.league
+    });
+  } catch (e) {
+    res.json({ success: false });
+  }
+});
+
+/* ================= CLAIM SPECIAL TASK ================= */
+
+app.post("/claim-special-task", async (req, res) => {
+  try {
+    const { telegramId } = req.body;
+
+    const user = await getValidUser(telegramId);
+    if (!user) return res.json({ success: false, message: "User not found" });
+
+    const taskId = "special_socials";
+
+    if (user.completedTasks.includes(taskId)) {
+      return res.json({ success: false, message: "Already claimed" });
+    }
+
+    user.completedTasks.push(taskId);
+    user.coins += 5000;
+    user.league = getLeague(user.coins);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      reward: 5000,
+      coins: user.coins
+    });
+  } catch (e) {
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= CLAIM LEAGUE REWARD ================= */
+
+app.post("/claim-league-reward", async (req, res) => {
+  try {
+    const { telegramId, leagueName } = req.body;
+
+    const user = await getValidUser(telegramId);
+    if (!user) return res.json({ success: false, message: "User not found" });
+
+    const rewardItem = LEAGUE_REWARDS.find(x => x.league === leagueName);
+    if (!rewardItem) {
+      return res.json({ success: false, message: "Invalid league" });
+    }
+
+    const currentIndex = LEAGUES.findIndex(x => x.name === user.league);
+    const targetIndex = LEAGUES.findIndex(x => x.name === leagueName);
+
+    if (currentIndex < targetIndex) {
+      return res.json({ success: false, message: "League not completed yet" });
+    }
+
+    if (user.leagueRewardsClaimed.includes(leagueName)) {
+      return res.json({ success: false, message: "Already claimed" });
+    }
+
+    user.leagueRewardsClaimed.push(leagueName);
+    user.coins += rewardItem.reward;
+    user.league = getLeague(user.coins);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      reward: rewardItem.reward,
+      coins: user.coins
+    });
+  } catch (e) {
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= CLAIM REF REWARD ================= */
+
+app.post("/claim-ref-reward", async (req, res) => {
+  try {
+    const { telegramId, rewardKey } = req.body;
+
+    const user = await getValidUser(telegramId);
+    if (!user) return res.json({ success: false, message: "User not found" });
+
+    if (!user.refRewardsClaimed) user.refRewardsClaimed = [];
+
+    const rewardItem = REF_REWARDS.find(x => x.key === rewardKey);
+    if (!rewardItem) {
+      return res.json({ success: false, message: "Invalid reward" });
+    }
+
+    if (user.referrals < rewardItem.refs) {
+      return res.json({ success: false, message: "Referral target not completed" });
+    }
+
+    if (user.refRewardsClaimed.includes(rewardKey)) {
+      return res.json({ success: false, message: "Already claimed" });
+    }
+
+    user.refRewardsClaimed.push(rewardKey);
+    user.coins += rewardItem.reward;
+    user.league = getLeague(user.coins);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      reward: rewardItem.reward,
+      coins: user.coins
+    });
+  } catch (e) {
     res.json({ success: false, message: "Server error" });
   }
 });
