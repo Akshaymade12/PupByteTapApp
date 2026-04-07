@@ -193,6 +193,8 @@ app.post("/load", async (req, res) => {
     tapPower: user.tapPower,
     league: user.league,
     referrals: user.referrals,
+    streak: user.streakDay,
+  totalClaims: user.totalClaims,
     nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
     nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
   });
