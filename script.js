@@ -86,7 +86,8 @@ if (!data || data.success === false) {
      if (streakCount) streakCount.innerText = data.streak || 0;
      if (document.getElementById("totalClaims")) {
   document.getElementById("totalClaims").innerText = data.totalClaims || 0;
-
+     }
+     
       if (accountRefLink) {
         accountRefLink.value = `https://t.me/PupByteTapBot?start=${telegramId}`;
       }
@@ -332,7 +333,6 @@ if (openLeagueBtn) {
 
       const rankRes = await fetch("/rank/" + telegramId);
 const rankData = await rankRes.json();
-  method: "POST",
   
       document.getElementById("myRankDisplay").innerText = "#" + (rankData.rank || "--");
       document.getElementById("myCoinsDisplay").innerText = Math.floor(rankData.coins);
@@ -396,7 +396,7 @@ const rewards = [500,1000,2500,5000,15000,25000,100000,500000,1000000,5000000];
 setTimeout(() => {
   if(dailyPopup){
     dailyPopup.style.display = "flex";
-    renderDaily(1);
+    renderDaily(data.day);
   }
 }, 1000);
 
