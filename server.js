@@ -66,11 +66,17 @@ const userSchema = new mongoose.Schema({
   lastDailyClaim: { type: Date, default: null },
   lastSpin: { type: Date, default: null },
   lastEnergyUpdate: { type: Number, default: Date.now },
-  rewardClaimed: { type: Boolean, default: false },
-  streakDay: { type: Number, default: 0 },
-  lastClaim: { type: Date, default: null },
-  totalClaims: { type: Number, default: 0 }
-});
+rewardClaimed: { type: Boolean, default: false },
+streakDay: { type: Number, default: 0 },
+lastClaim: { type: Date, default: null },
+totalClaims: { type: Number, default: 0 },
+
+btcPairs: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+}
 
 const User = mongoose.model("User", userSchema);
 
@@ -142,6 +148,55 @@ function getLeague(coins) {
   return l ? l.name : "Wood";
 }
 
+/* ================= BTC PAIRS HELPERS ================= */
+
+function getBtcPairsProfit(level) {
+  return 10 * Math.pow(2, level - 1);
+}
+
+function getBtcPairsCost(level) {
+  return 500 * Math.pow(4, level - 1);
+}
+
+function getBtcPairsUpgradeTime(level) {
+  const times = [
+    30, 45, 60, 120, 180,
+    300, 420, 600, 900, 1200,
+    1800, 2700, 3600, 5400, 7200,
+    10800, 18000, 25200, 36000, 0
+  ];
+
+  return times[level - 1] || 0;
+}
+
+async function finalizeBtcPairsUpgrade(user) {
+  if (!user.btcPairs) {
+    user.btcPairs = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.btcPairs.upgrading &&
+    user.btcPairs.upgradeEndTime &&
+    new Date(user.btcPairs.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.btcPairs.level < 20) {
+      user.btcPairs.level += 1;
+      user.profitPerHour += getBtcPairsProfit(user.btcPairs.level);
+    }
+
+    user.btcPairs.upgrading = false;
+    user.btcPairs.upgradeStartTime = null;
+    user.btcPairs.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 /* ================= ENERGY ================= */
 function rechargeEnergy(user) {
   const now = Date.now();
@@ -179,6 +234,7 @@ app.post("/load", async (req, res) => {
     if (!user) return res.json({ success: false, message: "Invalid user" });
 
     await applyOfflineMining(user);
+    await finalizeBtcPairsUpgrade(user);
 
     return res.json({
       success: true,
@@ -192,8 +248,16 @@ app.post("/load", async (req, res) => {
       streak: user.streakDay,
       totalClaims: user.totalClaims,
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
-      nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel))
-    });
+nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
+
+btcPairs: {
+  level: user.btcPairs?.level || 1,
+  upgrading: user.btcPairs?.upgrading || false,
+  currentProfit: getBtcPairsProfit(user.btcPairs?.level || 1),
+  nextCost: (user.btcPairs?.level || 1) >= 20 ? 0 : getBtcPairsCost(user.btcPairs?.level || 1),
+  upgradeTime: (user.btcPairs?.level || 1) >= 20 ? 0 : getBtcPairsUpgradeTime(user.btcPairs?.level || 1),
+  upgradeEndTime: user.btcPairs?.upgradeEndTime || null
+}
   } catch (e) {
     console.log("/load error", e);
     res.json({ success: false });
@@ -244,6 +308,7 @@ app.post("/upgrade-tap", async (req, res) => {
     const { telegramId, initData } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
+    await finalizeBtcPairsUpgrade(user);
     if (!user) return res.json({ success: false, message: "Invalid user" });
 
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
@@ -281,6 +346,7 @@ app.post("/upgrade-profit", async (req, res) => {
     const { telegramId, initData } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
+    await finalizeBtcPairsUpgrade(user);
     if (!user) return res.json({ success: false, message: "Invalid user" });
 
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
@@ -303,6 +369,70 @@ app.post("/upgrade-profit", async (req, res) => {
     });
   } catch (e) {
     console.log("/upgrade-profit error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE BTC PAIRS ================= */
+
+app.post("/upgrade-btc-pairs", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.btcPairs) {
+      user.btcPairs = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeBtcPairsUpgrade(user);
+
+    const level = user.btcPairs.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.btcPairs.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getBtcPairsCost(level);
+    const upgradeTime = getBtcPairsUpgradeTime(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.btcPairs.upgrading = true;
+    user.btcPairs.upgradeStartTime = new Date();
+    user.btcPairs.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      btcPairs: {
+        level: user.btcPairs.level,
+        upgrading: true,
+        currentProfit: getBtcPairsProfit(user.btcPairs.level),
+        nextCost: getBtcPairsCost(user.btcPairs.level),
+        upgradeTime,
+        upgradeEndTime: user.btcPairs.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-btc-pairs error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
