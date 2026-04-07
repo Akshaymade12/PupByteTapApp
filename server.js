@@ -459,15 +459,54 @@ app.get("/task-status/:telegramId", async (req, res) => {
   }
 });
 
+/* ================= SPECIAL TASK STATUS ================= */
+
+app.get("/special-task-status/:telegramId", async (req, res) => {
+  try {
+    const user = await User.findOne({ telegramId: String(req.params.telegramId) });
+
+    if (!user) {
+      return res.json({
+        success: false,
+        claimed: false
+      });
+    }
+
+    return res.json({
+      success: true,
+      claimed: user.completedTasks.includes("special_socials")
+    });
+  } catch (e) {
+    console.log("special-task-status error", e);
+    res.json({ success: false, claimed: false });
+  }
+});
+
 /* ================= CLAIM SPECIAL TASK ================= */
 
 app.post("/claim-special-task", async (req, res) => {
   try {
-    const { telegramId, initData } = req.body;
+    const { telegramId, initData, clickedTasks } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
     if (!user) {
       return res.json({ success: false, message: "User not found" });
+    }
+
+    const requiredTasks = [
+      "telegram_channel",
+      "instagram",
+      "x",
+      "discord",
+      "telegram_group"
+    ];
+
+    const done = Array.isArray(clickedTasks) ? clickedTasks : [];
+
+    const allDone = requiredTasks.every(task => done.includes(task));
+
+    if (!allDone) {
+      return res.json({ success: false, message: "Complete all social tasks first" });
     }
 
     const taskId = "special_socials";
