@@ -560,33 +560,67 @@ function getCardCost(level) {
 function renderMarketSection() {
   if (!mineTabContent) return;
 
-  const level = 1;
-  const profit = getCardProfit(level);
-  const cost = getCardCost(level);
+  const cards = [
+    {
+      id: "btc_pairs",
+      name: "BTC Pairs",
+      subtitle: "Bitcoin market",
+      icon: "models/btcpairs.png",
+      level: 1
+    },
+    {
+      id: "eth_pairs",
+      name: "ETH Pairs",
+      subtitle: "Ethereum market",
+      icon: "models/btcpairs.png",
+      level: 1
+    },
+    {
+      id: "fan_tokens",
+      name: "Fan Tokens",
+      subtitle: "Sports trading",
+      icon: "models/btcpairs.png",
+      level: 1
+    },
+    {
+      id: "top10_cmc",
+      name: "Top 10 CMC",
+      subtitle: "Top coin basket",
+      icon: "models/btcpairs.png",
+      level: 1
+    }
+  ];
 
   mineTabContent.innerHTML = `
     <div class="mine-cards-grid">
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/btcpairs.png" alt="BTC Pairs" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">BTC Pairs</h3>
-              <div class="mine-card-subtitle">Bitcoin trading market</div>
+      ${cards.map(card => {
+        const profit = getCardProfit(card.level);
+        const cost = getCardCost(card.level);
+
+        return `
+          <div class="mine-card-box">
+            <div class="mine-card-top">
+              <div class="mine-card-left">
+                <img src="${card.icon}" alt="${card.name}" class="mine-card-icon">
+                <div class="mine-card-title-wrap">
+                  <h3 class="mine-card-title">${card.name}</h3>
+                  <div class="mine-card-subtitle">${card.subtitle}</div>
+                </div>
+              </div>
+
+              <div class="mine-card-level">lvl ${card.level}</div>
+            </div>
+
+            <div class="mine-card-profit-label">Profit per hour</div>
+            <div class="mine-card-profit-value">+${profit}</div>
+
+            <div class="mine-card-bottom">
+              <div class="mine-card-cost">🪙 <span>${cost}</span></div>
+              <button class="mine-card-upgrade-btn">Upgrade</button>
             </div>
           </div>
-
-          <div class="mine-card-level">lvl ${level}</div>
-        </div>
-
-        <div class="mine-card-profit-label">Profit per hour</div>
-        <div class="mine-card-profit-value">+${profit}</div>
-
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${cost}</span></div>
-          <button class="mine-card-upgrade-btn">Upgrade</button>
-        </div>
-      </div>
+        `;
+      }).join("")}
     </div>
   `;
 }
