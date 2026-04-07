@@ -286,3 +286,95 @@ button:active{
 .active-day {
   border: 2px solid #00ff88;
 }
+
+.task-tabs-wrap{
+  margin: 14px 0 18px;
+}
+
+.task-tabs{
+  display:flex;
+  gap:10px;
+  background: rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:20px;
+  padding:8px;
+}
+
+.task-tab{
+  flex:1;
+  border:none;
+  outline:none;
+  padding:14px 10px;
+  border-radius:16px;
+  background: transparent;
+  color:#fff;
+  font-size:16px;
+  font-weight:700;
+}
+
+.task-tab.active{
+  background: rgba(255,255,255,0.10);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.task-tab-content{
+  margin-top: 16px;
+}
+
+.task-card2{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:16px;
+  margin-bottom:14px;
+  border-radius:20px;
+  background: rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.06);
+}
+
+.task-left{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.task-left h3{
+  margin:0 0 6px;
+  color:#fff;
+  font-size:18px;
+}
+
+.task-left p{
+  margin:0;
+  color:#ddd;
+  font-size:15px;
+}
+
+.task-emoji{
+  font-size:38px;
+  width:52px;
+  text-align:center;
+}
+
+.task-go-btn,
+.task-claim-btn{
+  border:none;
+  outline:none;
+  padding:12px 18px;
+  border-radius:14px;
+  color:#fff;
+  font-weight:700;
+  font-size:15px;
+  background: linear-gradient(90deg, #27d7ff, #d600ff);
+}
+
+.task-claim-btn:disabled{
+  opacity:0.55;
+}
+
+.reward-done{
+  color:#35ff90;
+  font-weight:700;
+  font-size:14px;
+}
