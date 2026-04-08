@@ -90,6 +90,13 @@ btcPairs: {
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null },
   members: { type: Number, default: 0 }
+  },
+
+  marketing: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
   }
 });
 
@@ -316,6 +323,116 @@ async function finalizeMyTeamUpgrade(user) {
   }
 }
 
+/* ================= UPGRADE MARKETING ================= */
+
+app.post("/upgrade-marketing", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.marketing) {
+      user.marketing = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeMarketingUpgrade(user);
+
+    const level = user.marketing.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.marketing.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getMarketingCost(level);
+    const upgradeTime = getMarketingUpgradeTime(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.marketing.upgrading = true;
+    user.marketing.upgradeStartTime = new Date();
+    user.marketing.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      marketing: {
+        level: user.marketing.level,
+        upgrading: true,
+        currentBoost: getMarketingBoost(user.marketing.level),
+        nextCost: getMarketingCost(user.marketing.level),
+        upgradeTime,
+        upgradeEndTime: user.marketing.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-marketing error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= MARKETING SECTION ================= */
+
+function getMarketingBoost(level) {
+  return 2 * level;
+}
+
+function getMarketingCost(level) {
+  return 500 * Math.pow(4, level - 1);
+}
+
+function getMarketingUpgradeTime(level) {
+  return 30 * level;
+}
+
+function getMarketingExtraProfit(baseProfit, level) {
+  const boostPercent = getMarketingBoost(level);
+  return Math.floor(baseProfit * (boostPercent / 100));
+}
+
+async function finalizeMarketingUpgrade(user) {
+  if (!user.marketing) {
+    user.marketing = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.marketing.upgrading &&
+    user.marketing.upgradeEndTime &&
+    new Date(user.marketing.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.marketing.level < 20) {
+      user.marketing.level += 1;
+    }
+
+    user.marketing.upgrading = false;
+    user.marketing.upgradeStartTime = null;
+    user.marketing.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 /* ================= ENERGY ================= */
 function rechargeEnergy(user) {
   const now = Date.now();
@@ -356,6 +473,7 @@ app.post("/load", async (req, res) => {
     await finalizeBtcPairsUpgrade(user);
     await finalizeEthPairsUpgrade(user);
     await finalizeMyTeamUpgrade(user);
+    await finalizeMarketingUpgrade(user);
     
     return res.json({
       success: true,
@@ -397,6 +515,15 @@ app.post("/load", async (req, res) => {
   upgradeTime: (user.myTeam?.level || 1) >= 20 ? 0 : getMyTeamUpgradeTime(user.myTeam?.level || 1),
   upgradeEndTime: user.myTeam?.upgradeEndTime || null,
   members: user.referrals || 0
+      },
+
+      marketing: {
+  level: user.marketing?.level || 1,
+  upgrading: user.marketing?.upgrading || false,
+  currentBoost: getMarketingBoost(user.marketing?.level || 1),
+  nextCost: (user.marketing?.level || 1) >= 20 ? 0 : getMarketingCost(user.marketing?.level || 1),
+  upgradeTime: (user.marketing?.level || 1) >= 20 ? 0 : getMarketingUpgradeTime(user.marketing?.level || 1),
+  upgradeEndTime: user.marketing?.upgradeEndTime || null
       }
     });
   } catch (e) {
@@ -454,6 +581,7 @@ if (!user) return res.json({ success: false, message: "Invalid user" });
 await finalizeBtcPairsUpgrade(user);
 await finalizeEthPairsUpgrade(user);
 await finalizeMyTeamUpgrade(user);
+await finalizeMarketingUpgrade(user);
     
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
@@ -495,6 +623,7 @@ if (!user) return res.json({ success: false, message: "Invalid user" });
 await finalizeBtcPairsUpgrade(user);
 await finalizeEthPairsUpgrade(user);
 await finalizeMyTeamUpgrade(user);
+await finalizeMarketingUpgrade(user);
     
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
