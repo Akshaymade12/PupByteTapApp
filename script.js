@@ -54,7 +54,16 @@ const copyRefBtn = document.getElementById("copyRefBtn");
 
 let appState = {
   btcPairs: null,
-  ethPairs: null
+  ethPairs: null,
+  myTeam: {
+    level: 1,
+    upgrading: false,
+    currentBonus: 2,
+    nextCost: 1000,
+    upgradeTime: 60,
+    upgradeEndTime: null,
+    members: 0
+  }
 };
 
 let btcPairsTimerInterval = null;
@@ -385,6 +394,85 @@ window.claimSpecialTask = async function() {
     console.log("Claim special task error", e);
   }
 };
+
+/* ================= Team Section ================= */
+  
+function renderTeamSection() {
+  if (!mineTabContent) return;
+
+  const team = appState.myTeam || {
+    level: 1,
+    upgrading: false,
+    currentBonus: 2,
+    nextCost: 1000,
+    upgradeTime: 60,
+    upgradeEndTime: null,
+    members: 0
+  };
+
+  const isMax = team.level >= 20;
+  const isUpgrading = team.upgrading;
+
+  let buttonHtml = "";
+  let middleHtml = "";
+
+  if (isUpgrading && team.upgradeEndTime) {
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(team.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    middleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value">${formatCountdown(secondsLeft)}</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (isMax) {
+    middleHtml = `
+      <div class="mine-card-profit-label">Team bonus</div>
+      <div class="mine-card-profit-value">+${team.currentBonus}%</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+  } else {
+    middleHtml = `
+      <div class="mine-card-profit-label">Team bonus</div>
+      <div class="mine-card-profit-value">+${team.currentBonus}%</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn">Upgrade</button>`;
+  }
+
+  mineTabContent.innerHTML = `
+    <div class="mine-cards-grid">
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="models/myteam.png" alt="My Team" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">My Team</h3>
+              <div class="mine-card-subtitle">Invite friends & earn</div>
+            </div>
+          </div>
+
+          <div class="mine-card-level">lvl ${team.level}</div>
+        </div>
+
+        ${middleHtml}
+
+        <div class="mine-card-members" style="margin: 10px 0 14px 0; color: #d7d7d7; font-size: 15px;">
+          👥 ${team.members} members
+        </div>
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : team.nextCost}</span></div>
+          ${buttonHtml}
+        </div>
+      </div>
+    </div>
+  `;
+}
   
 /* ================= SWITCH TASK ================= */
   
@@ -874,9 +962,7 @@ function switchMineTab(tabName) {
 
   if (tabName === "team") {
     if (mineTabTeam) mineTabTeam.classList.add("active");
-    mineTabContent.innerHTML = `
-      <div class="mine-placeholder-card">Team section</div>
-    `;
+    renderTeamSection();
   }
 
   if (tabName === "legal") {
