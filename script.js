@@ -422,38 +422,81 @@ function renderTeamSection() {
     members: 0
   };
 
-  const isMax = team.level >= 20;
-  const isUpgrading = team.upgrading;
+  const marketing = appState.marketing || {
+    level: 1,
+    upgrading: false,
+    currentBoost: 2,
+    nextCost: 500,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
 
-  let buttonHtml = "";
-  let middleHtml = "";
+  const teamIsMax = team.level >= 20;
+  const teamIsUpgrading = team.upgrading;
 
-  if (isUpgrading && team.upgradeEndTime) {
+  let teamButtonHtml = "";
+  let teamMiddleHtml = "";
+
+  if (teamIsUpgrading && team.upgradeEndTime) {
     const secondsLeft = Math.max(
       0,
       Math.floor((new Date(team.upgradeEndTime).getTime() - Date.now()) / 1000)
     );
 
-      middleHtml = `
-  <div class="mine-card-profit-label">Upgrade time</div>
-  <div class="mine-card-profit-value" id="myTeamCountdown">${formatCountdown(secondsLeft)}</div>
-`;
+    teamMiddleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value" id="myTeamCountdown">${formatCountdown(secondsLeft)}</div>
+    `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (isMax) {
-    middleHtml = `
+    teamButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (teamIsMax) {
+    teamMiddleHtml = `
       <div class="mine-card-profit-label">Team bonus</div>
       <div class="mine-card-profit-value">+${team.currentBonus}%</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+    teamButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
   } else {
-    middleHtml = `
+    teamMiddleHtml = `
       <div class="mine-card-profit-label">Team bonus</div>
       <div class="mine-card-profit-value">+${team.currentBonus}%</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMyTeam()">Upgrade</button>`;
+    teamButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMyTeam()">Upgrade</button>`;
+  }
+
+  const marketingIsMax = marketing.level >= 20;
+  const marketingIsUpgrading = marketing.upgrading;
+
+  let marketingButtonHtml = "";
+  let marketingMiddleHtml = "";
+
+  if (marketingIsUpgrading && marketing.upgradeEndTime) {
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(marketing.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    marketingMiddleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value" id="marketingCountdown">${formatCountdown(secondsLeft)}</div>
+    `;
+
+    marketingButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (marketingIsMax) {
+    marketingMiddleHtml = `
+      <div class="mine-card-profit-label">Boost</div>
+      <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
+    `;
+
+    marketingButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+  } else {
+    marketingMiddleHtml = `
+      <div class="mine-card-profit-label">Boost</div>
+      <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
+    `;
+
+    marketingButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMarketing()">Upgrade</button>`;
   }
 
   mineTabContent.innerHTML = `
@@ -467,76 +510,21 @@ function renderTeamSection() {
               <div class="mine-card-subtitle">Invite friends & earn</div>
             </div>
           </div>
-
           <div class="mine-card-level">lvl ${team.level}</div>
         </div>
 
-        ${middleHtml}
+        ${teamMiddleHtml}
 
         <div class="mine-card-members" style="margin: 10px 0 14px 0; color: #d7d7d7; font-size: 15px;">
           👥 ${team.members} members
         </div>
 
         <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : team.nextCost}</span></div>
-          ${buttonHtml}
+          <div class="mine-card-cost">🪙 <span>${teamIsMax ? "MAX" : team.nextCost}</span></div>
+          ${teamButtonHtml}
         </div>
       </div>
-    </div>
-  `;
-  startMyTeamCountdown();
-}
 
-/* ================= MARKETING SECTION ================= */
-  
-function renderMarketingSection() {
-  if (!mineTabContent) return;
-
-  const marketing = appState.marketing || {
-    level: 1,
-    upgrading: false,
-    currentBoost: 2,
-    nextCost: 500,
-    upgradeTime: 30,
-    upgradeEndTime: null
-  };
-
-  const isMax = marketing.level >= 20;
-  const isUpgrading = marketing.upgrading;
-
-  let buttonHtml = "";
-  let middleHtml = "";
-
-  if (isUpgrading && marketing.upgradeEndTime) {
-    const secondsLeft = Math.max(
-      0,
-      Math.floor((new Date(marketing.upgradeEndTime).getTime() - Date.now()) / 1000)
-    );
-
-    middleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="marketingCountdown">${formatCountdown(secondsLeft)}</div>
-    `;
-
-    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (isMax) {
-    middleHtml = `
-      <div class="mine-card-profit-label">Boost</div>
-      <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
-    `;
-
-    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    middleHtml = `
-      <div class="mine-card-profit-label">Boost</div>
-      <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
-    `;
-
-    buttonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMarketing()">Upgrade</button>`;
-  }
-
-  mineTabContent.innerHTML = `
-    <div class="mine-cards-grid">
       <div class="mine-card-box">
         <div class="mine-card-top">
           <div class="mine-card-left">
@@ -546,20 +534,20 @@ function renderMarketingSection() {
               <div class="mine-card-subtitle">Grow audience faster</div>
             </div>
           </div>
-
           <div class="mine-card-level">lvl ${marketing.level}</div>
         </div>
 
-        ${middleHtml}
+        ${marketingMiddleHtml}
 
         <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : marketing.nextCost}</span></div>
-          ${buttonHtml}
+          <div class="mine-card-cost">🪙 <span>${marketingIsMax ? "MAX" : marketing.nextCost}</span></div>
+          ${marketingButtonHtml}
         </div>
       </div>
     </div>
   `;
 
+  startMyTeamCountdown();
   startMarketingCountdown();
 }
   
@@ -1179,10 +1167,10 @@ function switchMineTab(tabName) {
     renderMarketSection();
   }
 
-  if (tabName === "team") {
+if (tabName === "team") {
   if (mineTabTeam) mineTabTeam.classList.add("active");
-  renderMarketingSection();
-  }
+  renderTeamSection();
+}
 
   if (tabName === "legal") {
     if (mineTabLegal) mineTabLegal.classList.add("active");
