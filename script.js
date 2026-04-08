@@ -58,6 +58,7 @@ let appState = {
 };
 
 let btcPairsTimerInterval = null;
+  let ethPairsTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -557,7 +558,7 @@ loadUser();
   }
 };
 
-/* ================= UPGRADE BTC PAIRS ================= */
+/* ================= UPGRADE ETH PAIRS ================= */
   
 window.upgradeEthPairs = async function() {
   try {
@@ -701,9 +702,9 @@ function renderMarketSection() {
     );
 
     ethMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value">${formatCountdown(secondsLeft)}</div>
-    `;
+  <div class="mine-card-profit-label">Upgrade time</div>
+  <div class="mine-card-profit-value" id="ethPairsCountdown">${formatCountdown(secondsLeft)}</div>
+`;
 
     ethButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
   } else if (ethIsMax) {
@@ -768,6 +769,7 @@ function renderMarketSection() {
   `;
 
   startBtcPairsCountdown();
+startEthPairsCountdown();
 }
   
 /* ================= BTC PAIRS COUNTDOWN ================= */
@@ -801,6 +803,46 @@ function startBtcPairsCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(btcPairsTimerInterval);
       btcPairsTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("market");
+        }
+      });
+    }
+  }, 1000);
+}
+
+/* ================= ETH PAIRS COUNTDOWN ================= */
+  
+function startEthPairsCountdown() {
+  if (ethPairsTimerInterval) {
+    clearInterval(ethPairsTimerInterval);
+    ethPairsTimerInterval = null;
+  }
+
+  if (!appState.ethPairs || !appState.ethPairs.upgrading || !appState.ethPairs.upgradeEndTime) {
+    return;
+  }
+
+  ethPairsTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("ethPairsCountdown");
+
+    if (!countdownEl || !appState.ethPairs?.upgradeEndTime) {
+      clearInterval(ethPairsTimerInterval);
+      ethPairsTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.ethPairs.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(ethPairsTimerInterval);
+      ethPairsTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("market");
