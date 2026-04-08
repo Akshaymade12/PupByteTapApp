@@ -65,13 +65,15 @@ let appState = {
     members: 0
   },
   marketing: {
-    level: 1,
-    upgrading: false,
-    currentBoost: 2,
-    nextCost: 500,
-    upgradeTime: 30,
-    upgradeEndTime: null
-  }
+  level: 1,
+  upgrading: false,
+  currentBoost: 2,
+  nextBoost: 4,
+  effectiveExtraProfit: 0,
+  nextCost: 500,
+  upgradeTime: 30,
+  upgradeEndTime: null
+}
 };
 
 let btcPairsTimerInterval = null;
@@ -492,9 +494,10 @@ function renderTeamSection() {
     marketingButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
   } else {
     marketingMiddleHtml = `
-      <div class="mine-card-profit-label">Boost</div>
-      <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
-    `;
+  <div class="mine-card-profit-label">Boost</div>
+  <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
+  <div class="mine-card-members">Next: +${marketing.nextBoost || marketing.currentBoost}%</div>
+`;
 
     marketingButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMarketing()">Upgrade</button>`;
   }
@@ -539,7 +542,7 @@ function renderTeamSection() {
 
         ${marketingMiddleHtml}
         
-<div class="mine-card-members">📣 Boost income</div>
+<div class="mine-card-members">📣 +${marketing.effectiveExtraProfit || 0} P/H effect</div>
         <div class="mine-card-bottom">
           <div class="mine-card-cost">🪙 <span>${marketingIsMax ? "MAX" : marketing.nextCost}</span></div>
           ${marketingButtonHtml}
