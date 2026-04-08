@@ -382,7 +382,8 @@ app.post("/upgrade-tap", async (req, res) => {
 if (!user) return res.json({ success: false, message: "Invalid user" });
 
 await finalizeBtcPairsUpgrade(user);
-
+await finalizeEthPairsUpgrade(user);
+    
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
     if (user.coins < cost) {
@@ -466,36 +467,31 @@ app.post("/upgrade-btc-pairs", async (req, res) => {
       };
     }
 
-async function finalizeBtcPairsUpgrade(user) {
-  if (!user.btcPairs) {
-    user.btcPairs = {
-      level: 1,
-      upgrading: false,
-      upgradeStartTime: null,
-      upgradeEndTime: null
-    };
-  }
+    await finalizeBtcPairsUpgrade(user);
 
-  if (
-    user.btcPairs.upgrading &&
-    user.btcPairs.upgradeEndTime &&
-    new Date(user.btcPairs.upgradeEndTime).getTime() <= Date.now()
-  ) {
-    if (user.btcPairs.level < 20) {
-      const oldProfit = getBtcPairsProfit(user.btcPairs.level);
-      user.btcPairs.level += 1;
-      const newProfit = getBtcPairsProfit(user.btcPairs.level);
+const level = user.btcPairs.level;
 
-      user.profitPerHour += (newProfit - oldProfit);
-    }
-
-    user.btcPairs.upgrading = false;
-    user.btcPairs.upgradeStartTime = null;
-    user.btcPairs.upgradeEndTime = null;
-
-    await user.save();
-  }
+if (level >= 20) {
+  return res.json({ success: false, message: "Max level reached" });
 }
+
+if (user.btcPairs.upgrading) {
+  return res.json({ success: false, message: "Upgrade already in progress" });
+}
+
+const cost = getBtcPairsCost(level);
+const upgradeTime = getBtcPairsUpgradeTime(level);
+
+if (user.coins < cost) {
+  return res.json({ success: false, message: "Not enough coins" });
+}
+
+user.coins -= cost;
+user.btcPairs.upgrading = true;
+user.btcPairs.upgradeStartTime = new Date();
+user.btcPairs.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+await user.save();
 
     res.json({
       success: true,
