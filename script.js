@@ -507,7 +507,7 @@ function renderTeamSection() {
             <img src="models/myteam.png" alt="My Team" class="mine-card-icon">
             <div class="mine-card-title-wrap">
               <h3 class="mine-card-title">My Team</h3>
-              <div class="mine-card-subtitle">Invite friends & earn</div>
+              <div class="mine-card-subtitle">Invite & earn</div>
             </div>
           </div>
           <div class="mine-card-level">lvl ${team.level}</div>
@@ -515,7 +515,7 @@ function renderTeamSection() {
 
         ${teamMiddleHtml}
 
-        <div class="mine-card-members" style="margin: 10px 0 14px 0; color: #d7d7d7; font-size: 15px;">
+        <div class="mine-card-members">
           👥 ${team.members} members
         </div>
 
@@ -531,12 +531,12 @@ function renderTeamSection() {
             <img src="models/marketing.png" alt="Marketing" class="mine-card-icon">
             <div class="mine-card-title-wrap">
               <h3 class="mine-card-title">Marketing</h3>
-              <div class="mine-card-subtitle">Grow audience faster</div>
+              <div class="mine-card-subtitle">Audience boost</div>
             </div>
           </div>
           <div class="mine-card-level">lvl ${marketing.level}</div>
         </div>
-
+<div class="mine-card-members">📣 Boost income</div>
         ${marketingMiddleHtml}
 
         <div class="mine-card-bottom">
@@ -890,7 +890,7 @@ window.upgradeEthPairs = async function() {
     if (data.success) {
       coinsEl.innerText = Math.floor(data.coins || 0);
       appState.marketing = data.marketing || null;
-      renderMarketingSection();
+      renderTeamSection();
       loadUser();
     } else {
       alert(data.message || "Upgrade failed");
