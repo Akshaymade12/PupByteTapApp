@@ -374,13 +374,15 @@ app.post("/upgrade-marketing", async (req, res) => {
       success: true,
       coins: user.coins,
       marketing: {
-        level: user.marketing.level,
-        upgrading: true,
-        currentBoost: getMarketingBoost(user.marketing.level),
-        nextCost: getMarketingCost(user.marketing.level),
-        upgradeTime,
-        upgradeEndTime: user.marketing.upgradeEndTime
-      }
+  level: user.marketing.level,
+  upgrading: true,
+  currentBoost: getMarketingBoost(user.marketing.level),
+  nextBoost: user.marketing.level >= 20 ? getMarketingBoost(user.marketing.level) : getMarketingBoost(user.marketing.level + 1),
+  effectiveExtraProfit: getMarketingExtraProfit(user.profitPerHour, user.marketing.level),
+  nextCost: getMarketingCost(user.marketing.level),
+  upgradeTime,
+  upgradeEndTime: user.marketing.upgradeEndTime
+}
     });
   } catch (e) {
     console.log("/upgrade-marketing error", e);
@@ -480,7 +482,7 @@ app.post("/load", async (req, res) => {
       success: true,
       coins: user.coins,
       energy: user.energy,
-      profitPerHour: user.profitPerHour,
+      profitPerHour: user.profitPerHour + getMarketingExtraProfit(user.profitPerHour, user.marketing?.level || 1),
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
       league: user.league,
@@ -522,10 +524,12 @@ app.post("/load", async (req, res) => {
   level: user.marketing?.level || 1,
   upgrading: user.marketing?.upgrading || false,
   currentBoost: getMarketingBoost(user.marketing?.level || 1),
+  nextBoost: (user.marketing?.level || 1) >= 20 ? getMarketingBoost(user.marketing?.level || 1) : getMarketingBoost((user.marketing?.level || 1) + 1),
+  effectiveExtraProfit: getMarketingExtraProfit(user.profitPerHour, user.marketing?.level || 1),
   nextCost: (user.marketing?.level || 1) >= 20 ? 0 : getMarketingCost(user.marketing?.level || 1),
   upgradeTime: (user.marketing?.level || 1) >= 20 ? 0 : getMarketingUpgradeTime(user.marketing?.level || 1),
   upgradeEndTime: user.marketing?.upgradeEndTime || null
-      }
+}
     });
   } catch (e) {
     console.log("/load error", e);
