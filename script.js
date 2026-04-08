@@ -63,12 +63,21 @@ let appState = {
     upgradeTime: 60,
     upgradeEndTime: null,
     members: 0
+  },
+  marketing: {
+    level: 1,
+    upgrading: false,
+    currentBoost: 2,
+    nextCost: 500,
+    upgradeTime: 30,
+    upgradeEndTime: null
   }
 };
 
 let btcPairsTimerInterval = null;
   let ethPairsTimerInterval = null;
   let myTeamTimerInterval = null;
+  let marketingTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -142,6 +151,7 @@ if (copyRefBtn && accountRefLink) {
 appState.btcPairs = data.btcPairs || null;
 appState.ethPairs = data.ethPairs || null;
 appState.myTeam = data.myTeam || null;
+appState.marketing = data.marketing || null;
       
       loadDailyCombo();
     } catch (e) {
@@ -477,6 +487,82 @@ function renderTeamSection() {
   startMyTeamCountdown();
 }
 
+/* ================= MARKETING SECTION ================= */
+  
+function renderMarketingSection() {
+  if (!mineTabContent) return;
+
+  const marketing = appState.marketing || {
+    level: 1,
+    upgrading: false,
+    currentBoost: 2,
+    nextCost: 500,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
+  const isMax = marketing.level >= 20;
+  const isUpgrading = marketing.upgrading;
+
+  let buttonHtml = "";
+  let middleHtml = "";
+
+  if (isUpgrading && marketing.upgradeEndTime) {
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(marketing.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    middleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value" id="marketingCountdown">${formatCountdown(secondsLeft)}</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (isMax) {
+    middleHtml = `
+      <div class="mine-card-profit-label">Boost</div>
+      <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+  } else {
+    middleHtml = `
+      <div class="mine-card-profit-label">Boost</div>
+      <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMarketing()">Upgrade</button>`;
+  }
+
+  mineTabContent.innerHTML = `
+    <div class="mine-cards-grid">
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="models/marketing.png" alt="Marketing" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">Marketing</h3>
+              <div class="mine-card-subtitle">Grow audience faster</div>
+            </div>
+          </div>
+
+          <div class="mine-card-level">lvl ${marketing.level}</div>
+        </div>
+
+        ${middleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : marketing.nextCost}</span></div>
+          ${buttonHtml}
+        </div>
+      </div>
+    </div>
+  `;
+
+  startMarketingCountdown();
+}
+  
 /* ================= START MY TEAM COUNTDOWN ================= */
   
 function startMyTeamCountdown() {
@@ -516,6 +602,46 @@ function startMyTeamCountdown() {
     }
   }, 1000);
 }
+  
+/* ================= MARKETING CONNDOWN ================= */
+  
+ function startMarketingCountdown() {
+  if (marketingTimerInterval) {
+    clearInterval(marketingTimerInterval);
+    marketingTimerInterval = null;
+  }
+
+  if (!appState.marketing || !appState.marketing.upgrading || !appState.marketing.upgradeEndTime) {
+    return;
+  }
+
+  marketingTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("marketingCountdown");
+
+    if (!countdownEl || !appState.marketing?.upgradeEndTime) {
+      clearInterval(marketingTimerInterval);
+      marketingTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.marketing.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(marketingTimerInterval);
+      marketingTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("team");
+        }
+      });
+    }
+  }, 1000);
+ }
   
 /* ================= SWITCH TASK ================= */
   
@@ -760,7 +886,32 @@ window.upgradeEthPairs = async function() {
       }
     };
   }
+  
+/* ================= MARKETING UPGRADE ================= */
+  
+  window.upgradeMarketing = async function() {
+  try {
+    const res = await fetch("/upgrade-marketing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
 
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.marketing = data.marketing || null;
+      renderMarketingSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade marketing error", e);
+  }
+};
+  
 /* ================= DAILY COMBO ================= */
 const comboContainer = document.getElementById("combo");
 
@@ -1029,8 +1180,8 @@ function switchMineTab(tabName) {
   }
 
   if (tabName === "team") {
-    if (mineTabTeam) mineTabTeam.classList.add("active");
-    renderTeamSection();
+  if (mineTabTeam) mineTabTeam.classList.add("active");
+  renderMarketingSection();
   }
 
   if (tabName === "legal") {
