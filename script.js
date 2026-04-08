@@ -140,6 +140,7 @@ if (copyRefBtn && accountRefLink) {
       
 appState.btcPairs = data.btcPairs || null;
 appState.ethPairs = data.ethPairs || null;
+appState.myTeam = data.myTeam || null;
       
       loadDailyCombo();
     } catch (e) {
@@ -441,7 +442,7 @@ function renderTeamSection() {
       <div class="mine-card-profit-value">+${team.currentBonus}%</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn">Upgrade</button>`;
+    buttonHtml = <button class="mine-card-upgrade-btn" onclick="upgradeMyTeam()">Upgrade</button>
   }
 
   mineTabContent.innerHTML = `
@@ -668,6 +669,31 @@ window.upgradeEthPairs = async function() {
     }
   } catch (e) {
     console.log("upgrade eth pairs error", e);
+  }
+};
+
+  /* ================= UPGRADE MY TEAM ================= */
+  
+  window.upgradeMyTeam = async function() {
+  try {
+    const res = await fetch("/upgrade-my-team", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.myTeam = data.myTeam || null;
+      renderTeamSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade my team error", e);
   }
 };
   
