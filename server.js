@@ -82,6 +82,14 @@ btcPairs: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
+  },
+
+  myTeam: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null },
+  members: { type: Number, default: 0 }
   }
 });
 
@@ -257,6 +265,57 @@ async function finalizeEthPairsUpgrade(user) {
   }
 }
 
+/* ================= MY TEAM SECTION ================= */
+
+function getMyTeamBonus(level) {
+  return 2 * level;
+}
+
+function getMyTeamCost(level) {
+  return 1000 * Math.pow(3, level - 1);
+}
+
+function getMyTeamUpgradeTime(level) {
+  const times = [
+    60, 120, 240, 480, 960,
+    1800, 2700, 3600, 5400, 7200,
+    10800, 14400, 18000, 21600, 25200,
+    28800, 32400, 36000, 43200, 0
+  ];
+
+  return times[level - 1] || 0;
+}
+
+/* ================= MY TEAM UPGRADE ================= */
+
+async function finalizeMyTeamUpgrade(user) {
+  if (!user.myTeam) {
+    user.myTeam = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null,
+      members: user.referrals || 0
+    };
+  }
+
+  if (
+    user.myTeam.upgrading &&
+    user.myTeam.upgradeEndTime &&
+    new Date(user.myTeam.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.myTeam.level < 20) {
+      user.myTeam.level += 1;
+    }
+
+    user.myTeam.upgrading = false;
+    user.myTeam.upgradeStartTime = null;
+    user.myTeam.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 /* ================= ENERGY ================= */
 function rechargeEnergy(user) {
   const now = Date.now();
@@ -296,6 +355,7 @@ app.post("/load", async (req, res) => {
     await applyOfflineMining(user);
     await finalizeBtcPairsUpgrade(user);
     await finalizeEthPairsUpgrade(user);
+    await finalizeMyTeamUpgrade(user);
     
     return res.json({
       success: true,
@@ -327,6 +387,16 @@ app.post("/load", async (req, res) => {
   nextCost: (user.ethPairs?.level || 1) >= 20 ? 0 : getEthPairsCost(user.ethPairs?.level || 1),
   upgradeTime: (user.ethPairs?.level || 1) >= 20 ? 0 : getEthPairsUpgradeTime(user.ethPairs?.level || 1),
   upgradeEndTime: user.ethPairs?.upgradeEndTime || null
+      },
+
+      myTeam: {
+  level: user.myTeam?.level || 1,
+  upgrading: user.myTeam?.upgrading || false,
+  currentBonus: getMyTeamBonus(user.myTeam?.level || 1),
+  nextCost: (user.myTeam?.level || 1) >= 20 ? 0 : getMyTeamCost(user.myTeam?.level || 1),
+  upgradeTime: (user.myTeam?.level || 1) >= 20 ? 0 : getMyTeamUpgradeTime(user.myTeam?.level || 1),
+  upgradeEndTime: user.myTeam?.upgradeEndTime || null,
+  members: user.referrals || 0
       }
     });
   } catch (e) {
@@ -383,6 +453,7 @@ if (!user) return res.json({ success: false, message: "Invalid user" });
 
 await finalizeBtcPairsUpgrade(user);
 await finalizeEthPairsUpgrade(user);
+await finalizeMyTeamUpgrade(user);
     
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
@@ -422,6 +493,8 @@ app.post("/upgrade-profit", async (req, res) => {
 if (!user) return res.json({ success: false, message: "Invalid user" });
 
 await finalizeBtcPairsUpgrade(user);
+await finalizeEthPairsUpgrade(user);
+await finalizeMyTeamUpgrade(user);
     
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
@@ -571,6 +644,73 @@ app.post("/upgrade-eth-pairs", async (req, res) => {
     });
   } catch (e) {
     console.log("/upgrade-eth-pairs error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE MY TEAM ================= */
+
+app.post("/upgrade-my-team", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.myTeam) {
+      user.myTeam = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null,
+        members: user.referrals || 0
+      };
+    }
+
+    await finalizeMyTeamUpgrade(user);
+
+    const level = user.myTeam.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.myTeam.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getMyTeamCost(level);
+    const upgradeTime = getMyTeamUpgradeTime(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.myTeam.upgrading = true;
+    user.myTeam.upgradeStartTime = new Date();
+    user.myTeam.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+    user.myTeam.members = user.referrals || 0;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      myTeam: {
+        level: user.myTeam.level,
+        upgrading: true,
+        currentBonus: getMyTeamBonus(user.myTeam.level),
+        nextCost: getMyTeamCost(user.myTeam.level),
+        upgradeTime,
+        upgradeEndTime: user.myTeam.upgradeEndTime,
+        members: user.referrals || 0
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-my-team error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
