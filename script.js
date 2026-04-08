@@ -536,9 +536,10 @@ function renderTeamSection() {
           </div>
           <div class="mine-card-level">lvl ${marketing.level}</div>
         </div>
-<div class="mine-card-members">📣 Boost income</div>
-        ${marketingMiddleHtml}
 
+        ${marketingMiddleHtml}
+        
+<div class="mine-card-members">📣 Boost income</div>
         <div class="mine-card-bottom">
           <div class="mine-card-cost">🪙 <span>${marketingIsMax ? "MAX" : marketing.nextCost}</span></div>
           ${marketingButtonHtml}
