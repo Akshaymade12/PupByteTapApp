@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema({
   tapLevel: { type: Number, default: 1 },
   tapPower: { type: Number, default: 1 },
   tapCount: { type: Number, default: 0 },
-  tapResetTime: { type: Number, default: Date.now() },
+  tapResetTime: { type: Number, default: Date.now },
   dailyComboClaimed: { type: String, default: "" },
   upgradeLevel: { type: Number, default: 0 },
   lastTap: { type: Number, default: 0 },
@@ -131,6 +131,7 @@ function verifyTelegram(initData) {
 }
 
 /* ================= VALID USER ================= */
+
 async function getValidUser(telegramId, initData) {
   if (!telegramId) return null;
 
@@ -141,7 +142,7 @@ async function getValidUser(telegramId, initData) {
   let user = await User.findOne({ telegramId });
 
   if (!user) {
-    user = await User.create({ telegramId });
+    user = await User.create({ telegramId: String(telegramId) });
   }
 
   if (user.isBlocked) return null;
