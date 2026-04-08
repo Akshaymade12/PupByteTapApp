@@ -469,29 +469,29 @@ app.post("/upgrade-btc-pairs", async (req, res) => {
 
     await finalizeBtcPairsUpgrade(user);
 
-const level = user.btcPairs.level;
+    const level = user.btcPairs.level;
 
-if (level >= 20) {
-  return res.json({ success: false, message: "Max level reached" });
-}
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
 
-if (user.btcPairs.upgrading) {
-  return res.json({ success: false, message: "Upgrade already in progress" });
-}
+    if (user.btcPairs.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
 
-const cost = getBtcPairsCost(level);
-const upgradeTime = getBtcPairsUpgradeTime(level);
+    const cost = getBtcPairsCost(level);
+    const upgradeTime = getBtcPairsUpgradeTime(level);
 
-if (user.coins < cost) {
-  return res.json({ success: false, message: "Not enough coins" });
-}
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
 
-user.coins -= cost;
-user.btcPairs.upgrading = true;
-user.btcPairs.upgradeStartTime = new Date();
-user.btcPairs.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+    user.coins -= cost;
+    user.btcPairs.upgrading = true;
+    user.btcPairs.upgradeStartTime = new Date();
+    user.btcPairs.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
 
-await user.save();
+    await user.save();
 
     res.json({
       success: true,
