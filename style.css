@@ -12,7 +12,9 @@ html, body {
 
 body {
   font-family: "Segoe UI", sans-serif;
-  background: radial-gradient(circle at top, #1f1b3a, #0f0c29);
+  background:
+    radial-gradient(circle at top, rgba(46, 33, 84, 0.95), rgba(11, 10, 35, 1) 60%),
+    linear-gradient(180deg, #1a1239 0%, #0b0a23 100%);
   color: #fff;
 }
 
@@ -21,7 +23,7 @@ body {
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
-  padding: 0 10px 90px;
+  padding: 0 12px 92px;
 }
 
 /* ================= TOP BAR ================= */
@@ -29,13 +31,14 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 15px;
+  padding: 12px 14px;
+  margin: 10px 0 12px;
+  border-radius: 18px;
   background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.06);
   backdrop-filter: blur(12px);
-  box-shadow: 0 0 25px rgba(0,255,255,0.15);
-  font-weight: bold;
+  box-shadow: 0 0 24px rgba(0, 183, 255, 0.08);
+  font-weight: 700;
   font-size: 14px;
 }
 
@@ -43,22 +46,19 @@ body {
 .card-row {
   display: flex;
   gap: 10px;
-  margin: 10px 0;
+  margin: 10px 0 14px;
 }
 
 .glass-card {
   flex: 1;
   padding: 14px;
-  border-radius: 15px;
+  border-radius: 18px;
   text-align: center;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.05);
   backdrop-filter: blur(12px);
-  box-shadow: 0 0 20px rgba(0,255,255,0.15);
-  transition: 0.3s;
-}
-
-.glass-card:hover {
-  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(0,255,255,0.08);
+  transition: 0.25s;
 }
 
 .glass-card:active {
@@ -69,24 +69,26 @@ body {
 .coin-wrapper {
   display: flex;
   justify-content: center;
-  margin-top: 30px;
+  margin-top: 28px;
   position: relative;
 }
 
 .coin-circle {
-  width: 260px;
-  height: 260px;
+  width: 250px;
+  height: 250px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(circle, #ffd700, #b8860b);
-  box-shadow: 0 0 60px rgba(255,215,0,0.6);
+  background: radial-gradient(circle, #f0c81b, #c18d00);
+  box-shadow:
+    0 0 55px rgba(255, 204, 0, 0.42),
+    inset 0 8px 30px rgba(255,255,255,0.08);
 }
 
 .main-coin {
-  width: 160px;
-  height: 160px;
+  width: 150px;
+  height: 150px;
   object-fit: cover;
   display: block;
   transition: 0.1s;
@@ -107,7 +109,7 @@ body {
 .plus-one {
   position: absolute;
   color: #00f7ff;
-  font-weight: bold;
+  font-weight: 800;
   font-size: 20px;
   animation: floatUp 1s ease forwards;
 }
@@ -122,24 +124,20 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 20px 10px;
+  margin: 20px 10px 14px;
 }
 
 /* ================= GLOBAL BUTTON ================= */
 button {
-  background: linear-gradient(90deg, #00f7ff, #ff00ff);
+  background: linear-gradient(90deg, #2edcff, #d000ff);
   border: none;
-  padding: 10px 20px;
-  border-radius: 25px;
+  padding: 10px 18px;
+  border-radius: 18px;
   color: white;
-  font-weight: bold;
+  font-weight: 800;
   cursor: pointer;
-  transition: 0.3s;
-  box-shadow: 0 0 20px rgba(0,255,255,0.25);
-}
-
-button:hover {
-  opacity: 0.95;
+  transition: 0.25s;
+  box-shadow: 0 0 20px rgba(0,255,255,0.16);
 }
 
 button:active {
@@ -150,9 +148,9 @@ button:active {
 .boost-card {
   margin: 15px 0;
   padding: 15px;
-  border-radius: 15px;
+  border-radius: 18px;
   background: linear-gradient(145deg, #2b2342, #1a1335);
-  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  box-shadow: 0 0 25px rgba(0,0,0,0.45);
   text-align: center;
 }
 
@@ -161,9 +159,9 @@ button:active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #2b2342;
+  background: rgba(255,255,255,0.05);
   padding: 15px;
-  border-radius: 15px;
+  border-radius: 18px;
   margin: 15px 0;
 }
 
@@ -174,8 +172,8 @@ button:active {
 .task-tabs {
   display: flex;
   gap: 10px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.06);
   border-radius: 20px;
   padding: 8px;
 }
@@ -210,7 +208,7 @@ button:active {
   padding: 16px;
   margin-bottom: 14px;
   border-radius: 20px;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.06);
 }
 
@@ -282,10 +280,10 @@ button:active {
 
 /* ================= ACCOUNT ================= */
 .account-card {
-  background: #2b2342;
+  background: rgba(255,255,255,0.05);
   padding: 15px;
   margin: 15px 0;
-  border-radius: 15px;
+  border-radius: 18px;
 }
 
 .account-item {
@@ -297,10 +295,10 @@ button:active {
 
 /* ================= AIRDROP ================= */
 .airdrop-card {
-  background: #1e1e2e;
+  background: rgba(255,255,255,0.05);
   padding: 15px;
   margin: 15px 0;
-  border-radius: 15px;
+  border-radius: 18px;
 }
 
 .eligibility-status {
@@ -334,7 +332,7 @@ button:active {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.82);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -370,9 +368,9 @@ button:active {
 /* ================= MINE DAILY COMBO ================= */
 .daily-combo-wrap {
   margin-top: 12px;
-  padding: 12px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(40,32,70,0.92), rgba(22,18,44,0.96));
+  padding: 16px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(40,32,70,0.95), rgba(19,16,44,0.98));
   border: 1px solid rgba(120,110,255,0.16);
   box-shadow: 0 0 20px rgba(0, 180, 255, 0.08);
 }
@@ -382,7 +380,7 @@ button:active {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .daily-combo-top h3 {
@@ -395,8 +393,8 @@ button:active {
 .combo-claim-btn {
   border: none;
   outline: none;
-  padding: 10px 14px;
-  border-radius: 14px;
+  padding: 10px 16px;
+  border-radius: 16px;
   color: #fff;
   font-weight: 800;
   font-size: 14px;
@@ -407,26 +405,26 @@ button:active {
 .combo-box {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .combo-card {
-  height: 92px;
-  border-radius: 18px;
-  background: rgba(255,255,255,0.04);
+  height: 108px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.035);
   border: 1px solid rgba(107,98,255,0.38);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffcc4d;
-  font-size: 42px;
+  font-size: 44px;
   font-weight: 800;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 /* ================= MINE TABS ================= */
 .mine-tabs-wrap {
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
 .mine-tabs {
@@ -434,7 +432,7 @@ button:active {
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   padding: 10px;
-  border-radius: 20px;
+  border-radius: 24px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.08);
   box-shadow: 0 0 18px rgba(0, 180, 255, 0.08);
@@ -443,8 +441,8 @@ button:active {
 .mine-tab {
   border: none;
   outline: none;
-  padding: 12px 8px;
-  border-radius: 16px;
+  padding: 14px 8px;
+  border-radius: 18px;
   background: transparent;
   color: #fff;
   font-size: 16px;
@@ -476,16 +474,13 @@ button:active {
   overflow: hidden;
   width: 100%;
   min-width: 0;
-  min-height: 300px;
   padding: 12px;
-  border-radius: 20px;
-  background: linear-gradient(180deg, rgba(28,32,54,0.96), rgba(16,18,38,0.98));
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(27,36,62,0.98), rgba(12,18,39,0.99));
   border: 1px solid rgba(255,255,255,0.07);
   box-shadow:
     0 0 18px rgba(0, 160, 255, 0.07),
     inset 0 1px 0 rgba(255,255,255,0.04);
-  display: flex;
-  flex-direction: column;
 }
 
 .mine-card-box::before {
@@ -500,7 +495,7 @@ button:active {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 10px;
 }
 
@@ -513,12 +508,12 @@ button:active {
 }
 
 .mine-card-icon {
-  width: 44px !important;
-  height: 44px !important;
-  min-width: 44px !important;
-  max-width: 44px !important;
-  min-height: 44px !important;
-  max-height: 44px !important;
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  max-width: 46px !important;
+  min-height: 46px !important;
+  max-height: 46px !important;
   border-radius: 14px;
   object-fit: cover;
   display: block;
@@ -531,7 +526,7 @@ button:active {
 .mine-card-title-wrap {
   min-width: 0;
   flex: 1;
-  padding-right: 4px;
+  padding-right: 2px;
 }
 
 .mine-card-title {
@@ -539,21 +534,21 @@ button:active {
   color: #fff;
   font-size: 13px;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.08;
 }
 
 .mine-card-subtitle {
-  margin-top: 3px;
-  color: rgba(255,255,255,0.58);
+  margin-top: 4px;
+  color: rgba(255,255,255,0.62);
   font-size: 10px;
-  line-height: 1.2;
-  min-height: 26px;
+  line-height: 1.15;
+  min-height: 22px;
 }
 
 .mine-card-level {
-  padding: 5px 8px;
+  padding: 5px 9px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.08);
   color: #fff;
   font-size: 11px;
@@ -572,16 +567,24 @@ button:active {
   color: #fff;
   font-size: 18px;
   font-weight: 900;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   line-height: 1;
+}
+
+.mine-card-members {
+  margin: 4px 0 10px 0;
+  color: #d7d7d7;
+  font-size: 12px;
+  line-height: 1.2;
+  min-height: 28px;
 }
 
 .mine-card-bottom {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-top: auto;
+  margin-top: 6px;
 }
 
 .mine-card-cost {
@@ -600,14 +603,11 @@ button:active {
 .mine-card-upgrade-btn {
   border: none;
   outline: none;
-  width: 108px;
-  min-width: 108px;
-  height: 44px;
-  padding: 0 10px;
-  border-radius: 12px;
+  padding: 10px 16px;
+  border-radius: 14px;
   background: linear-gradient(90deg, #31d7ff, #cf00ff);
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   box-shadow: 0 0 14px rgba(83, 174, 255, 0.16);
 }
@@ -626,14 +626,6 @@ button:active {
   font-weight: 700;
 }
 
-.mine-card-members{
-  margin: 6px 0 10px 0;
-  color: #d7d7d7;
-  font-size: 12px;
-  line-height: 1.2;
-  min-height: 30px;
-}
-
 /* ================= BOTTOM NAV ================= */
 .bottom-nav {
   position: fixed;
@@ -645,7 +637,7 @@ button:active {
   display: flex;
   justify-content: space-around;
   padding: 12px 0;
-  background: rgba(0,0,0,0.9);
+  background: rgba(0,0,0,0.92);
   z-index: 100;
 }
 
@@ -681,4 +673,4 @@ button:active {
     width: 140px;
     height: 140px;
   }
-}
+  }
