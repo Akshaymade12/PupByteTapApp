@@ -442,7 +442,7 @@ function renderTeamSection() {
       <div class="mine-card-profit-value">+${team.currentBonus}%</div>
     `;
 
-    buttonHtml = <button class="mine-card-upgrade-btn" onclick="upgradeMyTeam()">Upgrade</button>
+    buttonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMyTeam()">Upgrade</button>`;
   }
 
   mineTabContent.innerHTML = `
