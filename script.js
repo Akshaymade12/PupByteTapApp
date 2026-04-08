@@ -428,6 +428,8 @@ function renderTeamSection() {
     level: 1,
     upgrading: false,
     currentBoost: 2,
+    nextBoost: 4,
+    effectiveExtraProfit: 0,
     nextCost: 500,
     upgradeTime: 30,
     upgradeEndTime: null
@@ -448,6 +450,8 @@ function renderTeamSection() {
     teamMiddleHtml = `
       <div class="mine-card-profit-label">Upgrade time</div>
       <div class="mine-card-profit-value" id="myTeamCountdown">${formatCountdown(secondsLeft)}</div>
+      <div class="mine-card-members">👥 ${team.members} members</div>
+      <div class="mine-card-members">Next team bonus locked</div>
     `;
 
     teamButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
@@ -455,6 +459,8 @@ function renderTeamSection() {
     teamMiddleHtml = `
       <div class="mine-card-profit-label">Team bonus</div>
       <div class="mine-card-profit-value">+${team.currentBonus}%</div>
+      <div class="mine-card-members">👥 ${team.members} members</div>
+      <div class="mine-card-members">Max team upgrade</div>
     `;
 
     teamButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
@@ -462,6 +468,8 @@ function renderTeamSection() {
     teamMiddleHtml = `
       <div class="mine-card-profit-label">Team bonus</div>
       <div class="mine-card-profit-value">+${team.currentBonus}%</div>
+      <div class="mine-card-members">👥 ${team.members} members</div>
+      <div class="mine-card-members">Next: team bonus upgrade</div>
     `;
 
     teamButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMyTeam()">Upgrade</button>`;
@@ -482,6 +490,8 @@ function renderTeamSection() {
     marketingMiddleHtml = `
       <div class="mine-card-profit-label">Upgrade time</div>
       <div class="mine-card-profit-value" id="marketingCountdown">${formatCountdown(secondsLeft)}</div>
+      <div class="mine-card-members">Next: +${marketing.nextBoost || marketing.currentBoost}%</div>
+      <div class="mine-card-members">📣 +${marketing.effectiveExtraProfit || 0} P/H effect</div>
     `;
 
     marketingButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
@@ -489,15 +499,18 @@ function renderTeamSection() {
     marketingMiddleHtml = `
       <div class="mine-card-profit-label">Boost</div>
       <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
+      <div class="mine-card-members">Max boost reached</div>
+      <div class="mine-card-members">📣 +${marketing.effectiveExtraProfit || 0} P/H effect</div>
     `;
 
     marketingButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
   } else {
     marketingMiddleHtml = `
-  <div class="mine-card-profit-label">Boost</div>
-  <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
-  <div class="mine-card-members">Next: +${marketing.nextBoost || marketing.currentBoost}%</div>
-`;
+      <div class="mine-card-profit-label">Boost</div>
+      <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
+      <div class="mine-card-members">Next: +${marketing.nextBoost || marketing.currentBoost}%</div>
+      <div class="mine-card-members">📣 +${marketing.effectiveExtraProfit || 0} P/H effect</div>
+    `;
 
     marketingButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMarketing()">Upgrade</button>`;
   }
@@ -518,10 +531,6 @@ function renderTeamSection() {
 
         ${teamMiddleHtml}
 
-        <div class="mine-card-members">
-          👥 ${team.members} members
-        </div>
-
         <div class="mine-card-bottom">
           <div class="mine-card-cost">🪙 <span>${teamIsMax ? "MAX" : team.nextCost}</span></div>
           ${teamButtonHtml}
@@ -541,8 +550,7 @@ function renderTeamSection() {
         </div>
 
         ${marketingMiddleHtml}
-        
-<div class="mine-card-members">📣 +${marketing.effectiveExtraProfit || 0} P/H effect</div>
+
         <div class="mine-card-bottom">
           <div class="mine-card-cost">🪙 <span>${marketingIsMax ? "MAX" : marketing.nextCost}</span></div>
           ${marketingButtonHtml}
@@ -554,7 +562,7 @@ function renderTeamSection() {
   startMyTeamCountdown();
   startMarketingCountdown();
 }
-  
+
 /* ================= START MY TEAM COUNTDOWN ================= */
   
 function startMyTeamCountdown() {
