@@ -76,7 +76,13 @@ btcPairs: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
-}
+},
+  ethPairs: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  }
 });
 
 const User = mongoose.model("User", userSchema);
@@ -200,6 +206,57 @@ async function finalizeBtcPairsUpgrade(user) {
   }
 }
 
+/* ================= ETH PAIRS ================= */
+
+function getEthPairsProfit(level) {
+  return 8 * Math.pow(2, level - 1);
+}
+
+function getEthPairsCost(level) {
+  return 400 * Math.pow(4, level - 1);
+}
+
+function getEthPairsUpgradeTime(level) {
+  const times = [
+    30, 45, 60, 120, 180,
+    300, 420, 600, 900, 1200,
+    1800, 2700, 3600, 5400, 7200,
+    10800, 18000, 25200, 36000, 0
+  ];
+
+  return times[level - 1] || 0;
+}
+
+async function finalizeEthPairsUpgrade(user) {
+  if (!user.ethPairs) {
+    user.ethPairs = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.ethPairs.upgrading &&
+    user.ethPairs.upgradeEndTime &&
+    new Date(user.ethPairs.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.ethPairs.level < 20) {
+      const oldProfit = getEthPairsProfit(user.ethPairs.level);
+      user.ethPairs.level += 1;
+      const newProfit = getEthPairsProfit(user.ethPairs.level);
+      user.profitPerHour += (newProfit - oldProfit);
+    }
+
+    user.ethPairs.upgrading = false;
+    user.ethPairs.upgradeStartTime = null;
+    user.ethPairs.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 /* ================= ENERGY ================= */
 function rechargeEnergy(user) {
   const now = Date.now();
@@ -238,7 +295,8 @@ app.post("/load", async (req, res) => {
 
     await applyOfflineMining(user);
     await finalizeBtcPairsUpgrade(user);
-
+    await finalizeEthPairsUpgrade(user);
+    
     return res.json({
       success: true,
       coins: user.coins,
@@ -260,6 +318,15 @@ app.post("/load", async (req, res) => {
         nextCost: (user.btcPairs?.level || 1) >= 20 ? 0 : getBtcPairsCost(user.btcPairs?.level || 1),
         upgradeTime: (user.btcPairs?.level || 1) >= 20 ? 0 : getBtcPairsUpgradeTime(user.btcPairs?.level || 1),
         upgradeEndTime: user.btcPairs?.upgradeEndTime || null
+      },
+
+      ethPairs: {
+  level: user.ethPairs?.level || 1,
+  upgrading: user.ethPairs?.upgrading || false,
+  currentProfit: getEthPairsProfit(user.ethPairs?.level || 1),
+  nextCost: (user.ethPairs?.level || 1) >= 20 ? 0 : getEthPairsCost(user.ethPairs?.level || 1),
+  upgradeTime: (user.ethPairs?.level || 1) >= 20 ? 0 : getEthPairsUpgradeTime(user.ethPairs?.level || 1),
+  upgradeEndTime: user.ethPairs?.upgradeEndTime || null
       }
     });
   } catch (e) {
@@ -444,6 +511,70 @@ async function finalizeBtcPairsUpgrade(user) {
     });
   } catch (e) {
     console.log("/upgrade-btc-pairs error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE ETH PAIRS ================= */
+
+app.post("/upgrade-eth-pairs", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.ethPairs) {
+      user.ethPairs = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeEthPairsUpgrade(user);
+
+    const level = user.ethPairs.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.ethPairs.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getEthPairsCost(level);
+    const upgradeTime = getEthPairsUpgradeTime(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.ethPairs.upgrading = true;
+    user.ethPairs.upgradeStartTime = new Date();
+    user.ethPairs.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      ethPairs: {
+        level: user.ethPairs.level,
+        upgrading: true,
+        currentProfit: getEthPairsProfit(user.ethPairs.level),
+        nextCost: getEthPairsCost(user.ethPairs.level),
+        upgradeTime,
+        upgradeEndTime: user.ethPairs.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-eth-pairs error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
