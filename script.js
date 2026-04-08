@@ -68,6 +68,7 @@ let appState = {
 
 let btcPairsTimerInterval = null;
   let ethPairsTimerInterval = null;
+  let myTeamTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -423,10 +424,10 @@ function renderTeamSection() {
       Math.floor((new Date(team.upgradeEndTime).getTime() - Date.now()) / 1000)
     );
 
-    middleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value">${formatCountdown(secondsLeft)}</div>
-    `;
+      middleHtml = `
+  <div class="mine-card-profit-label">Upgrade time</div>
+  <div class="mine-card-profit-value" id="myTeamCountdown">${formatCountdown(secondsLeft)}</div>
+`;
 
     buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
   } else if (isMax) {
@@ -473,6 +474,47 @@ function renderTeamSection() {
       </div>
     </div>
   `;
+  startMyTeamCountdown();
+}
+
+/* ================= START MY TEAM COUNTDOWN ================= */
+  
+function startMyTeamCountdown() {
+  if (myTeamTimerInterval) {
+    clearInterval(myTeamTimerInterval);
+    myTeamTimerInterval = null;
+  }
+
+  if (!appState.myTeam || !appState.myTeam.upgrading || !appState.myTeam.upgradeEndTime) {
+    return;
+  }
+
+  myTeamTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("myTeamCountdown");
+
+    if (!countdownEl || !appState.myTeam?.upgradeEndTime) {
+      clearInterval(myTeamTimerInterval);
+      myTeamTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.myTeam.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(myTeamTimerInterval);
+      myTeamTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("team");
+        }
+      });
+    }
+  }, 1000);
 }
   
 /* ================= SWITCH TASK ================= */
