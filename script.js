@@ -52,16 +52,9 @@ const copyRefBtn = document.getElementById("copyRefBtn");
 
   const rewards = [500, 1000, 2500, 5000, 15000, 25000, 100000, 500000, 1000000, 5000000];
 
-  let appState = {
+let appState = {
   btcPairs: null,
-  ethPairs: {
-    level: 1,
-    upgrading: false,
-    currentProfit: 8,
-    nextCost: 400,
-    upgradeTime: 30,
-    upgradeEndTime: null
-  }
+  ethPairs: null
 };
 
 let btcPairsTimerInterval = null;
@@ -136,6 +129,7 @@ if (copyRefBtn && accountRefLink) {
       }
       
 appState.btcPairs = data.btcPairs || null;
+appState.ethPairs = data.ethPairs || null;
       
       loadDailyCombo();
     } catch (e) {
@@ -562,6 +556,31 @@ loadUser();
     console.log("upgrade btc pairs error", e);
   }
 };
+
+/* ================= UPGRADE BTC PAIRS ================= */
+  
+window.upgradeEthPairs = async function() {
+  try {
+    const res = await fetch("/upgrade-eth-pairs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.ethPairs = data.ethPairs || null;
+      renderMarketSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade eth pairs error", e);
+  }
+};
   
   /* ================= TAP UPGRADE ================= */
   if (upgradeTapBtn) {
@@ -700,9 +719,8 @@ function renderMarketSection() {
       <div class="mine-card-profit-value">+${eth.currentProfit}</div>
     `;
 
-    ethButtonHtml = `<button class="mine-card-upgrade-btn">Upgrade</button>`;
+    ethButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeEthPairs()">Upgrade</button>`;
   }
-
   mineTabContent.innerHTML = `
     <div class="mine-cards-grid">
       <div class="mine-card-box">
