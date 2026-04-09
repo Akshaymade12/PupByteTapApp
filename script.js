@@ -83,6 +83,15 @@ let appState = {
   upgradeEndTime: null
 },
   
+  signalNetwork: {
+  level: 1,
+  upgrading: false,
+  currentProfit: 40,
+  nextCost: 1200,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
+  
   myTeam: {
     level: 1,
     upgrading: false,
@@ -150,6 +159,7 @@ let btcPairsTimerInterval = null;
   let futuresTradingTimerInterval = null;
   let liquidityPoolTimerInterval = null;
   let arbitrageBotTimerInterval = null;
+  let signalNetworkTimerInterval = null;
   let myTeamTimerInterval = null;
   let marketingTimerInterval = null;
   let taxOptimizationTimerInterval = null;
@@ -231,6 +241,7 @@ appState.ethPairs = data.ethPairs || null;
 appState.futuresTrading = data.futuresTrading || null;
 appState.liquidityPool = data.liquidityPool || null;
 appState.arbitrageBot = data.arbitrageBot || null;
+appState.signalNetwork = data.signalNetwork || null;
 appState.myTeam = data.myTeam || null;
 appState.marketing = data.marketing || null;
 appState.taxOptimization = data.taxOptimization || null;
@@ -1442,6 +1453,31 @@ window.upgradeEthPairs = async function() {
     console.log("upgrade arbitrage bot error", e);
   }
 };
+
+  /* ================= UPGRADE SIGNAL NETWORK ================= */
+  
+  window.upgradeSignalNetwork = async function() {
+  try {
+    const res = await fetch("/upgrade-signal-network", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.signalNetwork = data.signalNetwork || null;
+      renderMarketSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade signal network error", e);
+  }
+};
   
 /* ================= UPGRADE MY TEAM ================= */
   
@@ -1645,8 +1681,8 @@ function getCardCost(level) {
 }
 
 /* ================= MARKET SECTION ================= */
-  
-function renderMarketSection() {
+
+  function renderMarketSection() {
   if (!mineTabContent) return;
 
   const btc = appState.btcPairs || {
@@ -1690,6 +1726,15 @@ function renderMarketSection() {
     upgrading: false,
     currentProfit: 32,
     nextCost: 1000,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
+  const signal = appState.signalNetwork || {
+    level: 1,
+    upgrading: false,
+    currentProfit: 40,
+    nextCost: 1200,
     upgradeTime: 30,
     upgradeEndTime: null
   };
@@ -1759,6 +1804,7 @@ function renderMarketSection() {
       ${makeCard("futuresTrading", "Futures Trading", "High risk, high reward", "models/futurestrading.png", futures, "upgradeFuturesTrading")}
       ${makeCard("liquidityPool", "Liquidity Pool", "Stable passive income", "models/liquiditypool.png", liquidity, "upgradeLiquidityPool")}
       ${makeCard("arbitrageBot", "Arbitrage Bot", "Exploit price gaps", "models/arbitragebot.png", arbitrage, "upgradeArbitrageBot")}
+      ${makeCard("signalNetwork", "Signal Network", "Predict market moves", "models/signalnetwork.png", signal, "upgradeSignalNetwork")}
     </div>
   `;
 
@@ -1767,7 +1813,8 @@ function renderMarketSection() {
   startFuturesTradingCountdown();
   startLiquidityPoolCountdown();
   startArbitrageBotCountdown();
-}
+  startSignalNetworkCountdown();
+  }
   
 /* ================= BTC PAIRS COUNTDOWN ================= */
   
@@ -1960,6 +2007,46 @@ function startEthPairsCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(arbitrageBotTimerInterval);
       arbitrageBotTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("market");
+        }
+      });
+    }
+  }, 1000);
+  }
+  
+/* ================= SIGNAL NETWORK COUNTDOWN ================= */
+  
+  function startSignalNetworkCountdown() {
+  if (signalNetworkTimerInterval) {
+    clearInterval(signalNetworkTimerInterval);
+    signalNetworkTimerInterval = null;
+  }
+
+  if (!appState.signalNetwork || !appState.signalNetwork.upgrading || !appState.signalNetwork.upgradeEndTime) {
+    return;
+  }
+
+  signalNetworkTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("signalNetworkCountdown");
+
+    if (!countdownEl || !appState.signalNetwork?.upgradeEndTime) {
+      clearInterval(signalNetworkTimerInterval);
+      signalNetworkTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.signalNetwork.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(signalNetworkTimerInterval);
+      signalNetworkTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("market");
