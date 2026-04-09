@@ -132,6 +132,17 @@ let appState = {
   upgradeTime: 30,
   upgradeEndTime: null
 },
+
+  ambassadorProgram: {
+  level: 1,
+  upgrading: false,
+  currentBonus: 2,
+  effectiveExtraProfit: 0,
+  nextBonus: 4,
+  nextCost: 1300,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
   
 taxOptimization: {
   level: 1,
@@ -186,6 +197,7 @@ let btcPairsTimerInterval = null;
   let marketingTimerInterval = null;
   let communityManagerTimerInterval = null;
   let partnershipDealsTimerInterval = null;
+  let ambassadorProgramTimerInterval = null;
   let taxOptimizationTimerInterval = null;
   let complianceLicenseTimerInterval = null;
   let turboChargerTimerInterval = null;
@@ -270,6 +282,7 @@ appState.myTeam = data.myTeam || null;
 appState.marketing = data.marketing || null;
 appState.communityManager = data.communityManager || null;
 appState.partnershipDeals = data.partnershipDeals || null;
+appState.ambassadorProgram = data.ambassadorProgram || null;
 appState.taxOptimization = data.taxOptimization || null;
 appState.complianceLicense = data.complianceLicense || null;
       appState.turboCharger = data.turboCharger || null;
@@ -858,6 +871,17 @@ function renderTeamSection() {
     upgradeEndTime: null
   };
 
+  const ambassador = appState.ambassadorProgram || {
+    level: 1,
+    upgrading: false,
+    currentBonus: 2,
+    effectiveExtraProfit: 0,
+    nextBonus: 4,
+    nextCost: 1300,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
   const makeTeamCard = (id, title, subtitle, icon, data, label, value, upgradeFnName) => {
     const isMax = data.level >= 20;
     const isUpgrading = data.upgrading;
@@ -961,6 +985,17 @@ function renderTeamSection() {
         `+${partnership.currentBoost}%`,
         "upgradePartnershipDeals"
       )}
+
+      ${makeTeamCard(
+        "ambassadorProgram",
+        "Ambassador Program",
+        "Scale global referrals",
+        "models/ambassadorprogram.png",
+        ambassador,
+        "Referral power",
+        `+${ambassador.currentBonus}`,
+        "upgradeAmbassadorProgram"
+      )}
     </div>
   `;
 
@@ -968,6 +1003,7 @@ function renderTeamSection() {
   startMarketingCountdown();
   startCommunityManagerCountdown();
   startPartnershipDealsCountdown();
+  startAmbassadorProgramCountdown();
 }
   
 /* ================= START MY TEAM COUNTDOWN ================= */
@@ -1305,6 +1341,50 @@ function startMyTeamCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(partnershipDealsTimerInterval);
       partnershipDealsTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("team");
+        }
+      });
+    }
+  }, 1000);
+  }
+  
+/* ================= START AMBASSADOR PROGRAM COUNTDOWN ================= */
+  
+  function startAmbassadorProgramCountdown() {
+  if (ambassadorProgramTimerInterval) {
+    clearInterval(ambassadorProgramTimerInterval);
+    ambassadorProgramTimerInterval = null;
+  }
+
+  if (
+    !appState.ambassadorProgram ||
+    !appState.ambassadorProgram.upgrading ||
+    !appState.ambassadorProgram.upgradeEndTime
+  ) {
+    return;
+  }
+
+  ambassadorProgramTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("ambassadorProgramCountdown");
+
+    if (!countdownEl || !appState.ambassadorProgram?.upgradeEndTime) {
+      clearInterval(ambassadorProgramTimerInterval);
+      ambassadorProgramTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.ambassadorProgram.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(ambassadorProgramTimerInterval);
+      ambassadorProgramTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("team");
@@ -1730,6 +1810,31 @@ window.upgradeEthPairs = async function() {
     }
   } catch (e) {
     console.log("upgrade partnership deals error", e);
+  }
+};
+
+/* ================= AMBASSADOR PROGRAM UPGRADE ================= */
+
+  window.upgradeAmbassadorProgram = async function() {
+  try {
+    const res = await fetch("/upgrade-ambassador-program", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.ambassadorProgram = data.ambassadorProgram || null;
+      renderTeamSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade ambassador program error", e);
   }
 };
   
