@@ -209,6 +209,13 @@ btcPairs: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
+  },
+
+  powerSurge: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
   }
 });
 
@@ -642,6 +649,51 @@ async function finalizeEnergyCoreUpgrade(user) {
     user.energyCore.upgrading = false;
     user.energyCore.upgradeStartTime = null;
     user.energyCore.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
+/* ================= POWER SURGE SECTION ================= */
+
+function getPowerSurgeBoost(level) {
+  return Math.min(level * 10, 200);
+}
+
+function getPowerSurgeRecoveryMultiplier(level) {
+  return 1 + getPowerSurgeBoost(level) / 100;
+}
+
+function getPowerSurgeCost(level) {
+  return 900 * Math.pow(4, level - 1);
+}
+
+function getPowerSurgeUpgradeTime(level) {
+  return 25 * level;
+}
+
+async function finalizePowerSurgeUpgrade(user) {
+  if (!user.powerSurge) {
+    user.powerSurge = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.powerSurge.upgrading &&
+    user.powerSurge.upgradeEndTime &&
+    new Date(user.powerSurge.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.powerSurge.level < 20) {
+      user.powerSurge.level += 1;
+    }
+
+    user.powerSurge.upgrading = false;
+    user.powerSurge.upgradeStartTime = null;
+    user.powerSurge.upgradeEndTime = null;
 
     await user.save();
   }
@@ -2105,6 +2157,7 @@ app.post("/load", async (req, res) => {
     await finalizeCourtSettlementUpgrade(user);
     await finalizeTurboChargerUpgrade(user);
     await finalizeEnergyCoreUpgrade(user);
+    await finalizePowerSurgeUpgrade(user);
 
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
@@ -2498,6 +2551,26 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getEnergyCoreUpgradeTime(user.energyCore?.level || 1),
   upgradeEndTime: user.energyCore?.upgradeEndTime || null
+      },
+
+      powerSurge: {
+  level: user.powerSurge?.level || 1,
+  upgrading: user.powerSurge?.upgrading || false,
+  currentBoost: getPowerSurgeBoost(user.powerSurge?.level || 1),
+  recoveryMultiplier: getPowerSurgeRecoveryMultiplier(user.powerSurge?.level || 1),
+  nextBoost:
+    (user.powerSurge?.level || 1) >= 20
+      ? getPowerSurgeBoost(user.powerSurge?.level || 1)
+      : getPowerSurgeBoost((user.powerSurge?.level || 1) + 1),
+  nextCost:
+    (user.powerSurge?.level || 1) >= 20
+      ? 0
+      : getPowerSurgeCost(user.powerSurge?.level || 1),
+  upgradeTime:
+    (user.powerSurge?.level || 1) >= 20
+      ? 0
+      : getPowerSurgeUpgradeTime(user.powerSurge?.level || 1),
+  upgradeEndTime: user.powerSurge?.upgradeEndTime || null
       }
     });
   } catch (e) {
@@ -2576,6 +2649,7 @@ await finalizeLegalAdvisoryUpgrade(user);
 await finalizeCourtSettlementUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
+await finalizePowerSurgeUpgrade(user);
     
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
@@ -2634,6 +2708,7 @@ await finalizeLegalAdvisoryUpgrade(user);
 await finalizeCourtSettlementUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
+await finalizePowerSurgeUpgrade(user);
     
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
@@ -3264,6 +3339,79 @@ user.energy = Math.min(user.maxEnergy, user.energy);
     });
   } catch (e) {
     console.log("/upgrade-energy-core error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE POWER SURGE ================= */
+
+app.post("/upgrade-power-surge", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.powerSurge) {
+      user.powerSurge = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizePowerSurgeUpgrade(user);
+
+    const level = user.powerSurge.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.powerSurge.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getPowerSurgeCost(level);
+    const baseUpgradeTime = getPowerSurgeUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.powerSurge.upgrading = true;
+    user.powerSurge.upgradeStartTime = new Date();
+    user.powerSurge.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      powerSurge: {
+        level: user.powerSurge.level,
+        upgrading: true,
+        currentBoost: getPowerSurgeBoost(user.powerSurge.level),
+        recoveryMultiplier: getPowerSurgeRecoveryMultiplier(user.powerSurge.level),
+        nextBoost:
+          user.powerSurge.level >= 20
+            ? getPowerSurgeBoost(user.powerSurge.level)
+            : getPowerSurgeBoost(user.powerSurge.level + 1),
+        nextCost: getPowerSurgeCost(user.powerSurge.level),
+        upgradeTime,
+        upgradeEndTime: user.powerSurge.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-power-surge error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
