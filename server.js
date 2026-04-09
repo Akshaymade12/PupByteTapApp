@@ -97,6 +97,13 @@ btcPairs: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
+  },
+
+  taxOptimization: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
   }
 });
 
@@ -436,6 +443,127 @@ async function finalizeMarketingUpgrade(user) {
   }
 }
 
+/* ================= UPGRADE TAX OPTIMIZATION ================= */
+
+app.post("/upgrade-tax-optimization", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.taxOptimization) {
+      user.taxOptimization = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeTaxOptimizationUpgrade(user);
+
+    const level = user.taxOptimization.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.taxOptimization.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getTaxOptimizationCost(level);
+    const upgradeTime = getTaxOptimizationUpgradeTime(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.taxOptimization.upgrading = true;
+    user.taxOptimization.upgradeStartTime = new Date();
+    user.taxOptimization.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      taxOptimization: {
+        level: user.taxOptimization.level,
+        upgrading: true,
+        currentReduction: getTaxOptimizationReduction(user.taxOptimization.level),
+        currentTax: getCurrentTaxPercent(user.taxOptimization.level),
+        nextReduction:
+          user.taxOptimization.level >= 20
+            ? getTaxOptimizationReduction(user.taxOptimization.level)
+            : getTaxOptimizationReduction(user.taxOptimization.level + 1),
+        savedProfit: getTaxOptimizationSavedProfit(user.profitPerHour, user.taxOptimization.level),
+        nextCost: getTaxOptimizationCost(user.taxOptimization.level),
+        upgradeTime,
+        upgradeEndTime: user.taxOptimization.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-tax-optimization error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= TAX OPTIMIZATION SECTION ================= */
+
+const BASE_TAX_PERCENT = 10;
+
+function getTaxOptimizationReduction(level) {
+  return Math.min(level * 1, 10);
+}
+
+function getTaxOptimizationCost(level) {
+  return 800 * Math.pow(4, level - 1);
+}
+
+function getTaxOptimizationUpgradeTime(level) {
+  return 30 * level;
+}
+
+function getCurrentTaxPercent(level) {
+  return Math.max(0, BASE_TAX_PERCENT - getTaxOptimizationReduction(level));
+}
+
+function getTaxOptimizationSavedProfit(baseProfit, level) {
+  return Math.floor(baseProfit * (getTaxOptimizationReduction(level) / 100));
+}
+
+async function finalizeTaxOptimizationUpgrade(user) {
+  if (!user.taxOptimization) {
+    user.taxOptimization = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.taxOptimization.upgrading &&
+    user.taxOptimization.upgradeEndTime &&
+    new Date(user.taxOptimization.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.taxOptimization.level < 20) {
+      user.taxOptimization.level += 1;
+    }
+
+    user.taxOptimization.upgrading = false;
+    user.taxOptimization.upgradeStartTime = null;
+    user.taxOptimization.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 /* ================= ENERGY ================= */
 function rechargeEnergy(user) {
   const now = Date.now();
@@ -477,12 +605,16 @@ app.post("/load", async (req, res) => {
     await finalizeEthPairsUpgrade(user);
     await finalizeMyTeamUpgrade(user);
     await finalizeMarketingUpgrade(user);
+    await finalizeTaxOptimizationUpgrade(user);
     
     return res.json({
       success: true,
       coins: user.coins,
       energy: user.energy,
-      profitPerHour: user.profitPerHour + getMarketingExtraProfit(user.profitPerHour, user.marketing?.level || 1),
+      profitPerHour:
+  user.profitPerHour +
+  getMarketingExtraProfit(user.profitPerHour, user.marketing?.level || 1) +
+  getTaxOptimizationSavedProfit(user.profitPerHour, user.taxOptimization?.level || 1),
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
       league: user.league,
@@ -529,7 +661,27 @@ app.post("/load", async (req, res) => {
   nextCost: (user.marketing?.level || 1) >= 20 ? 0 : getMarketingCost(user.marketing?.level || 1),
   upgradeTime: (user.marketing?.level || 1) >= 20 ? 0 : getMarketingUpgradeTime(user.marketing?.level || 1),
   upgradeEndTime: user.marketing?.upgradeEndTime || null
-}
+},
+       taxOptimization: {
+  level: user.taxOptimization?.level || 1,
+  upgrading: user.taxOptimization?.upgrading || false,
+  currentReduction: getTaxOptimizationReduction(user.taxOptimization?.level || 1),
+  currentTax: getCurrentTaxPercent(user.taxOptimization?.level || 1),
+  nextReduction:
+    (user.taxOptimization?.level || 1) >= 20
+      ? getTaxOptimizationReduction(user.taxOptimization?.level || 1)
+      : getTaxOptimizationReduction((user.taxOptimization?.level || 1) + 1),
+  savedProfit: getTaxOptimizationSavedProfit(user.profitPerHour, user.taxOptimization?.level || 1),
+  nextCost:
+    (user.taxOptimization?.level || 1) >= 20
+      ? 0
+      : getTaxOptimizationCost(user.taxOptimization?.level || 1),
+  upgradeTime:
+    (user.taxOptimization?.level || 1) >= 20
+      ? 0
+      : getTaxOptimizationUpgradeTime(user.taxOptimization?.level || 1),
+  upgradeEndTime: user.taxOptimization?.upgradeEndTime || null
+       }
     });
   } catch (e) {
     console.log("/load error", e);
@@ -587,6 +739,7 @@ await finalizeBtcPairsUpgrade(user);
 await finalizeEthPairsUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
+await finalizeTaxOptimizationUpgrade(user);
     
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
@@ -629,6 +782,7 @@ await finalizeBtcPairsUpgrade(user);
 await finalizeEthPairsUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
+await finalizeTaxOptimizationUpgrade(user);
     
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
