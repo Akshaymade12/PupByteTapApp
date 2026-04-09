@@ -143,6 +143,17 @@ let appState = {
   upgradeTime: 30,
   upgradeEndTime: null
 },
+
+  vipPartners: {
+  level: 1,
+  upgrading: false,
+  currentBoost: 4,
+  effectiveExtraProfit: 0,
+  nextBoost: 8,
+  nextCost: 1500,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
   
 taxOptimization: {
   level: 1,
@@ -198,6 +209,7 @@ let btcPairsTimerInterval = null;
   let communityManagerTimerInterval = null;
   let partnershipDealsTimerInterval = null;
   let ambassadorProgramTimerInterval = null;
+  let vipPartnersTimerInterval = null;
   let taxOptimizationTimerInterval = null;
   let complianceLicenseTimerInterval = null;
   let turboChargerTimerInterval = null;
@@ -283,6 +295,7 @@ appState.marketing = data.marketing || null;
 appState.communityManager = data.communityManager || null;
 appState.partnershipDeals = data.partnershipDeals || null;
 appState.ambassadorProgram = data.ambassadorProgram || null;
+appState.vipPartners = data.vipPartners || null;
 appState.taxOptimization = data.taxOptimization || null;
 appState.complianceLicense = data.complianceLicense || null;
       appState.turboCharger = data.turboCharger || null;
@@ -882,6 +895,17 @@ function renderTeamSection() {
     upgradeEndTime: null
   };
 
+  const vip = appState.vipPartners || {
+    level: 1,
+    upgrading: false,
+    currentBoost: 4,
+    effectiveExtraProfit: 0,
+    nextBoost: 8,
+    nextCost: 1500,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
   const makeTeamCard = (id, title, subtitle, icon, data, label, value, upgradeFnName) => {
     const isMax = data.level >= 20;
     const isUpgrading = data.upgrading;
@@ -996,6 +1020,17 @@ function renderTeamSection() {
         `+${ambassador.currentBonus}`,
         "upgradeAmbassadorProgram"
       )}
+
+      ${makeTeamCard(
+        "vipPartners",
+        "VIP Partners",
+        "Elite network advantage",
+        "models/vippartners.png",
+        vip,
+        "VIP boost",
+        `+${vip.currentBoost}%`,
+        "upgradeVipPartners"
+      )}
     </div>
   `;
 
@@ -1004,8 +1039,9 @@ function renderTeamSection() {
   startCommunityManagerCountdown();
   startPartnershipDealsCountdown();
   startAmbassadorProgramCountdown();
+  startVipPartnersCountdown();
 }
-  
+      
 /* ================= START MY TEAM COUNTDOWN ================= */
   
 function startMyTeamCountdown() {
@@ -1385,6 +1421,50 @@ function startMyTeamCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(ambassadorProgramTimerInterval);
       ambassadorProgramTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("team");
+        }
+      });
+    }
+  }, 1000);
+  }
+  
+/* ================= VIP PARTNERS COUNTDOWN ================= */
+  
+  function startVipPartnersCountdown() {
+  if (vipPartnersTimerInterval) {
+    clearInterval(vipPartnersTimerInterval);
+    vipPartnersTimerInterval = null;
+  }
+
+  if (
+    !appState.vipPartners ||
+    !appState.vipPartners.upgrading ||
+    !appState.vipPartners.upgradeEndTime
+  ) {
+    return;
+  }
+
+  vipPartnersTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("vipPartnersCountdown");
+
+    if (!countdownEl || !appState.vipPartners?.upgradeEndTime) {
+      clearInterval(vipPartnersTimerInterval);
+      vipPartnersTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.vipPartners.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(vipPartnersTimerInterval);
+      vipPartnersTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("team");
@@ -1835,6 +1915,31 @@ window.upgradeEthPairs = async function() {
     }
   } catch (e) {
     console.log("upgrade ambassador program error", e);
+  }
+};
+
+/* ================= VIP PARTNERS UPGRADE ================= */
+
+  window.upgradeVipPartners = async function() {
+  try {
+    const res = await fetch("/upgrade-vip-partners", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.vipPartners = data.vipPartners || null;
+      renderTeamSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade vip partners error", e);
   }
 };
   
