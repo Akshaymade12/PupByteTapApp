@@ -793,16 +793,20 @@ function rechargeEnergy(user) {
   const now = Date.now();
   const diff = (now - user.lastEnergyUpdate) / 1000;
   const add = Math.floor(diff * 2);
+  const maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 
   if (add > 0) {
-    user.energy = Math.min(user.maxEnergy, user.energy + add);
+    user.energy = Math.min(maxEnergy, user.energy + add);
     user.lastEnergyUpdate = now;
+  } else {
+    user.energy = Math.min(maxEnergy, user.energy);
   }
 }
 
 /* ================= OFFLINE ================= */
 async function applyOfflineMining(user) {
   rechargeEnergy(user);
+  user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 
   const now = new Date();
   const seconds = (now - user.lastActive) / 1000;
@@ -833,6 +837,9 @@ app.post("/load", async (req, res) => {
     await finalizeComplianceLicenseUpgrade(user);
     await finalizeTurboChargerUpgrade(user);
     await finalizeEnergyCoreUpgrade(user);
+
+    user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
+user.energy = Math.min(user.maxEnergy, user.energy);
     
     return res.json({
       success: true,
@@ -1203,11 +1210,11 @@ app.post("/upgrade-eth-pairs", async (req, res) => {
     }
 
     const cost = getEthPairsCost(level);
-    const upgradeTime = getEthPairsUpgradeTime(level);
-
-    if (user.coins < cost) {
-      const baseUpgradeTime = getEthPairsUpgradeTime(level);
+const baseUpgradeTime = getEthPairsUpgradeTime(level);
 const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1);
+
+if (user.coins < cost) {
+  return res.json({ success: false, message: "Not enough coins" });
     }
 
     user.coins -= cost;
@@ -1414,6 +1421,9 @@ app.post("/upgrade-energy-core", async (req, res) => {
     user.energyCore.upgrading = true;
     user.energyCore.upgradeStartTime = new Date();
     user.energyCore.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    user.maxEnergy = getEnergyCoreMax(user.energyCore.level);
+user.energy = Math.min(user.maxEnergy, user.energy);
 
     await user.save();
 
