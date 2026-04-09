@@ -182,6 +182,13 @@ btcPairs: {
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
   },
+
+  legalAdvisory: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  },
   
   turboCharger: {
   level: { type: Number, default: 1 },
@@ -1318,7 +1325,10 @@ app.post("/upgrade-tax-optimization", async (req, res) => {
       return res.json({ success: false, message: "Upgrade already in progress" });
     }
 
-    const cost = getTaxOptimizationCost(level);
+    const cost = applyLegalAdvisoryDiscount(
+  getTaxOptimizationCost(level),
+  user.legalAdvisory?.level || 1
+);
     const baseUpgradeTime = getTaxOptimizationUpgradeTime(level);
 const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1);
 
@@ -1389,7 +1399,10 @@ app.post("/upgrade-compliance-license", async (req, res) => {
       return res.json({ success: false, message: "Upgrade already in progress" });
     }
 
-    const cost = getComplianceLicenseCost(level);
+    const cost = applyLegalAdvisoryDiscount(
+  getComplianceLicenseCost(level),
+  user.legalAdvisory?.level || 1
+);
     const baseUpgradeTime = getComplianceLicenseUpgradeTime(level);
     const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1);
 
@@ -1458,7 +1471,10 @@ app.post("/upgrade-audit-protection", async (req, res) => {
       return res.json({ success: false, message: "Upgrade already in progress" });
     }
 
-    const cost = getAuditProtectionCost(level);
+    const cost = applyLegalAdvisoryDiscount(
+  getAuditProtectionCost(level),
+  user.legalAdvisory?.level || 1
+);
     const baseUpgradeTime = getAuditProtectionUpgradeTime(level);
     const upgradeTime =
       typeof applyComplianceReduction === "function"
@@ -1534,7 +1550,10 @@ app.post("/upgrade-regulatory-license", async (req, res) => {
       return res.json({ success: false, message: "Upgrade already in progress" });
     }
 
-    const cost = getRegulatoryLicenseCost(level);
+    const cost = applyLegalAdvisoryDiscount(
+  getRegulatoryLicenseCost(level),
+  user.legalAdvisory?.level || 1
+);
     const baseUpgradeTime = getRegulatoryLicenseUpgradeTime(level);
     const upgradeTime =
       typeof applyComplianceReduction === "function"
@@ -1575,6 +1594,78 @@ app.post("/upgrade-regulatory-license", async (req, res) => {
     });
   } catch (e) {
     console.log("/upgrade-regulatory-license error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE LEGAL ADVISORY ================= */
+
+app.post("/upgrade-legal-advisory", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.legalAdvisory) {
+      user.legalAdvisory = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeLegalAdvisoryUpgrade(user);
+
+    const level = user.legalAdvisory.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.legalAdvisory.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getLegalAdvisoryCost(level);
+    const baseUpgradeTime = getLegalAdvisoryUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.legalAdvisory.upgrading = true;
+    user.legalAdvisory.upgradeStartTime = new Date();
+    user.legalAdvisory.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      legalAdvisory: {
+        level: user.legalAdvisory.level,
+        upgrading: true,
+        currentDiscount: getLegalAdvisoryDiscount(user.legalAdvisory.level),
+        nextDiscount:
+          user.legalAdvisory.level >= 20
+            ? getLegalAdvisoryDiscount(user.legalAdvisory.level)
+            : getLegalAdvisoryDiscount(user.legalAdvisory.level + 1),
+        nextCost: getLegalAdvisoryCost(user.legalAdvisory.level),
+        upgradeTime,
+        upgradeEndTime: user.legalAdvisory.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-legal-advisory error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
@@ -1767,6 +1858,51 @@ async function finalizeRegulatoryLicenseUpgrade(user) {
   }
 }
 
+/* ================= LEGAL ADVISORY SECTION ================= */
+
+function getLegalAdvisoryDiscount(level) {
+  return Math.min(level * 2, 40);
+}
+
+function applyLegalAdvisoryDiscount(baseCost, level) {
+  return Math.floor((baseCost || 0) * (1 - getLegalAdvisoryDiscount(level || 1) / 100));
+}
+
+function getLegalAdvisoryCost(level) {
+  return 1400 * Math.pow(4, level - 1);
+}
+
+function getLegalAdvisoryUpgradeTime(level) {
+  return 30 * level;
+}
+
+async function finalizeLegalAdvisoryUpgrade(user) {
+  if (!user.legalAdvisory) {
+    user.legalAdvisory = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.legalAdvisory.upgrading &&
+    user.legalAdvisory.upgradeEndTime &&
+    new Date(user.legalAdvisory.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.legalAdvisory.level < 20) {
+      user.legalAdvisory.level += 1;
+    }
+
+    user.legalAdvisory.upgrading = false;
+    user.legalAdvisory.upgradeStartTime = null;
+    user.legalAdvisory.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 /* ================= ENERGY ================= */
 function rechargeEnergy(user) {
   const now = Date.now();
@@ -1824,6 +1960,7 @@ app.post("/load", async (req, res) => {
     await finalizeComplianceLicenseUpgrade(user);
     await finalizeAuditProtectionUpgrade(user);
     await finalizeRegulatoryLicenseUpgrade(user);
+    await finalizeLegalAdvisoryUpgrade(user);
     await finalizeTurboChargerUpgrade(user);
     await finalizeEnergyCoreUpgrade(user);
 
@@ -1992,9 +2129,12 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? getComplianceReduction(user.complianceLicense?.level || 1)
       : getComplianceReduction((user.complianceLicense?.level || 1) + 1),
   nextCost:
-    (user.complianceLicense?.level || 1) >= 20
-      ? 0
-      : getComplianceLicenseCost(user.complianceLicense?.level || 1),
+  (user.complianceLicense?.level || 1) >= 20
+    ? 0
+    : applyLegalAdvisoryDiscount(
+        getComplianceLicenseCost(user.complianceLicense?.level || 1),
+        user.legalAdvisory?.level || 1
+      ),
   upgradeTime:
     (user.complianceLicense?.level || 1) >= 20
       ? 0
@@ -2018,9 +2158,12 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? getAuditProtectionPercent(user.auditProtection?.level || 1)
       : getAuditProtectionPercent((user.auditProtection?.level || 1) + 1),
   nextCost:
-    (user.auditProtection?.level || 1) >= 20
-      ? 0
-      : getAuditProtectionCost(user.auditProtection?.level || 1),
+  (user.auditProtection?.level || 1) >= 20
+    ? 0
+    : applyLegalAdvisoryDiscount(
+        getAuditProtectionCost(user.auditProtection?.level || 1),
+        user.legalAdvisory?.level || 1
+      ),
   upgradeTime:
     (user.auditProtection?.level || 1) >= 20
       ? 0
@@ -2041,14 +2184,36 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? getRegulatoryLicenseBoost(user.regulatoryLicense?.level || 1)
       : getRegulatoryLicenseBoost((user.regulatoryLicense?.level || 1) + 1),
   nextCost:
-    (user.regulatoryLicense?.level || 1) >= 20
-      ? 0
-      : getRegulatoryLicenseCost(user.regulatoryLicense?.level || 1),
+  (user.regulatoryLicense?.level || 1) >= 20
+    ? 0
+    : applyLegalAdvisoryDiscount(
+        getRegulatoryLicenseCost(user.regulatoryLicense?.level || 1),
+        user.legalAdvisory?.level || 1
+      ),
   upgradeTime:
     (user.regulatoryLicense?.level || 1) >= 20
       ? 0
       : getRegulatoryLicenseUpgradeTime(user.regulatoryLicense?.level || 1),
   upgradeEndTime: user.regulatoryLicense?.upgradeEndTime || null
+},
+
+   legalAdvisory: {
+  level: user.legalAdvisory?.level || 1,
+  upgrading: user.legalAdvisory?.upgrading || false,
+  currentDiscount: getLegalAdvisoryDiscount(user.legalAdvisory?.level || 1),
+  nextDiscount:
+    (user.legalAdvisory?.level || 1) >= 20
+      ? getLegalAdvisoryDiscount(user.legalAdvisory?.level || 1)
+      : getLegalAdvisoryDiscount((user.legalAdvisory?.level || 1) + 1),
+  nextCost:
+    (user.legalAdvisory?.level || 1) >= 20
+      ? 0
+      : getLegalAdvisoryCost(user.legalAdvisory?.level || 1),
+  upgradeTime:
+    (user.legalAdvisory?.level || 1) >= 20
+      ? 0
+      : getLegalAdvisoryUpgradeTime(user.legalAdvisory?.level || 1),
+  upgradeEndTime: user.legalAdvisory?.upgradeEndTime || null
 },
       
       ambassadorProgram: {
@@ -2110,9 +2275,12 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       : getTaxOptimizationReduction((user.taxOptimization?.level || 1) + 1),
   savedProfit: getTaxOptimizationSavedProfit(user.profitPerHour, user.taxOptimization?.level || 1),
   nextCost:
-    (user.taxOptimization?.level || 1) >= 20
-      ? 0
-      : getTaxOptimizationCost(user.taxOptimization?.level || 1),
+  (user.taxOptimization?.level || 1) >= 20
+    ? 0
+    : applyLegalAdvisoryDiscount(
+        getTaxOptimizationCost(user.taxOptimization?.level || 1),
+        user.legalAdvisory?.level || 1
+      ),
   upgradeTime:
     (user.taxOptimization?.level || 1) >= 20
       ? 0
@@ -2231,6 +2399,7 @@ await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeAuditProtectionUpgrade(user);
 await finalizeRegulatoryLicenseUpgrade(user);
+await finalizeLegalAdvisoryUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
     
@@ -2287,6 +2456,7 @@ await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeAuditProtectionUpgrade(user);
 await finalizeRegulatoryLicenseUpgrade(user);
+await finalizeLegalAdvisoryUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
     
