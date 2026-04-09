@@ -238,6 +238,17 @@ complianceLicense: {
   nextCost: 700,
   upgradeTime: 25,
   upgradeEndTime: null
+  },
+
+  powerSurge: {
+  level: 1,
+  upgrading: false,
+  currentBoost: 10,
+  recoveryMultiplier: 1.1,
+  nextBoost: 20,
+  nextCost: 900,
+  upgradeTime: 25,
+  upgradeEndTime: null
   }
 };
 
@@ -261,6 +272,7 @@ let btcPairsTimerInterval = null;
   let courtSettlementTimerInterval = null;
   let turboChargerTimerInterval = null;
   let energyCoreTimerInterval = null;
+  let powerSurgeTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -351,6 +363,7 @@ appState.legalAdvisory = data.legalAdvisory || null;
 appState.courtSettlement = data.courtSettlement || null;
 appState.turboCharger = data.turboCharger || null;
 appState.energyCore = data.energyCore || null;
+appState.powerSurge = data.powerSurge || null;
       
       
       loadDailyCombo();
@@ -810,7 +823,7 @@ window.claimSpecialTask = async function() {
       
  /* ================= SPECIAL SECTION ================= */
 
-  function renderSpecialSection() {
+ function renderSpecialSection() {
   if (!mineTabContent) return;
 
   const turbo = appState.turboCharger || {
@@ -834,121 +847,116 @@ window.claimSpecialTask = async function() {
     upgradeEndTime: null
   };
 
-  const turboIsMax = turbo.level >= 20;
-  const turboIsUpgrading = turbo.upgrading;
+  const powerSurge = appState.powerSurge || {
+    level: 1,
+    upgrading: false,
+    currentBoost: 10,
+    recoveryMultiplier: 1.1,
+    nextBoost: 20,
+    nextCost: 900,
+    upgradeTime: 25,
+    upgradeEndTime: null
+  };
 
-  let turboButtonHtml = "";
-  let turboMiddleHtml = "";
+  const makeSpecialCard = (id, title, subtitle, icon, data, label, value, upgradeFnName) => {
+    const isMax = data.level >= 20;
+    const isUpgrading = data.upgrading;
 
-  if (turboIsUpgrading && turbo.upgradeEndTime) {
-    const secondsLeft = Math.max(
-      0,
-      Math.floor((new Date(turbo.upgradeEndTime).getTime() - Date.now()) / 1000)
-    );
+    let middleHtml = "";
+    let buttonHtml = "";
 
-    turboMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="turboChargerCountdown">${formatCountdown(secondsLeft)}</div>
+    if (isUpgrading && data.upgradeEndTime) {
+      const secondsLeft = Math.max(
+        0,
+        Math.floor((new Date(data.upgradeEndTime).getTime() - Date.now()) / 1000)
+      );
+
+      middleHtml = `
+        <div class="mine-card-profit-label">Upgrade time</div>
+        <div class="mine-card-profit-value" id="${id}Countdown">${formatCountdown(secondsLeft)}</div>
+      `;
+
+      buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+    } else if (isMax) {
+      middleHtml = `
+        <div class="mine-card-profit-label">${label}</div>
+        <div class="mine-card-profit-value">${value}</div>
+      `;
+
+      buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+    } else {
+      middleHtml = `
+        <div class="mine-card-profit-label">${label}</div>
+        <div class="mine-card-profit-value">${value}</div>
+      `;
+
+      buttonHtml = `<button class="mine-card-upgrade-btn" onclick="${upgradeFnName}()">Upgrade</button>`;
+    }
+
+    return `
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="${icon}" alt="${title}" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">${title}</h3>
+              <div class="mine-card-subtitle">${subtitle}</div>
+            </div>
+          </div>
+          <div class="mine-card-level">lvl ${data.level}</div>
+        </div>
+
+        ${middleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : data.nextCost}</span></div>
+          ${buttonHtml}
+        </div>
+      </div>
     `;
-
-    turboButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (turboIsMax) {
-    turboMiddleHtml = `
-      <div class="mine-card-profit-label">Tap boost</div>
-      <div class="mine-card-profit-value">+${turbo.currentBonus}</div>
-    `;
-
-    turboButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    turboMiddleHtml = `
-      <div class="mine-card-profit-label">Tap boost</div>
-      <div class="mine-card-profit-value">+${turbo.currentBonus}</div>
-    `;
-
-    turboButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeTurboCharger()">Upgrade</button>`;
-  }
-
-  const energyIsMax = energyCore.level >= 20;
-  const energyIsUpgrading = energyCore.upgrading;
-
-  let energyButtonHtml = "";
-  let energyMiddleHtml = "";
-
-  if (energyIsUpgrading && energyCore.upgradeEndTime) {
-    const secondsLeft = Math.max(
-      0,
-      Math.floor((new Date(energyCore.upgradeEndTime).getTime() - Date.now()) / 1000)
-    );
-
-    energyMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="energyCoreCountdown">${formatCountdown(secondsLeft)}</div>
-    `;
-
-    energyButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (energyIsMax) {
-    energyMiddleHtml = `
-      <div class="mine-card-profit-label">Max energy</div>
-      <div class="mine-card-profit-value">+${energyCore.currentBonus}</div>
-    `;
-
-    energyButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    energyMiddleHtml = `
-      <div class="mine-card-profit-label">Max energy</div>
-      <div class="mine-card-profit-value">+${energyCore.currentBonus}</div>
-    `;
-
-    energyButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeEnergyCore()">Upgrade</button>`;
-  }
+  };
 
   mineTabContent.innerHTML = `
     <div class="mine-cards-grid">
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/turbocharger.png" alt="Turbo Charger" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">Turbo Charger</h3>
-              <div class="mine-card-subtitle">Boost tap power</div>
-            </div>
-          </div>
-          <div class="mine-card-level">lvl ${turbo.level}</div>
-        </div>
+      ${makeSpecialCard(
+        "turboCharger",
+        "Turbo Charger",
+        "Boost tap power",
+        "models/turbocharger.png",
+        turbo,
+        "Tap boost",
+        `+${turbo.currentBonus}`,
+        "upgradeTurboCharger"
+      )}
 
-        ${turboMiddleHtml}
+      ${makeSpecialCard(
+        "energyCore",
+        "Energy Core",
+        "Increase max energy",
+        "models/energycore.png",
+        energyCore,
+        "Max energy",
+        `+${energyCore.currentBonus}`,
+        "upgradeEnergyCore"
+      )}
 
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${turboIsMax ? "MAX" : turbo.nextCost}</span></div>
-          ${turboButtonHtml}
-        </div>
-      </div>
-
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/energycore.png" alt="Energy Core" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">Energy Core</h3>
-              <div class="mine-card-subtitle">Increase max energy</div>
-            </div>
-          </div>
-          <div class="mine-card-level">lvl ${energyCore.level}</div>
-        </div>
-
-        ${energyMiddleHtml}
-
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${energyIsMax ? "MAX" : energyCore.nextCost}</span></div>
-          ${energyButtonHtml}
-        </div>
-      </div>
+      ${makeSpecialCard(
+        "powerSurge",
+        "Power Surge",
+        "Boost energy recovery",
+        "models/powersurge.png",
+        powerSurge,
+        "Recovery boost",
+        `+${powerSurge.currentBoost}%`,
+        "upgradePowerSurge"
+      )}
     </div>
   `;
 
   startTurboChargerCountdown();
   startEnergyCoreCountdown();
-}
+  startPowerSurgeCountdown();
+ }
   
 /* ================= Team Section ================= */
 
@@ -1548,7 +1556,51 @@ function startMyTeamCountdown() {
   }, 1000);
   }
   
-/* ================= MARKETING CONNDOWN ================= */
+/* ================= POWER SURGE CONNTDOWN ================= */
+  
+  function startPowerSurgeCountdown() {
+  if (powerSurgeTimerInterval) {
+    clearInterval(powerSurgeTimerInterval);
+    powerSurgeTimerInterval = null;
+  }
+
+  if (
+    !appState.powerSurge ||
+    !appState.powerSurge.upgrading ||
+    !appState.powerSurge.upgradeEndTime
+  ) {
+    return;
+  }
+
+  powerSurgeTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("powerSurgeCountdown");
+
+    if (!countdownEl || !appState.powerSurge?.upgradeEndTime) {
+      clearInterval(powerSurgeTimerInterval);
+      powerSurgeTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.powerSurge.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(powerSurgeTimerInterval);
+      powerSurgeTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("special");
+        }
+      });
+    }
+  }, 1000);
+  }
+  
+/* ================= MARKETING COUNTDOWN ================= */
   
  function startMarketingCountdown() {
   if (marketingTimerInterval) {
@@ -1588,7 +1640,7 @@ function startMyTeamCountdown() {
   }, 1000);
  }
   
-/* ================= COMMUNITY MANAGER CONNDOWN ================= */
+/* ================= COMMUNITY MANAGER CONUTDOWN ================= */
   
   function startCommunityManagerCountdown() {
   if (communityManagerTimerInterval) {
@@ -2433,6 +2485,31 @@ window.upgradeEthPairs = async function() {
   }
 };
 
+/* ================= POWER SURGE UPGRADE ================= */
+
+  window.upgradePowerSurge = async function() {
+  try {
+    const res = await fetch("/upgrade-power-surge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.powerSurge = data.powerSurge || null;
+      renderSpecialSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade power surge error", e);
+  }
+};
+  
 /* ================= DAILY COMBO ================= */
 const comboContainer = document.getElementById("combo");
 
