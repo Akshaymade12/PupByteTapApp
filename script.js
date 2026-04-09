@@ -74,6 +74,15 @@ let appState = {
   upgradeEndTime: null
 },
   
+  arbitrageBot: {
+  level: 1,
+  upgrading: false,
+  currentProfit: 32,
+  nextCost: 1000,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
+  
   myTeam: {
     level: 1,
     upgrading: false,
@@ -140,6 +149,7 @@ let btcPairsTimerInterval = null;
   let ethPairsTimerInterval = null;
   let futuresTradingTimerInterval = null;
   let liquidityPoolTimerInterval = null;
+  let arbitrageBotTimerInterval = null;
   let myTeamTimerInterval = null;
   let marketingTimerInterval = null;
   let taxOptimizationTimerInterval = null;
@@ -220,6 +230,7 @@ appState.btcPairs = data.btcPairs || null;
 appState.ethPairs = data.ethPairs || null;
 appState.futuresTrading = data.futuresTrading || null;
 appState.liquidityPool = data.liquidityPool || null;
+appState.arbitrageBot = data.arbitrageBot || null;
 appState.myTeam = data.myTeam || null;
 appState.marketing = data.marketing || null;
 appState.taxOptimization = data.taxOptimization || null;
@@ -1406,6 +1417,31 @@ window.upgradeEthPairs = async function() {
     console.log("upgrade liquidity pool error", e);
   }
 };
+
+/* ================= UPGRADE ARBITRAGE BOT ================= */
+  
+ window.upgradeArbitrageBot = async function() {
+  try {
+    const res = await fetch("/upgrade-arbitrage-bot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.arbitrageBot = data.arbitrageBot || null;
+      renderMarketSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade arbitrage bot error", e);
+  }
+};
   
 /* ================= UPGRADE MY TEAM ================= */
   
@@ -1649,183 +1685,80 @@ function renderMarketSection() {
     upgradeEndTime: null
   };
 
-  const btcIsMax = btc.level >= 20;
-  const btcIsUpgrading = btc.upgrading;
-  let btcButtonHtml = "";
-  let btcMiddleHtml = "";
+  const arbitrage = appState.arbitrageBot || {
+    level: 1,
+    upgrading: false,
+    currentProfit: 32,
+    nextCost: 1000,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
 
-  if (btcIsUpgrading && btc.upgradeEndTime) {
-    const secondsLeft = Math.max(0, Math.floor((new Date(btc.upgradeEndTime).getTime() - Date.now()) / 1000));
-    btcMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="btcPairsCountdown">${formatCountdown(secondsLeft)}</div>
-    `;
-    btcButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (btcIsMax) {
-    btcMiddleHtml = `
-      <div class="mine-card-profit-label">Profit per hour</div>
-      <div class="mine-card-profit-value">+${btc.currentProfit}</div>
-    `;
-    btcButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    btcMiddleHtml = `
-      <div class="mine-card-profit-label">Profit per hour</div>
-      <div class="mine-card-profit-value">+${btc.currentProfit}</div>
-    `;
-    btcButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeBtcPairs()">Upgrade</button>`;
-  }
+  const makeCard = (id, title, subtitle, icon, data, upgradeFnName) => {
+    const isMax = data.level >= 20;
+    const isUpgrading = data.upgrading;
 
-  const ethIsMax = eth.level >= 20;
-  const ethIsUpgrading = eth.upgrading;
-  let ethButtonHtml = "";
-  let ethMiddleHtml = "";
+    let middleHtml = "";
+    let buttonHtml = "";
 
-  if (ethIsUpgrading && eth.upgradeEndTime) {
-    const secondsLeft = Math.max(0, Math.floor((new Date(eth.upgradeEndTime).getTime() - Date.now()) / 1000));
-    ethMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="ethPairsCountdown">${formatCountdown(secondsLeft)}</div>
-    `;
-    ethButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (ethIsMax) {
-    ethMiddleHtml = `
-      <div class="mine-card-profit-label">Profit per hour</div>
-      <div class="mine-card-profit-value">+${eth.currentProfit}</div>
-    `;
-    ethButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    ethMiddleHtml = `
-      <div class="mine-card-profit-label">Profit per hour</div>
-      <div class="mine-card-profit-value">+${eth.currentProfit}</div>
-    `;
-    ethButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeEthPairs()">Upgrade</button>`;
-  }
+    if (isUpgrading && data.upgradeEndTime) {
+      const secondsLeft = Math.max(
+        0,
+        Math.floor((new Date(data.upgradeEndTime).getTime() - Date.now()) / 1000)
+      );
 
-  const futuresIsMax = futures.level >= 20;
-  const futuresIsUpgrading = futures.upgrading;
-  let futuresButtonHtml = "";
-  let futuresMiddleHtml = "";
+      middleHtml = `
+        <div class="mine-card-profit-label">Upgrade time</div>
+        <div class="mine-card-profit-value" id="${id}Countdown">${formatCountdown(secondsLeft)}</div>
+      `;
 
-  if (futuresIsUpgrading && futures.upgradeEndTime) {
-    const secondsLeft = Math.max(0, Math.floor((new Date(futures.upgradeEndTime).getTime() - Date.now()) / 1000));
-    futuresMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="futuresTradingCountdown">${formatCountdown(secondsLeft)}</div>
-    `;
-    futuresButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (futuresIsMax) {
-    futuresMiddleHtml = `
-      <div class="mine-card-profit-label">Profit per hour</div>
-      <div class="mine-card-profit-value">+${futures.currentProfit}</div>
-    `;
-    futuresButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    futuresMiddleHtml = `
-      <div class="mine-card-profit-label">Profit per hour</div>
-      <div class="mine-card-profit-value">+${futures.currentProfit}</div>
-    `;
-    futuresButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeFuturesTrading()">Upgrade</button>`;
-  }
+      buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+    } else if (isMax) {
+      middleHtml = `
+        <div class="mine-card-profit-label">Profit per hour</div>
+        <div class="mine-card-profit-value">+${data.currentProfit}</div>
+      `;
 
-  const liquidityIsMax = liquidity.level >= 20;
-  const liquidityIsUpgrading = liquidity.upgrading;
-  let liquidityButtonHtml = "";
-  let liquidityMiddleHtml = "";
+      buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+    } else {
+      middleHtml = `
+        <div class="mine-card-profit-label">Profit per hour</div>
+        <div class="mine-card-profit-value">+${data.currentProfit}</div>
+      `;
 
-  if (liquidityIsUpgrading && liquidity.upgradeEndTime) {
-    const secondsLeft = Math.max(0, Math.floor((new Date(liquidity.upgradeEndTime).getTime() - Date.now()) / 1000));
-    liquidityMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="liquidityPoolCountdown">${formatCountdown(secondsLeft)}</div>
+      buttonHtml = `<button class="mine-card-upgrade-btn" onclick="${upgradeFnName}()">Upgrade</button>`;
+    }
+
+    return `
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="${icon}" alt="${title}" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">${title}</h3>
+              <div class="mine-card-subtitle">${subtitle}</div>
+            </div>
+          </div>
+          <div class="mine-card-level">lvl ${data.level}</div>
+        </div>
+
+        ${middleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : data.nextCost}</span></div>
+          ${buttonHtml}
+        </div>
+      </div>
     `;
-    liquidityButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (liquidityIsMax) {
-    liquidityMiddleHtml = `
-      <div class="mine-card-profit-label">Profit per hour</div>
-      <div class="mine-card-profit-value">+${liquidity.currentProfit}</div>
-    `;
-    liquidityButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    liquidityMiddleHtml = `
-      <div class="mine-card-profit-label">Profit per hour</div>
-      <div class="mine-card-profit-value">+${liquidity.currentProfit}</div>
-    `;
-    liquidityButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeLiquidityPool()">Upgrade</button>`;
-  }
+  };
 
   mineTabContent.innerHTML = `
     <div class="mine-cards-grid">
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/btcpairs.png" alt="BTC Pairs" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">BTC Pairs</h3>
-              <div class="mine-card-subtitle">Bitcoin market</div>
-            </div>
-          </div>
-          <div class="mine-card-level">lvl ${btc.level}</div>
-        </div>
-        ${btcMiddleHtml}
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${btcIsMax ? "MAX" : btc.nextCost}</span></div>
-          ${btcButtonHtml}
-        </div>
-      </div>
-
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/ethpairs.png" alt="ETH Pairs" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">ETH Pairs</h3>
-              <div class="mine-card-subtitle">Ethereum market</div>
-            </div>
-          </div>
-          <div class="mine-card-level">lvl ${eth.level}</div>
-        </div>
-        ${ethMiddleHtml}
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${ethIsMax ? "MAX" : eth.nextCost}</span></div>
-          ${ethButtonHtml}
-        </div>
-      </div>
-
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/futurestrading.png" alt="Futures Trading" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">Futures Trading</h3>
-              <div class="mine-card-subtitle">High risk, high reward</div>
-            </div>
-          </div>
-          <div class="mine-card-level">lvl ${futures.level}</div>
-        </div>
-        ${futuresMiddleHtml}
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${futuresIsMax ? "MAX" : futures.nextCost}</span></div>
-          ${futuresButtonHtml}
-        </div>
-      </div>
-
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/liquiditypool.png" alt="Liquidity Pool" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">Liquidity Pool</h3>
-              <div class="mine-card-subtitle">Stable passive income</div>
-            </div>
-          </div>
-          <div class="mine-card-level">lvl ${liquidity.level}</div>
-        </div>
-        ${liquidityMiddleHtml}
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${liquidityIsMax ? "MAX" : liquidity.nextCost}</span></div>
-          ${liquidityButtonHtml}
-        </div>
-      </div>
+      ${makeCard("btcPairs", "BTC Pairs", "Bitcoin market", "models/btcpairs.png", btc, "upgradeBtcPairs")}
+      ${makeCard("ethPairs", "ETH Pairs", "Ethereum market", "models/ethpairs.png", eth, "upgradeEthPairs")}
+      ${makeCard("futuresTrading", "Futures Trading", "High risk, high reward", "models/futurestrading.png", futures, "upgradeFuturesTrading")}
+      ${makeCard("liquidityPool", "Liquidity Pool", "Stable passive income", "models/liquiditypool.png", liquidity, "upgradeLiquidityPool")}
+      ${makeCard("arbitrageBot", "Arbitrage Bot", "Exploit price gaps", "models/arbitragebot.png", arbitrage, "upgradeArbitrageBot")}
     </div>
   `;
 
@@ -1833,7 +1766,8 @@ function renderMarketSection() {
   startEthPairsCountdown();
   startFuturesTradingCountdown();
   startLiquidityPoolCountdown();
-} 
+  startArbitrageBotCountdown();
+}
   
 /* ================= BTC PAIRS COUNTDOWN ================= */
   
@@ -1986,6 +1920,46 @@ function startEthPairsCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(liquidityPoolTimerInterval);
       liquidityPoolTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("market");
+        }
+      });
+    }
+  }, 1000);
+  }
+  
+/* ================= ARBITRAGE BOT COUNTDOWN ================= */
+  
+  function startArbitrageBotCountdown() {
+  if (arbitrageBotTimerInterval) {
+    clearInterval(arbitrageBotTimerInterval);
+    arbitrageBotTimerInterval = null;
+  }
+
+  if (!appState.arbitrageBot || !appState.arbitrageBot.upgrading || !appState.arbitrageBot.upgradeEndTime) {
+    return;
+  }
+
+  arbitrageBotTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("arbitrageBotCountdown");
+
+    if (!countdownEl || !appState.arbitrageBot?.upgradeEndTime) {
+      clearInterval(arbitrageBotTimerInterval);
+      arbitrageBotTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.arbitrageBot.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(arbitrageBotTimerInterval);
+      arbitrageBotTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("market");
