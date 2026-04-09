@@ -176,6 +176,17 @@ complianceLicense: {
   upgradeEndTime: null
 },
 
+  auditProtection: {
+  level: 1,
+  upgrading: false,
+  currentProtection: 2,
+  effectiveExtraProfit: 0,
+  nextProtection: 4,
+  nextCost: 1000,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
+  
   turboCharger: {
   level: 1,
   upgrading: false,
@@ -212,6 +223,7 @@ let btcPairsTimerInterval = null;
   let vipPartnersTimerInterval = null;
   let taxOptimizationTimerInterval = null;
   let complianceLicenseTimerInterval = null;
+  let auditProtectionTimerInterval = null;
   let turboChargerTimerInterval = null;
   let energyCoreTimerInterval = null;
   if (dailyPopup) {
@@ -298,8 +310,9 @@ appState.ambassadorProgram = data.ambassadorProgram || null;
 appState.vipPartners = data.vipPartners || null;
 appState.taxOptimization = data.taxOptimization || null;
 appState.complianceLicense = data.complianceLicense || null;
-      appState.turboCharger = data.turboCharger || null;
-      appState.energyCore = data.energyCore || null;
+appState.auditProtection = data.auditProtection || null;
+appState.turboCharger = data.turboCharger || null;
+appState.energyCore = data.energyCore || null;
       
       
       loadDailyCombo();
@@ -578,120 +591,115 @@ function renderLegalSection() {
     upgradeEndTime: null
   };
 
-  const taxIsMax = tax.level >= 20;
-  const taxIsUpgrading = tax.upgrading;
+  const audit = appState.auditProtection || {
+    level: 1,
+    upgrading: false,
+    currentProtection: 2,
+    effectiveExtraProfit: 0,
+    nextProtection: 4,
+    nextCost: 1000,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
 
-  let taxButtonHtml = "";
-  let taxMiddleHtml = "";
+  const makeLegalCard = (id, title, subtitle, icon, data, label, value, upgradeFnName) => {
+    const isMax = data.level >= 20;
+    const isUpgrading = data.upgrading;
 
-  if (taxIsUpgrading && tax.upgradeEndTime) {
-    const secondsLeft = Math.max(
-      0,
-      Math.floor((new Date(tax.upgradeEndTime).getTime() - Date.now()) / 1000)
-    );
+    let middleHtml = "";
+    let buttonHtml = "";
 
-    taxMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="taxOptimizationCountdown">${formatCountdown(secondsLeft)}</div>
+    if (isUpgrading && data.upgradeEndTime) {
+      const secondsLeft = Math.max(
+        0,
+        Math.floor((new Date(data.upgradeEndTime).getTime() - Date.now()) / 1000)
+      );
+
+      middleHtml = `
+        <div class="mine-card-profit-label">Upgrade time</div>
+        <div class="mine-card-profit-value" id="${id}Countdown">${formatCountdown(secondsLeft)}</div>
+      `;
+
+      buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+    } else if (isMax) {
+      middleHtml = `
+        <div class="mine-card-profit-label">${label}</div>
+        <div class="mine-card-profit-value">${value}</div>
+      `;
+
+      buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+    } else {
+      middleHtml = `
+        <div class="mine-card-profit-label">${label}</div>
+        <div class="mine-card-profit-value">${value}</div>
+      `;
+
+      buttonHtml = `<button class="mine-card-upgrade-btn" onclick="${upgradeFnName}()">Upgrade</button>`;
+    }
+
+    return `
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="${icon}" alt="${title}" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">${title}</h3>
+              <div class="mine-card-subtitle">${subtitle}</div>
+            </div>
+          </div>
+          <div class="mine-card-level">lvl ${data.level}</div>
+        </div>
+
+        ${middleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : data.nextCost}</span></div>
+          ${buttonHtml}
+        </div>
+      </div>
     `;
-
-    taxButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (taxIsMax) {
-    taxMiddleHtml = `
-      <div class="mine-card-profit-label">Tax reduction</div>
-      <div class="mine-card-profit-value">-${tax.currentReduction}%</div>
-    `;
-
-    taxButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    taxMiddleHtml = `
-      <div class="mine-card-profit-label">Tax reduction</div>
-      <div class="mine-card-profit-value">-${tax.currentReduction}%</div>
-    `;
-
-    taxButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeTaxOptimization()">Upgrade</button>`;
-  }
-
-  const complianceIsMax = compliance.level >= 20;
-  const complianceIsUpgrading = compliance.upgrading;
-
-  let complianceButtonHtml = "";
-  let complianceMiddleHtml = "";
-
-  if (complianceIsUpgrading && compliance.upgradeEndTime) {
-    const secondsLeft = Math.max(
-      0,
-      Math.floor((new Date(compliance.upgradeEndTime).getTime() - Date.now()) / 1000)
-    );
-
-    complianceMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="complianceLicenseCountdown">${formatCountdown(secondsLeft)}</div>
-    `;
-
-    complianceButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (complianceIsMax) {
-    complianceMiddleHtml = `
-      <div class="mine-card-profit-label">Timer reduction</div>
-      <div class="mine-card-profit-value">-${compliance.currentReduction}%</div>
-    `;
-
-    complianceButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    complianceMiddleHtml = `
-      <div class="mine-card-profit-label">Timer reduction</div>
-      <div class="mine-card-profit-value">-${compliance.currentReduction}%</div>
-    `;
-
-    complianceButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeComplianceLicense()">Upgrade</button>`;
-  }
+  };
 
   mineTabContent.innerHTML = `
     <div class="mine-cards-grid">
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/taxoptimization.png" alt="Tax Optimization" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">Tax Optimization</h3>
-              <div class="mine-card-subtitle">Reduce income tax</div>
-            </div>
-          </div>
-          <div class="mine-card-level">lvl ${tax.level}</div>
-        </div>
+      ${makeLegalCard(
+        "taxOptimization",
+        "Tax Optimization",
+        "Reduce income tax",
+        "models/taxoptimization.png",
+        tax,
+        "Tax reduction",
+        `-${tax.currentReduction}%`,
+        "upgradeTaxOptimization"
+      )}
 
-        ${taxMiddleHtml}
+      ${makeLegalCard(
+        "complianceLicense",
+        "Compliance License",
+        "Reduce upgrade time",
+        "models/compliancelicense.png",
+        compliance,
+        "Timer reduction",
+        `-${compliance.currentReduction}%`,
+        "upgradeComplianceLicense"
+      )}
 
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${taxIsMax ? "MAX" : tax.nextCost}</span></div>
-          ${taxButtonHtml}
-        </div>
-      </div>
-
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/compliancelicense.png" alt="Compliance License" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">Compliance License</h3>
-              <div class="mine-card-subtitle">Reduce upgrade time</div>
-            </div>
-          </div>
-          <div class="mine-card-level">lvl ${compliance.level}</div>
-        </div>
-
-        ${complianceMiddleHtml}
-
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${complianceIsMax ? "MAX" : compliance.nextCost}</span></div>
-          ${complianceButtonHtml}
-        </div>
-      </div>
+      ${makeLegalCard(
+        "auditProtection",
+        "Audit Protection",
+        "Protect passive income",
+        "models/auditprotection.png",
+        audit,
+        "Income protection",
+        `+${audit.currentProtection}%`,
+        "upgradeAuditProtection"
+      )}
     </div>
   `;
 
   startTaxOptimizationCountdown();
   startComplianceLicenseCountdown();
+  startAuditProtectionCountdown();
 }
 
  /* ================= SPECIAL SECTION ================= */
@@ -1161,6 +1169,50 @@ function startMyTeamCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(complianceLicenseTimerInterval);
       complianceLicenseTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("legal");
+        }
+      });
+    }
+  }, 1000);
+  }
+  
+/* ================= AUDIT PROTECTION COUNTDOWN ================= */
+  
+  function startAuditProtectionCountdown() {
+  if (auditProtectionTimerInterval) {
+    clearInterval(auditProtectionTimerInterval);
+    auditProtectionTimerInterval = null;
+  }
+
+  if (
+    !appState.auditProtection ||
+    !appState.auditProtection.upgrading ||
+    !appState.auditProtection.upgradeEndTime
+  ) {
+    return;
+  }
+
+  auditProtectionTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("auditProtectionCountdown");
+
+    if (!countdownEl || !appState.auditProtection?.upgradeEndTime) {
+      clearInterval(auditProtectionTimerInterval);
+      auditProtectionTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.auditProtection.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(auditProtectionTimerInterval);
+      auditProtectionTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("legal");
@@ -1993,6 +2045,31 @@ window.upgradeEthPairs = async function() {
   }
 };
 
+  /* ================= AUDIT PROTECTION UPGRADE ================= */
+
+  window.upgradeAuditProtection = async function() {
+  try {
+    const res = await fetch("/upgrade-audit-protection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.auditProtection = data.auditProtection || null;
+      renderLegalSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade audit protection error", e);
+  }
+};
+  
  /* ================= TURBO CHARGER UPGRADE ================= */
 
   window.upgradeTurboCharger = async function() {
