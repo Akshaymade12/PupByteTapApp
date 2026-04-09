@@ -197,6 +197,16 @@ complianceLicense: {
   upgradeTime: 30,
   upgradeEndTime: null
 },
+
+  legalAdvisory: {
+  level: 1,
+  upgrading: false,
+  currentDiscount: 2,
+  nextDiscount: 4,
+  nextCost: 1400,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
   
   turboCharger: {
   level: 1,
@@ -236,6 +246,7 @@ let btcPairsTimerInterval = null;
   let complianceLicenseTimerInterval = null;
   let auditProtectionTimerInterval = null;
   let regulatoryLicenseTimerInterval = null;
+  let legalAdvisoryTimerInterval = null;
   let turboChargerTimerInterval = null;
   let energyCoreTimerInterval = null;
   if (dailyPopup) {
@@ -324,6 +335,7 @@ appState.taxOptimization = data.taxOptimization || null;
 appState.complianceLicense = data.complianceLicense || null;
 appState.auditProtection = data.auditProtection || null;
 appState.regulatoryLicense = data.regulatoryLicense || null;
+appState.legalAdvisory = data.legalAdvisory || null;
 appState.turboCharger = data.turboCharger || null;
 appState.energyCore = data.energyCore || null;
       
@@ -578,8 +590,8 @@ window.claimSpecialTask = async function() {
 };
   
 /* ================= Legal Section ================= */
-  
-function renderLegalSection() {
+
+  function renderLegalSection() {
   if (!mineTabContent) return;
 
   const tax = appState.taxOptimization || {
@@ -622,6 +634,16 @@ function renderLegalSection() {
     effectiveExtraProfit: 0,
     nextBoost: 6,
     nextCost: 1200,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
+  const advisory = appState.legalAdvisory || {
+    level: 1,
+    upgrading: false,
+    currentDiscount: 2,
+    nextDiscount: 4,
+    nextCost: 1400,
     upgradeTime: 30,
     upgradeEndTime: null
   };
@@ -729,6 +751,17 @@ function renderLegalSection() {
         `+${regulatory.currentBoost}%`,
         "upgradeRegulatoryLicense"
       )}
+
+      ${makeLegalCard(
+        "legalAdvisory",
+        "Legal Advisory",
+        "Reduce legal upgrade costs",
+        "models/legaladvisory.png",
+        advisory,
+        "Cost reduction",
+        `-${advisory.currentDiscount}%`,
+        "upgradeLegalAdvisory"
+      )}
     </div>
   `;
 
@@ -736,7 +769,8 @@ function renderLegalSection() {
   startComplianceLicenseCountdown();
   startAuditProtectionCountdown();
   startRegulatoryLicenseCountdown();
-}
+  startLegalAdvisoryCountdown();
+  }
 
  /* ================= SPECIAL SECTION ================= */
 
@@ -1293,6 +1327,50 @@ function startMyTeamCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(regulatoryLicenseTimerInterval);
       regulatoryLicenseTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("legal");
+        }
+      });
+    }
+  }, 1000);
+  }
+
+  /* ================= LEGAL ADVISORY COUNTDOWN ================= */
+
+  function startLegalAdvisoryCountdown() {
+  if (legalAdvisoryTimerInterval) {
+    clearInterval(legalAdvisoryTimerInterval);
+    legalAdvisoryTimerInterval = null;
+  }
+
+  if (
+    !appState.legalAdvisory ||
+    !appState.legalAdvisory.upgrading ||
+    !appState.legalAdvisory.upgradeEndTime
+  ) {
+    return;
+  }
+
+  legalAdvisoryTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("legalAdvisoryCountdown");
+
+    if (!countdownEl || !appState.legalAdvisory?.upgradeEndTime) {
+      clearInterval(legalAdvisoryTimerInterval);
+      legalAdvisoryTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.legalAdvisory.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(legalAdvisoryTimerInterval);
+      legalAdvisoryTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("legal");
@@ -2150,7 +2228,7 @@ window.upgradeEthPairs = async function() {
   }
 };
 
-/* ================= REGULATORY LICENSE COUNTDOWN ================= */
+/* ================= REGULATORY LICENSE UPGRADE ================= */
 
   window.upgradeRegulatoryLicense = async function() {
   try {
@@ -2172,6 +2250,31 @@ window.upgradeEthPairs = async function() {
     }
   } catch (e) {
     console.log("upgrade regulatory license error", e);
+  }
+};
+
+  /* ================= LEGAL ADVISORY UPGRADE ================= */
+
+  window.upgradeLegalAdvisory = async function() {
+  try {
+    const res = await fetch("/upgrade-legal-advisory", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.legalAdvisory = data.legalAdvisory || null;
+      renderLegalSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade legal advisory error", e);
   }
 };
   
