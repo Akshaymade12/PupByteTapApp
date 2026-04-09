@@ -216,6 +216,13 @@ btcPairs: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
+  },
+
+  overclockEngine: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
   }
 });
 
@@ -694,6 +701,59 @@ async function finalizePowerSurgeUpgrade(user) {
     user.powerSurge.upgrading = false;
     user.powerSurge.upgradeStartTime = null;
     user.powerSurge.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
+/* ================= OVERCLOCK ENGINE SECTION ================= */
+
+function getOverclockTapBoost(level) {
+  return Math.min(level * 5, 100);
+}
+
+function getOverclockProfitBoost(level) {
+  return Math.min(level * 2, 40);
+}
+
+function getOverclockTapPower(baseTapPower, level) {
+  return Math.floor((baseTapPower || 0) * (1 + getOverclockTapBoost(level || 1) / 100));
+}
+
+function getOverclockExtraProfit(baseProfit, level) {
+  return Math.floor((baseProfit || 0) * (getOverclockProfitBoost(level || 1) / 100));
+}
+
+function getOverclockEngineCost(level) {
+  return 2000 * Math.pow(4, level - 1);
+}
+
+function getOverclockEngineUpgradeTime(level) {
+  return 35 * level;
+}
+
+async function finalizeOverclockEngineUpgrade(user) {
+  if (!user.overclockEngine) {
+    user.overclockEngine = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.overclockEngine.upgrading &&
+    user.overclockEngine.upgradeEndTime &&
+    new Date(user.overclockEngine.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.overclockEngine.level < 20) {
+      user.overclockEngine.level += 1;
+    }
+
+    user.overclockEngine.upgrading = false;
+    user.overclockEngine.upgradeStartTime = null;
+    user.overclockEngine.upgradeEndTime = null;
 
     await user.save();
   }
@@ -2162,6 +2222,7 @@ app.post("/load", async (req, res) => {
     await finalizeTurboChargerUpgrade(user);
     await finalizeEnergyCoreUpgrade(user);
     await finalizePowerSurgeUpgrade(user);
+    await finalizeOverclockEngineUpgrade(user);
 
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
@@ -2202,7 +2263,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
     user.taxOptimization?.level || 1,
     user.auditProtection?.level || 1,
     user.courtSettlement?.level || 1
-  ),
+  ) +
+  getOverclockExtraProfit(user.profitPerHour, user.overclockEngine?.level || 1),
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
       league: user.league,
@@ -2575,6 +2637,32 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getPowerSurgeUpgradeTime(user.powerSurge?.level || 1),
   upgradeEndTime: user.powerSurge?.upgradeEndTime || null
+      },
+
+      overclockEngine: {
+  level: user.overclockEngine?.level || 1,
+  upgrading: user.overclockEngine?.upgrading || false,
+  currentTapBoost: getOverclockTapBoost(user.overclockEngine?.level || 1),
+  currentProfitBoost: getOverclockProfitBoost(user.overclockEngine?.level || 1),
+  effectiveTapPower: getOverclockTapPower(user.tapPower, user.overclockEngine?.level || 1),
+  effectiveExtraProfit: getOverclockExtraProfit(user.profitPerHour, user.overclockEngine?.level || 1),
+  nextTapBoost:
+    (user.overclockEngine?.level || 1) >= 20
+      ? getOverclockTapBoost(user.overclockEngine?.level || 1)
+      : getOverclockTapBoost((user.overclockEngine?.level || 1) + 1),
+  nextProfitBoost:
+    (user.overclockEngine?.level || 1) >= 20
+      ? getOverclockProfitBoost(user.overclockEngine?.level || 1)
+      : getOverclockProfitBoost((user.overclockEngine?.level || 1) + 1),
+  nextCost:
+    (user.overclockEngine?.level || 1) >= 20
+      ? 0
+      : getOverclockEngineCost(user.overclockEngine?.level || 1),
+  upgradeTime:
+    (user.overclockEngine?.level || 1) >= 20
+      ? 0
+      : getOverclockEngineUpgradeTime(user.overclockEngine?.level || 1),
+  upgradeEndTime: user.overclockEngine?.upgradeEndTime || null
       }
     });
   } catch (e) {
@@ -2601,7 +2689,8 @@ app.post("/tap", async (req, res) => {
     }
 
     const turboBonus = getTurboTapBonus(user.turboCharger?.level || 1);
-const finalTapPower = user.tapPower + turboBonus;
+const baseTapPower = user.tapPower + turboBonus;
+const finalTapPower = getOverclockTapPower(baseTapPower, user.overclockEngine?.level || 1);
 
 user.coins += finalTapPower;
 user.energy -= user.tapPower;
@@ -2615,7 +2704,10 @@ user.energy -= user.tapPower;
   coins: user.coins,
   energy: user.energy,
   maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
-  tapPower: user.tapPower + getTurboTapBonus(user.turboCharger?.level || 1),
+  tapPower: getOverclockTapPower(
+  user.tapPower + getTurboTapBonus(user.turboCharger?.level || 1),
+  user.overclockEngine?.level || 1
+),
   profitPerHour: user.profitPerHour,
   league: user.league
 });
@@ -2654,6 +2746,7 @@ await finalizeCourtSettlementUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
 await finalizePowerSurgeUpgrade(user);
+await finalizeOverclockEngineUpgrade(user);
     
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
@@ -2713,6 +2806,7 @@ await finalizeCourtSettlementUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
 await finalizePowerSurgeUpgrade(user);
+await finalizeOverclockEngineUpgrade(user);
     
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
@@ -3416,6 +3510,88 @@ app.post("/upgrade-power-surge", async (req, res) => {
     });
   } catch (e) {
     console.log("/upgrade-power-surge error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE OVERCLOCK ENGINE ================= */
+
+app.post("/upgrade-overclock-engine", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.overclockEngine) {
+      user.overclockEngine = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeOverclockEngineUpgrade(user);
+
+    const level = user.overclockEngine.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.overclockEngine.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getOverclockEngineCost(level);
+    const baseUpgradeTime = getOverclockEngineUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.overclockEngine.upgrading = true;
+    user.overclockEngine.upgradeStartTime = new Date();
+    user.overclockEngine.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      overclockEngine: {
+        level: user.overclockEngine.level,
+        upgrading: true,
+        currentTapBoost: getOverclockTapBoost(user.overclockEngine.level),
+        currentProfitBoost: getOverclockProfitBoost(user.overclockEngine.level),
+        effectiveTapPower: getOverclockTapPower(
+          user.tapPower + getTurboTapBonus(user.turboCharger?.level || 1),
+          user.overclockEngine.level
+        ),
+        effectiveExtraProfit: getOverclockExtraProfit(user.profitPerHour, user.overclockEngine.level),
+        nextTapBoost:
+          user.overclockEngine.level >= 20
+            ? getOverclockTapBoost(user.overclockEngine.level)
+            : getOverclockTapBoost(user.overclockEngine.level + 1),
+        nextProfitBoost:
+          user.overclockEngine.level >= 20
+            ? getOverclockProfitBoost(user.overclockEngine.level)
+            : getOverclockProfitBoost(user.overclockEngine.level + 1),
+        nextCost: getOverclockEngineCost(user.overclockEngine.level),
+        upgradeTime,
+        upgradeEndTime: user.overclockEngine.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-overclock-engine error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
