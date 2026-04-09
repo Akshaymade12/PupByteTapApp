@@ -104,6 +104,13 @@ btcPairs: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
+  },
+
+  complianceLicense: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
   }
 });
 
@@ -364,7 +371,8 @@ app.post("/upgrade-marketing", async (req, res) => {
     }
 
     const cost = getMarketingCost(level);
-    const upgradeTime = getMarketingUpgradeTime(level);
+    const baseUpgradeTime = getMarketingUpgradeTime(level);
+const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1);
 
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
@@ -476,7 +484,8 @@ app.post("/upgrade-tax-optimization", async (req, res) => {
     }
 
     const cost = getTaxOptimizationCost(level);
-    const upgradeTime = getTaxOptimizationUpgradeTime(level);
+    const baseUpgradeTime = getTaxOptimizationUpgradeTime(level);
+const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1);
 
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
@@ -509,6 +518,75 @@ app.post("/upgrade-tax-optimization", async (req, res) => {
     });
   } catch (e) {
     console.log("/upgrade-tax-optimization error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE COMPLIANCE LICENSE ================= */
+
+app.post("/upgrade-compliance-license", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.complianceLicense) {
+      user.complianceLicense = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeComplianceLicenseUpgrade(user);
+
+    const level = user.complianceLicense.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.complianceLicense.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getComplianceLicenseCost(level);
+    const baseUpgradeTime = getComplianceLicenseUpgradeTime(level);
+    const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.complianceLicense.upgrading = true;
+    user.complianceLicense.upgradeStartTime = new Date();
+    user.complianceLicense.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      complianceLicense: {
+        level: user.complianceLicense.level,
+        upgrading: true,
+        currentReduction: getComplianceReduction(user.complianceLicense.level),
+        nextReduction:
+          user.complianceLicense.level >= 20
+            ? getComplianceReduction(user.complianceLicense.level)
+            : getComplianceReduction(user.complianceLicense.level + 1),
+        nextCost: getComplianceLicenseCost(user.complianceLicense.level),
+        upgradeTime,
+        upgradeEndTime: user.complianceLicense.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-compliance-license error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
@@ -564,6 +642,52 @@ async function finalizeTaxOptimizationUpgrade(user) {
   }
 }
 
+/* ================= COMPLIANCE LICENSE SECTION ================= */
+
+function getComplianceReduction(level) {
+  return Math.min(level * 3, 45);
+}
+
+function getComplianceLicenseCost(level) {
+  return 1200 * Math.pow(4, level - 1);
+}
+
+function getComplianceLicenseUpgradeTime(level) {
+  return 30 * level;
+}
+
+function applyComplianceReduction(baseTime, level) {
+  const reduction = getComplianceReduction(level);
+  return Math.max(5, Math.floor(baseTime * (1 - reduction / 100)));
+}
+
+async function finalizeComplianceLicenseUpgrade(user) {
+  if (!user.complianceLicense) {
+    user.complianceLicense = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.complianceLicense.upgrading &&
+    user.complianceLicense.upgradeEndTime &&
+    new Date(user.complianceLicense.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.complianceLicense.level < 20) {
+      user.complianceLicense.level += 1;
+    }
+
+    user.complianceLicense.upgrading = false;
+    user.complianceLicense.upgradeStartTime = null;
+    user.complianceLicense.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 /* ================= ENERGY ================= */
 function rechargeEnergy(user) {
   const now = Date.now();
@@ -606,6 +730,7 @@ app.post("/load", async (req, res) => {
     await finalizeMyTeamUpgrade(user);
     await finalizeMarketingUpgrade(user);
     await finalizeTaxOptimizationUpgrade(user);
+    await finalizeComplianceLicenseUpgrade(user);
     
     return res.json({
       success: true,
@@ -662,6 +787,28 @@ app.post("/load", async (req, res) => {
   upgradeTime: (user.marketing?.level || 1) >= 20 ? 0 : getMarketingUpgradeTime(user.marketing?.level || 1),
   upgradeEndTime: user.marketing?.upgradeEndTime || null
 },
+      complianceLicense: {
+  level: user.complianceLicense?.level || 1,
+  upgrading: user.complianceLicense?.upgrading || false,
+  currentReduction: getComplianceReduction(user.complianceLicense?.level || 1),
+  nextReduction:
+    (user.complianceLicense?.level || 1) >= 20
+      ? getComplianceReduction(user.complianceLicense?.level || 1)
+      : getComplianceReduction((user.complianceLicense?.level || 1) + 1),
+  nextCost:
+    (user.complianceLicense?.level || 1) >= 20
+      ? 0
+      : getComplianceLicenseCost(user.complianceLicense?.level || 1),
+  upgradeTime:
+    (user.complianceLicense?.level || 1) >= 20
+      ? 0
+      : applyComplianceReduction(
+          getComplianceLicenseUpgradeTime(user.complianceLicense?.level || 1),
+          user.complianceLicense?.level || 1
+        ),
+  upgradeEndTime: user.complianceLicense?.upgradeEndTime || null
+      },
+      
        taxOptimization: {
   level: user.taxOptimization?.level || 1,
   upgrading: user.taxOptimization?.upgrading || false,
@@ -740,6 +887,7 @@ await finalizeEthPairsUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
+await finalizeComplianceLicenseUpgrade(user);
     
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
@@ -783,6 +931,7 @@ await finalizeEthPairsUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
+await finalizeComplianceLicenseUpgrade(user);
     
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
@@ -841,8 +990,8 @@ app.post("/upgrade-btc-pairs", async (req, res) => {
     }
 
     const cost = getBtcPairsCost(level);
-    const upgradeTime = getBtcPairsUpgradeTime(level);
-
+    const baseUpgradeTime = getBtcPairsUpgradeTime(level);
+const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1);
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
     }
@@ -908,7 +1057,8 @@ app.post("/upgrade-eth-pairs", async (req, res) => {
     const upgradeTime = getEthPairsUpgradeTime(level);
 
     if (user.coins < cost) {
-      return res.json({ success: false, message: "Not enough coins" });
+      const baseUpgradeTime = getEthPairsUpgradeTime(level);
+const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1);
     }
 
     user.coins -= cost;
@@ -970,7 +1120,8 @@ app.post("/upgrade-my-team", async (req, res) => {
     }
 
     const cost = getMyTeamCost(level);
-    const upgradeTime = getMyTeamUpgradeTime(level);
+    const baseUpgradeTime = getMyTeamUpgradeTime(level);
+const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1);
 
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
