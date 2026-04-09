@@ -186,6 +186,17 @@ complianceLicense: {
   upgradeTime: 30,
   upgradeEndTime: null
 },
+
+  regulatoryLicense: {
+  level: 1,
+  upgrading: false,
+  currentBoost: 3,
+  effectiveExtraProfit: 0,
+  nextBoost: 6,
+  nextCost: 1200,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
   
   turboCharger: {
   level: 1,
@@ -224,6 +235,7 @@ let btcPairsTimerInterval = null;
   let taxOptimizationTimerInterval = null;
   let complianceLicenseTimerInterval = null;
   let auditProtectionTimerInterval = null;
+  let regulatoryLicenseTimerInterval = null;
   let turboChargerTimerInterval = null;
   let energyCoreTimerInterval = null;
   if (dailyPopup) {
@@ -311,6 +323,7 @@ appState.vipPartners = data.vipPartners || null;
 appState.taxOptimization = data.taxOptimization || null;
 appState.complianceLicense = data.complianceLicense || null;
 appState.auditProtection = data.auditProtection || null;
+appState.regulatoryLicense = data.regulatoryLicense || null;
 appState.turboCharger = data.turboCharger || null;
 appState.energyCore = data.energyCore || null;
       
@@ -602,6 +615,17 @@ function renderLegalSection() {
     upgradeEndTime: null
   };
 
+  const regulatory = appState.regulatoryLicense || {
+    level: 1,
+    upgrading: false,
+    currentBoost: 3,
+    effectiveExtraProfit: 0,
+    nextBoost: 6,
+    nextCost: 1200,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
   const makeLegalCard = (id, title, subtitle, icon, data, label, value, upgradeFnName) => {
     const isMax = data.level >= 20;
     const isUpgrading = data.upgrading;
@@ -694,12 +718,24 @@ function renderLegalSection() {
         `+${audit.currentProtection}%`,
         "upgradeAuditProtection"
       )}
+
+      ${makeLegalCard(
+        "regulatoryLicense",
+        "Regulatory License",
+        "Boost legal income safety",
+        "models/regulatorylicense.png",
+        regulatory,
+        "Protection boost",
+        `+${regulatory.currentBoost}%`,
+        "upgradeRegulatoryLicense"
+      )}
     </div>
   `;
 
   startTaxOptimizationCountdown();
   startComplianceLicenseCountdown();
   startAuditProtectionCountdown();
+  startRegulatoryLicenseCountdown();
 }
 
  /* ================= SPECIAL SECTION ================= */
@@ -1213,6 +1249,50 @@ function startMyTeamCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(auditProtectionTimerInterval);
       auditProtectionTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("legal");
+        }
+      });
+    }
+  }, 1000);
+  }
+
+/* ================= REGULATORY LICENSE COUNTDOWN ================= */
+
+  function startRegulatoryLicenseCountdown() {
+  if (regulatoryLicenseTimerInterval) {
+    clearInterval(regulatoryLicenseTimerInterval);
+    regulatoryLicenseTimerInterval = null;
+  }
+
+  if (
+    !appState.regulatoryLicense ||
+    !appState.regulatoryLicense.upgrading ||
+    !appState.regulatoryLicense.upgradeEndTime
+  ) {
+    return;
+  }
+
+  regulatoryLicenseTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("regulatoryLicenseCountdown");
+
+    if (!countdownEl || !appState.regulatoryLicense?.upgradeEndTime) {
+      clearInterval(regulatoryLicenseTimerInterval);
+      regulatoryLicenseTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.regulatoryLicense.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(regulatoryLicenseTimerInterval);
+      regulatoryLicenseTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("legal");
@@ -2067,6 +2147,31 @@ window.upgradeEthPairs = async function() {
     }
   } catch (e) {
     console.log("upgrade audit protection error", e);
+  }
+};
+
+/* ================= REGULATORY LICENSE COUNTDOWN ================= */
+
+  window.upgradeRegulatoryLicense = async function() {
+  try {
+    const res = await fetch("/upgrade-regulatory-license", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.regulatoryLicense = data.regulatoryLicense || null;
+      renderLegalSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade regulatory license error", e);
   }
 };
   
