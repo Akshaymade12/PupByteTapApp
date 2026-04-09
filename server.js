@@ -118,6 +118,13 @@ btcPairs: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
+  },
+
+  energyCore: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
   }
 });
 
@@ -330,6 +337,51 @@ async function finalizeTurboChargerUpgrade(user) {
     user.turboCharger.upgrading = false;
     user.turboCharger.upgradeStartTime = null;
     user.turboCharger.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
+/* ================= ENERGY CORE SECTION ================= */
+
+function getEnergyCoreBonus(level) {
+  return level * 20;
+}
+
+function getEnergyCoreMax(level) {
+  return 100 + getEnergyCoreBonus(level);
+}
+
+function getEnergyCoreCost(level) {
+  return 700 * Math.pow(4, level - 1);
+}
+
+function getEnergyCoreUpgradeTime(level) {
+  return 25 * level;
+}
+
+async function finalizeEnergyCoreUpgrade(user) {
+  if (!user.energyCore) {
+    user.energyCore = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.energyCore.upgrading &&
+    user.energyCore.upgradeEndTime &&
+    new Date(user.energyCore.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.energyCore.level < 20) {
+      user.energyCore.level += 1;
+    }
+
+    user.energyCore.upgrading = false;
+    user.energyCore.upgradeStartTime = null;
+    user.energyCore.upgradeEndTime = null;
 
     await user.save();
   }
@@ -780,11 +832,13 @@ app.post("/load", async (req, res) => {
     await finalizeTaxOptimizationUpgrade(user);
     await finalizeComplianceLicenseUpgrade(user);
     await finalizeTurboChargerUpgrade(user);
+    await finalizeEnergyCoreUpgrade(user);
     
     return res.json({
       success: true,
       coins: user.coins,
       energy: user.energy,
+      maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
       profitPerHour:
   user.profitPerHour +
   getMarketingExtraProfit(user.profitPerHour, user.marketing?.level || 1) +
@@ -896,6 +950,26 @@ app.post("/load", async (req, res) => {
       ? 0
       : getTurboChargerUpgradeTime(user.turboCharger?.level || 1),
   upgradeEndTime: user.turboCharger?.upgradeEndTime || null
+      },
+
+      energyCore: {
+  level: user.energyCore?.level || 1,
+  upgrading: user.energyCore?.upgrading || false,
+  currentBonus: getEnergyCoreBonus(user.energyCore?.level || 1),
+  currentMax: getEnergyCoreMax(user.energyCore?.level || 1),
+  nextBonus:
+    (user.energyCore?.level || 1) >= 20
+      ? getEnergyCoreBonus(user.energyCore?.level || 1)
+      : getEnergyCoreBonus((user.energyCore?.level || 1) + 1),
+  nextCost:
+    (user.energyCore?.level || 1) >= 20
+      ? 0
+      : getEnergyCoreCost(user.energyCore?.level || 1),
+  upgradeTime:
+    (user.energyCore?.level || 1) >= 20
+      ? 0
+      : getEnergyCoreUpgradeTime(user.energyCore?.level || 1),
+  upgradeEndTime: user.energyCore?.upgradeEndTime || null
       }
     });
   } catch (e) {
@@ -960,6 +1034,7 @@ await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
+await finalizeEnergyCoreUpgrade(user);
     
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
@@ -1005,6 +1080,7 @@ await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
+await finalizeEnergyCoreUpgrade(user);
     
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
@@ -1291,6 +1367,75 @@ app.post("/upgrade-turbo-charger", async (req, res) => {
     });
   } catch (e) {
     console.log("/upgrade-turbo-charger error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE ENERGY CORE ================= */
+
+app.post("/upgrade-energy-core", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.energyCore) {
+      user.energyCore = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeEnergyCoreUpgrade(user);
+
+    const level = user.energyCore.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.energyCore.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getEnergyCoreCost(level);
+    const upgradeTime = getEnergyCoreUpgradeTime(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.energyCore.upgrading = true;
+    user.energyCore.upgradeStartTime = new Date();
+    user.energyCore.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      energyCore: {
+        level: user.energyCore.level,
+        upgrading: true,
+        currentBonus: getEnergyCoreBonus(user.energyCore.level),
+        currentMax: getEnergyCoreMax(user.energyCore.level),
+        nextBonus:
+          user.energyCore.level >= 20
+            ? getEnergyCoreBonus(user.energyCore.level)
+            : getEnergyCoreBonus(user.energyCore.level + 1),
+        nextCost: getEnergyCoreCost(user.energyCore.level),
+        upgradeTime,
+        upgradeEndTime: user.energyCore.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-energy-core error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
