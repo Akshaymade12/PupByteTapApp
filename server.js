@@ -84,6 +84,13 @@ btcPairs: {
   upgradeEndTime: { type: Date, default: null }
   },
 
+  futuresTrading: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  },
+  
   myTeam: {
   level: { type: Number, default: 1 },
   upgrading: { type: Boolean, default: false },
@@ -296,6 +303,50 @@ async function finalizeEthPairsUpgrade(user) {
     user.ethPairs.upgrading = false;
     user.ethPairs.upgradeStartTime = null;
     user.ethPairs.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
+/* ================= FUTURES TRADING ================= */
+
+function getFuturesTradingProfit(level) {
+  return 25 * Math.pow(2, level - 1);
+}
+
+function getFuturesTradingCost(level) {
+  return 800 * Math.pow(4, level - 1);
+}
+
+function getFuturesTradingUpgradeTime(level) {
+  return 30 * level;
+}
+
+async function finalizeFuturesTradingUpgrade(user) {
+  if (!user.futuresTrading) {
+    user.futuresTrading = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.futuresTrading.upgrading &&
+    user.futuresTrading.upgradeEndTime &&
+    new Date(user.futuresTrading.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.futuresTrading.level < 20) {
+      const oldProfit = getFuturesTradingProfit(user.futuresTrading.level);
+      user.futuresTrading.level += 1;
+      const newProfit = getFuturesTradingProfit(user.futuresTrading.level);
+      user.profitPerHour += (newProfit - oldProfit);
+    }
+
+    user.futuresTrading.upgrading = false;
+    user.futuresTrading.upgradeStartTime = null;
+    user.futuresTrading.upgradeEndTime = null;
 
     await user.save();
   }
@@ -830,6 +881,7 @@ app.post("/load", async (req, res) => {
 
     await applyOfflineMining(user);
     await finalizeBtcPairsUpgrade(user);
+    await finalizeFuturesTradingUpgrade(user);
     await finalizeEthPairsUpgrade(user);
     await finalizeMyTeamUpgrade(user);
     await finalizeMarketingUpgrade(user);
@@ -876,6 +928,15 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   upgradeTime: (user.ethPairs?.level || 1) >= 20 ? 0 : getEthPairsUpgradeTime(user.ethPairs?.level || 1),
   upgradeEndTime: user.ethPairs?.upgradeEndTime || null
       },
+
+      futuresTrading: {
+  level: user.futuresTrading?.level || 1,
+  upgrading: user.futuresTrading?.upgrading || false,
+  currentProfit: getFuturesTradingProfit(user.futuresTrading?.level || 1),
+  nextCost: (user.futuresTrading?.level || 1) >= 20 ? 0 : getFuturesTradingCost(user.futuresTrading?.level || 1),
+  upgradeTime: (user.futuresTrading?.level || 1) >= 20 ? 0 : getFuturesTradingUpgradeTime(user.futuresTrading?.level || 1),
+  upgradeEndTime: user.futuresTrading?.upgradeEndTime || null
+},
 
       myTeam: {
   level: user.myTeam?.level || 1,
@@ -1037,6 +1098,7 @@ if (!user) return res.json({ success: false, message: "Invalid user" });
 
 await finalizeBtcPairsUpgrade(user);
 await finalizeEthPairsUpgrade(user);
+await finalizeFuturesTradingUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
@@ -1083,6 +1145,7 @@ if (!user) return res.json({ success: false, message: "Invalid user" });
 
 await finalizeBtcPairsUpgrade(user);
 await finalizeEthPairsUpgrade(user);
+await finalizeFuturesTradingUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
@@ -1239,6 +1302,74 @@ if (user.coins < cost) {
     });
   } catch (e) {
     console.log("/upgrade-eth-pairs error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE FUTURES TRADING ================= */
+
+app.post("/upgrade-futures-trading", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.futuresTrading) {
+      user.futuresTrading = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeFuturesTradingUpgrade(user);
+
+    const level = user.futuresTrading.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.futuresTrading.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getFuturesTradingCost(level);
+    const baseUpgradeTime = getFuturesTradingUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.futuresTrading.upgrading = true;
+    user.futuresTrading.upgradeStartTime = new Date();
+    user.futuresTrading.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      futuresTrading: {
+        level: user.futuresTrading.level,
+        upgrading: true,
+        currentProfit: getFuturesTradingProfit(user.futuresTrading.level),
+        nextCost: getFuturesTradingCost(user.futuresTrading.level),
+        upgradeTime,
+        upgradeEndTime: user.futuresTrading.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-futures-trading error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
