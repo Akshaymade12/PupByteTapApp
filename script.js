@@ -111,6 +111,17 @@ let appState = {
   upgradeTime: 30,
   upgradeEndTime: null
 },
+  communityManager: {
+  level: 1,
+  upgrading: false,
+  currentBonus: 1,
+  effectiveExtraProfit: 0,
+  nextBonus: 2,
+  nextCost: 900,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
+  
 taxOptimization: {
   level: 1,
   upgrading: false,
@@ -162,6 +173,7 @@ let btcPairsTimerInterval = null;
   let signalNetworkTimerInterval = null;
   let myTeamTimerInterval = null;
   let marketingTimerInterval = null;
+  let communityManagerTimerInterval = null;
   let taxOptimizationTimerInterval = null;
   let complianceLicenseTimerInterval = null;
   let turboChargerTimerInterval = null;
@@ -244,6 +256,7 @@ appState.arbitrageBot = data.arbitrageBot || null;
 appState.signalNetwork = data.signalNetwork || null;
 appState.myTeam = data.myTeam || null;
 appState.marketing = data.marketing || null;
+appState.communityManager = data.communityManager || null;
 appState.taxOptimization = data.taxOptimization || null;
 appState.complianceLicense = data.complianceLicense || null;
       appState.turboCharger = data.turboCharger || null;
@@ -785,8 +798,8 @@ function renderLegalSection() {
 }
   
 /* ================= Team Section ================= */
-  
-function renderTeamSection() {
+
+  function renderTeamSection() {
   if (!mineTabContent) return;
 
   const team = appState.myTeam || {
@@ -810,122 +823,117 @@ function renderTeamSection() {
     upgradeEndTime: null
   };
 
-  const teamIsMax = team.level >= 20;
-  const teamIsUpgrading = team.upgrading;
+  const community = appState.communityManager || {
+    level: 1,
+    upgrading: false,
+    currentBonus: 1,
+    effectiveExtraProfit: 0,
+    nextBonus: 2,
+    nextCost: 900,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
 
-  let teamButtonHtml = "";
-  let teamMiddleHtml = "";
+  const makeTeamCard = (id, title, subtitle, icon, data, label, value, upgradeFnName) => {
+    const isMax = data.level >= 20;
+    const isUpgrading = data.upgrading;
 
-  if (teamIsUpgrading && team.upgradeEndTime) {
-    const secondsLeft = Math.max(
-      0,
-      Math.floor((new Date(team.upgradeEndTime).getTime() - Date.now()) / 1000)
-    );
+    let middleHtml = "";
+    let buttonHtml = "";
 
-    teamMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="myTeamCountdown">${formatCountdown(secondsLeft)}</div>
+    if (isUpgrading && data.upgradeEndTime) {
+      const secondsLeft = Math.max(
+        0,
+        Math.floor((new Date(data.upgradeEndTime).getTime() - Date.now()) / 1000)
+      );
+
+      middleHtml = `
+        <div class="mine-card-profit-label">Upgrade time</div>
+        <div class="mine-card-profit-value" id="${id}Countdown">${formatCountdown(secondsLeft)}</div>
+      `;
+
+      buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+    } else if (isMax) {
+      middleHtml = `
+        <div class="mine-card-profit-label">${label}</div>
+        <div class="mine-card-profit-value">${value}</div>
+      `;
+
+      buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+    } else {
+      middleHtml = `
+        <div class="mine-card-profit-label">${label}</div>
+        <div class="mine-card-profit-value">${value}</div>
+      `;
+
+      buttonHtml = `<button class="mine-card-upgrade-btn" onclick="${upgradeFnName}()">Upgrade</button>`;
+    }
+
+    return `
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="${icon}" alt="${title}" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">${title}</h3>
+              <div class="mine-card-subtitle">${subtitle}</div>
+            </div>
+          </div>
+          <div class="mine-card-level">lvl ${data.level}</div>
+        </div>
+
+        ${middleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : data.nextCost}</span></div>
+          ${buttonHtml}
+        </div>
+      </div>
     `;
-
-    teamButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (teamIsMax) {
-    teamMiddleHtml = `
-      <div class="mine-card-profit-label">Team bonus</div>
-      <div class="mine-card-profit-value">+${team.currentBonus}%</div>
-    `;
-
-    teamButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    teamMiddleHtml = `
-      <div class="mine-card-profit-label">Team bonus</div>
-      <div class="mine-card-profit-value">+${team.currentBonus}%</div>
-    `;
-
-    teamButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMyTeam()">Upgrade</button>`;
-  }
-
-  const marketingIsMax = marketing.level >= 20;
-  const marketingIsUpgrading = marketing.upgrading;
-
-  let marketingButtonHtml = "";
-  let marketingMiddleHtml = "";
-
-  if (marketingIsUpgrading && marketing.upgradeEndTime) {
-    const secondsLeft = Math.max(
-      0,
-      Math.floor((new Date(marketing.upgradeEndTime).getTime() - Date.now()) / 1000)
-    );
-
-    marketingMiddleHtml = `
-      <div class="mine-card-profit-label">Upgrade time</div>
-      <div class="mine-card-profit-value" id="marketingCountdown">${formatCountdown(secondsLeft)}</div>
-    `;
-
-    marketingButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (marketingIsMax) {
-    marketingMiddleHtml = `
-      <div class="mine-card-profit-label">Boost</div>
-      <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
-    `;
-
-    marketingButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
-  } else {
-    marketingMiddleHtml = `
-      <div class="mine-card-profit-label">Boost</div>
-      <div class="mine-card-profit-value">+${marketing.currentBoost}%</div>
-    `;
-
-    marketingButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeMarketing()">Upgrade</button>`;
-  }
+  };
 
   mineTabContent.innerHTML = `
     <div class="mine-cards-grid">
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/myteam.png" alt="My Team" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">My Team</h3>
-              <div class="mine-card-subtitle">Invite & earn</div>
-            </div>
-          </div>
-          <div class="mine-card-level">lvl ${team.level}</div>
-        </div>
+      ${makeTeamCard(
+        "myTeam",
+        "My Team",
+        "Invite & earn",
+        "models/myteam.png",
+        team,
+        "Team bonus",
+        `+${team.currentBonus}%`,
+        "upgradeMyTeam"
+      )}
 
-        ${teamMiddleHtml}
+      ${makeTeamCard(
+        "marketing",
+        "Marketing",
+        "Audience boost",
+        "models/marketing.png",
+        marketing,
+        "Boost",
+        `+${marketing.currentBoost}%`,
+        "upgradeMarketing"
+      )}
 
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${teamIsMax ? "MAX" : team.nextCost}</span></div>
-          ${teamButtonHtml}
-        </div>
-      </div>
-
-      <div class="mine-card-box">
-        <div class="mine-card-top">
-          <div class="mine-card-left">
-            <img src="models/marketing.png" alt="Marketing" class="mine-card-icon">
-            <div class="mine-card-title-wrap">
-              <h3 class="mine-card-title">Marketing</h3>
-              <div class="mine-card-subtitle">Audience boost</div>
-            </div>
-          </div>
-          <div class="mine-card-level">lvl ${marketing.level}</div>
-        </div>
-
-        ${marketingMiddleHtml}
-
-        <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${marketingIsMax ? "MAX" : marketing.nextCost}</span></div>
-          ${marketingButtonHtml}
-        </div>
-      </div>
+      ${makeTeamCard(
+        "communityManager",
+        "Community Manager",
+        "Grow referral strength",
+        "models/communitymanager.png",
+        community,
+        "Referral bonus",
+        `+${community.currentBonus}`,
+        "upgradeCommunityManager"
+      )}
     </div>
   `;
 
   startMyTeamCountdown();
   startMarketingCountdown();
-}
-
+  startCommunityManagerCountdown();
+  }
+  
 /* ================= START MY TEAM COUNTDOWN ================= */
   
 function startMyTeamCountdown() {
@@ -1181,6 +1189,50 @@ function startMyTeamCountdown() {
     }
   }, 1000);
  }
+  
+/* ================= COMMUNITY MANAGER CONNDOWN ================= */
+  
+  function startCommunityManagerCountdown() {
+  if (communityManagerTimerInterval) {
+    clearInterval(communityManagerTimerInterval);
+    communityManagerTimerInterval = null;
+  }
+
+  if (
+    !appState.communityManager ||
+    !appState.communityManager.upgrading ||
+    !appState.communityManager.upgradeEndTime
+  ) {
+    return;
+  }
+
+  communityManagerTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("communityManagerCountdown");
+
+    if (!countdownEl || !appState.communityManager?.upgradeEndTime) {
+      clearInterval(communityManagerTimerInterval);
+      communityManagerTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.communityManager.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(communityManagerTimerInterval);
+      communityManagerTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("team");
+        }
+      });
+    }
+  }, 1000);
+  }
   
 /* ================= SWITCH TASK ================= */
   
@@ -1551,6 +1603,31 @@ window.upgradeEthPairs = async function() {
   }
 };
 
+ /* ================= COMMUNITY MANAGER UPGRADE ================= */
+
+  window.upgradeCommunityManager = async function() {
+  try {
+    const res = await fetch("/upgrade-community-manager", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.communityManager = data.communityManager || null;
+      renderTeamSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade community manager error", e);
+  }
+};
+  
 /* ================= UPGRADE TAX OPTIMIZATION ================= */
   
   window.upgradeTaxOptimization = async function() {
