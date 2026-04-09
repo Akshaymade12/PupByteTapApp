@@ -93,7 +93,17 @@ complianceLicense: {
   nextCost: 1200,
   upgradeTime: 30,
   upgradeEndTime: null
-}
+},
+
+  turboCharger: {
+  level: 1,
+  upgrading: false,
+  currentBonus: 1,
+  nextBonus: 2,
+  nextCost: 600,
+  upgradeTime: 25,
+  upgradeEndTime: null
+  }
 };
 
 let btcPairsTimerInterval = null;
@@ -102,6 +112,7 @@ let btcPairsTimerInterval = null;
   let marketingTimerInterval = null;
   let taxOptimizationTimerInterval = null;
   let complianceLicenseTimerInterval = null;
+  let turboChargerTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -178,6 +189,8 @@ appState.myTeam = data.myTeam || null;
 appState.marketing = data.marketing || null;
 appState.taxOptimization = data.taxOptimization || null;
 appState.complianceLicense = data.complianceLicense || null;
+      appState.turboCharger = data.turboCharger || null;
+      
       
       loadDailyCombo();
     } catch (e) {
@@ -575,6 +588,82 @@ function renderLegalSection() {
   startTaxOptimizationCountdown();
   startComplianceLicenseCountdown();
 }
+
+ /* ================= SPECIAL SECTION ================= */
+
+  function renderSpecialSection() {
+  if (!mineTabContent) return;
+
+  const turbo = appState.turboCharger || {
+    level: 1,
+    upgrading: false,
+    currentBonus: 1,
+    nextBonus: 2,
+    nextCost: 600,
+    upgradeTime: 25,
+    upgradeEndTime: null
+  };
+
+  const isMax = turbo.level >= 20;
+  const isUpgrading = turbo.upgrading;
+
+  let buttonHtml = "";
+  let middleHtml = "";
+
+  if (isUpgrading && turbo.upgradeEndTime) {
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(turbo.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    middleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value" id="turboChargerCountdown">${formatCountdown(secondsLeft)}</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (isMax) {
+    middleHtml = `
+      <div class="mine-card-profit-label">Tap boost</div>
+      <div class="mine-card-profit-value">+${turbo.currentBonus}</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+  } else {
+    middleHtml = `
+      <div class="mine-card-profit-label">Tap boost</div>
+      <div class="mine-card-profit-value">+${turbo.currentBonus}</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeTurboCharger()">Upgrade</button>`;
+  }
+
+  mineTabContent.innerHTML = `
+    <div class="mine-cards-grid">
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="models/turbocharger.png" alt="Turbo Charger" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">Turbo Charger</h3>
+              <div class="mine-card-subtitle">Boost tap power</div>
+            </div>
+          </div>
+          <div class="mine-card-level">lvl ${turbo.level}</div>
+        </div>
+
+        ${middleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : turbo.nextCost}</span></div>
+          ${buttonHtml}
+        </div>
+      </div>
+    </div>
+  `;
+
+  startTurboChargerCountdown();
+  }
   
 /* ================= Team Section ================= */
   
@@ -840,6 +929,50 @@ function startMyTeamCountdown() {
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("legal");
+        }
+      });
+    }
+  }, 1000);
+  }
+  
+/* ================= TURBO CHARGER COUNTDOWN ================= */
+  
+  function startTurboChargerCountdown() {
+  if (turboChargerTimerInterval) {
+    clearInterval(turboChargerTimerInterval);
+    turboChargerTimerInterval = null;
+  }
+
+  if (
+    !appState.turboCharger ||
+    !appState.turboCharger.upgrading ||
+    !appState.turboCharger.upgradeEndTime
+  ) {
+    return;
+  }
+
+  turboChargerTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("turboChargerCountdown");
+
+    if (!countdownEl || !appState.turboCharger?.upgradeEndTime) {
+      clearInterval(turboChargerTimerInterval);
+      turboChargerTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.turboCharger.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(turboChargerTimerInterval);
+      turboChargerTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("special");
         }
       });
     }
@@ -1204,6 +1337,31 @@ window.upgradeEthPairs = async function() {
     console.log("upgrade compliance license error", e);
   }
 };
+
+ /* ================= TURBO CHARGER UPGRADE ================= */
+
+  window.upgradeTurboCharger = async function() {
+  try {
+    const res = await fetch("/upgrade-turbo-charger", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.turboCharger = data.turboCharger || null;
+      renderSpecialSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade turbo charger error", e);
+  }
+};
   
 /* ================= DAILY COMBO ================= */
 const comboContainer = document.getElementById("combo");
@@ -1483,11 +1641,8 @@ if (tabName === "team") {
 }
 
   if (tabName === "special") {
-    if (mineTabSpecial) mineTabSpecial.classList.add("active");
-    mineTabContent.innerHTML = `
-      <div class="mine-placeholder-card">Special section</div>
-    `;
-  }
+  if (mineTabSpecial) mineTabSpecial.classList.add("active");
+  renderSpecialSection();
 }
 
 if (mineTabMarket) mineTabMarket.onclick = () => switchMineTab("market");
