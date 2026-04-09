@@ -207,6 +207,17 @@ complianceLicense: {
   upgradeTime: 30,
   upgradeEndTime: null
 },
+
+  courtSettlement: {
+  level: 1,
+  upgrading: false,
+  currentRecovery: 4,
+  effectiveExtraProfit: 0,
+  nextRecovery: 8,
+  nextCost: 1600,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
   
   turboCharger: {
   level: 1,
@@ -247,6 +258,7 @@ let btcPairsTimerInterval = null;
   let auditProtectionTimerInterval = null;
   let regulatoryLicenseTimerInterval = null;
   let legalAdvisoryTimerInterval = null;
+  let courtSettlementTimerInterval = null;
   let turboChargerTimerInterval = null;
   let energyCoreTimerInterval = null;
   if (dailyPopup) {
@@ -336,6 +348,7 @@ appState.complianceLicense = data.complianceLicense || null;
 appState.auditProtection = data.auditProtection || null;
 appState.regulatoryLicense = data.regulatoryLicense || null;
 appState.legalAdvisory = data.legalAdvisory || null;
+appState.courtSettlement = data.courtSettlement || null;
 appState.turboCharger = data.turboCharger || null;
 appState.energyCore = data.energyCore || null;
       
@@ -648,6 +661,17 @@ window.claimSpecialTask = async function() {
     upgradeEndTime: null
   };
 
+  const court = appState.courtSettlement || {
+    level: 1,
+    upgrading: false,
+    currentRecovery: 4,
+    effectiveExtraProfit: 0,
+    nextRecovery: 8,
+    nextCost: 1600,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
   const makeLegalCard = (id, title, subtitle, icon, data, label, value, upgradeFnName) => {
     const isMax = data.level >= 20;
     const isUpgrading = data.upgrading;
@@ -762,6 +786,17 @@ window.claimSpecialTask = async function() {
         `-${advisory.currentDiscount}%`,
         "upgradeLegalAdvisory"
       )}
+
+      ${makeLegalCard(
+        "courtSettlement",
+        "Court Settlement",
+        "Recover lost legal income",
+        "models/courtsettlement.png",
+        court,
+        "Recovery bonus",
+        `+${court.currentRecovery}%`,
+        "upgradeCourtSettlement"
+      )}
     </div>
   `;
 
@@ -770,8 +805,9 @@ window.claimSpecialTask = async function() {
   startAuditProtectionCountdown();
   startRegulatoryLicenseCountdown();
   startLegalAdvisoryCountdown();
+  startCourtSettlementCountdown();
   }
-
+      
  /* ================= SPECIAL SECTION ================= */
 
   function renderSpecialSection() {
@@ -1371,6 +1407,50 @@ function startMyTeamCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(legalAdvisoryTimerInterval);
       legalAdvisoryTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("legal");
+        }
+      });
+    }
+  }, 1000);
+  }
+
+  /* ================= COURT SETTLEMENT COUNTDOWN ================= */
+
+  function startCourtSettlementCountdown() {
+  if (courtSettlementTimerInterval) {
+    clearInterval(courtSettlementTimerInterval);
+    courtSettlementTimerInterval = null;
+  }
+
+  if (
+    !appState.courtSettlement ||
+    !appState.courtSettlement.upgrading ||
+    !appState.courtSettlement.upgradeEndTime
+  ) {
+    return;
+  }
+
+  courtSettlementTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("courtSettlementCountdown");
+
+    if (!countdownEl || !appState.courtSettlement?.upgradeEndTime) {
+      clearInterval(courtSettlementTimerInterval);
+      courtSettlementTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.courtSettlement.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(courtSettlementTimerInterval);
+      courtSettlementTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("legal");
@@ -2275,6 +2355,31 @@ window.upgradeEthPairs = async function() {
     }
   } catch (e) {
     console.log("upgrade legal advisory error", e);
+  }
+};
+
+  /* ================= COURT SETTLEMENT UPGRADE ================= */
+
+  window.upgradeCourtSettlement = async function() {
+  try {
+    const res = await fetch("/upgrade-court-settlement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.courtSettlement = data.courtSettlement || null;
+      renderLegalSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade court settlement error", e);
   }
 };
   
