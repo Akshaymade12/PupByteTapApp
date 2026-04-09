@@ -127,6 +127,13 @@ btcPairs: {
   upgradeEndTime: { type: Date, default: null }
   },
 
+  communityManager: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  },
+
   taxOptimization: {
   level: { type: Number, default: 1 },
   upgrading: { type: Boolean, default: false },
@@ -709,6 +716,79 @@ const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLic
   }
 });
 
+/* ================= UPGRADE COMMUNITY MANAGER ================= */
+
+app.post("/upgrade-community-manager", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.communityManager) {
+      user.communityManager = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeCommunityManagerUpgrade(user);
+
+    const level = user.communityManager.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.communityManager.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getCommunityManagerCost(level);
+    const baseUpgradeTime = getCommunityManagerUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.communityManager.upgrading = true;
+    user.communityManager.upgradeStartTime = new Date();
+    user.communityManager.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      communityManager: {
+        level: user.communityManager.level,
+        upgrading: true,
+        currentBonus: getCommunityManagerBonus(user.communityManager.level),
+        effectiveExtraProfit: getCommunityManagerExtraProfit(user.referrals || 0, user.communityManager.level),
+        nextBonus:
+          user.communityManager.level >= 20
+            ? getCommunityManagerBonus(user.communityManager.level)
+            : getCommunityManagerBonus(user.communityManager.level + 1),
+        nextCost: getCommunityManagerCost(user.communityManager.level),
+        upgradeTime,
+        upgradeEndTime: user.communityManager.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-community-manager error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
 /* ================= MARKETING SECTION ================= */
 
 function getMarketingBoost(level) {
@@ -750,6 +830,51 @@ async function finalizeMarketingUpgrade(user) {
     user.marketing.upgrading = false;
     user.marketing.upgradeStartTime = null;
     user.marketing.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
+/* ================= COMMUNITY MANAGER SECTION ================= */
+
+function getCommunityManagerBonus(level) {
+  return level;
+}
+
+function getCommunityManagerExtraProfit(referrals, level) {
+  return (referrals || 0) * getCommunityManagerBonus(level);
+}
+
+function getCommunityManagerCost(level) {
+  return 900 * Math.pow(4, level - 1);
+}
+
+function getCommunityManagerUpgradeTime(level) {
+  return 30 * level;
+}
+
+async function finalizeCommunityManagerUpgrade(user) {
+  if (!user.communityManager) {
+    user.communityManager = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.communityManager.upgrading &&
+    user.communityManager.upgradeEndTime &&
+    new Date(user.communityManager.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.communityManager.level < 20) {
+      user.communityManager.level += 1;
+    }
+
+    user.communityManager.upgrading = false;
+    user.communityManager.upgradeStartTime = null;
+    user.communityManager.upgradeEndTime = null;
 
     await user.save();
   }
@@ -1041,6 +1166,7 @@ app.post("/load", async (req, res) => {
     await finalizeSignalNetworkUpgrade(user);
     await finalizeMyTeamUpgrade(user);
     await finalizeMarketingUpgrade(user);
+    await finalizeCommunityManagerUpgrade(user);
     await finalizeTaxOptimizationUpgrade(user);
     await finalizeComplianceLicenseUpgrade(user);
     await finalizeTurboChargerUpgrade(user);
@@ -1057,6 +1183,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       profitPerHour:
   user.profitPerHour +
   getMarketingExtraProfit(user.profitPerHour, user.marketing?.level || 1) +
+  getCommunityManagerExtraProfit(user.referrals || 0, user.communityManager?.level || 1) +
   getTaxOptimizationSavedProfit(user.profitPerHour, user.taxOptimization?.level || 1),
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
@@ -1138,6 +1265,26 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   upgradeTime: (user.marketing?.level || 1) >= 20 ? 0 : getMarketingUpgradeTime(user.marketing?.level || 1),
   upgradeEndTime: user.marketing?.upgradeEndTime || null
 },
+      communityManager: {
+  level: user.communityManager?.level || 1,
+  upgrading: user.communityManager?.upgrading || false,
+  currentBonus: getCommunityManagerBonus(user.communityManager?.level || 1),
+  effectiveExtraProfit: getCommunityManagerExtraProfit(user.referrals || 0, user.communityManager?.level || 1),
+  nextBonus:
+    (user.communityManager?.level || 1) >= 20
+      ? getCommunityManagerBonus(user.communityManager?.level || 1)
+      : getCommunityManagerBonus((user.communityManager?.level || 1) + 1),
+  nextCost:
+    (user.communityManager?.level || 1) >= 20
+      ? 0
+      : getCommunityManagerCost(user.communityManager?.level || 1),
+  upgradeTime:
+    (user.communityManager?.level || 1) >= 20
+      ? 0
+      : getCommunityManagerUpgradeTime(user.communityManager?.level || 1),
+  upgradeEndTime: user.communityManager?.upgradeEndTime || null
+},
+      
       complianceLicense: {
   level: user.complianceLicense?.level || 1,
   upgrading: user.complianceLicense?.upgrading || false,
@@ -1284,6 +1431,7 @@ await finalizeArbitrageBotUpgrade(user);
 await finalizeSignalNetworkUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
+await finalizeCommunityManagerUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
@@ -1334,6 +1482,7 @@ await finalizeArbitrageBotUpgrade(user);
 await finalizeSignalNetworkUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
+await finalizeCommunityManagerUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
