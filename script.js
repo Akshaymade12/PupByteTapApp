@@ -150,7 +150,7 @@ let btcPairsTimerInterval = null;
       }
 
       coinsEl.innerText = Math.floor(data.coins || 0);
-      energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || 100}`;
+      energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || appState.energyCore?.currentMax || 120}`;
       profitEl.innerText = data.profitPerHour || 0;
 
       const leagueText = document.getElementById("currentLeagueText");
@@ -267,7 +267,7 @@ appState.complianceLicense = data.complianceLicense || null;
 
         if (data.success) {
           coinsEl.innerText = Math.floor(data.coins || 0);
-          energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || 100}`;
+          energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || appState.energyCore?.currentMax || 120}`;
           profitEl.innerText = data.profitPerHour || 0;
 
           const leagueText = document.getElementById("currentLeagueText");
@@ -380,11 +380,6 @@ function refreshSpecialTaskUI(claimed = false) {
 }
 
 window.markSpecialTask = async function(taskKey, url) {
-  const specialClaimBtn = document.getElementById("specialClaimBtn");
-
-  if (specialClaimBtn && specialClaimBtn.disabled) {
-    return;
-  }
 
   try {
     const res = await fetch("/special-task-status/" + telegramId);
