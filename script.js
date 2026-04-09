@@ -55,6 +55,14 @@ const copyRefBtn = document.getElementById("copyRefBtn");
 let appState = {
   btcPairs: null,
   ethPairs: null,
+  futuresTrading: {
+  level: 1,
+  upgrading: false,
+  currentProfit: 25,
+  nextCost: 800,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
   myTeam: {
     level: 1,
     upgrading: false,
@@ -119,6 +127,7 @@ complianceLicense: {
 
 let btcPairsTimerInterval = null;
   let ethPairsTimerInterval = null;
+  let futuresTradingTimerInterval = null;
   let myTeamTimerInterval = null;
   let marketingTimerInterval = null;
   let taxOptimizationTimerInterval = null;
@@ -197,6 +206,7 @@ if (copyRefBtn && accountRefLink) {
       
 appState.btcPairs = data.btcPairs || null;
 appState.ethPairs = data.ethPairs || null;
+appState.futuresTrading = data.futuresTrading || null;
 appState.myTeam = data.myTeam || null;
 appState.marketing = data.marketing || null;
 appState.taxOptimization = data.taxOptimization || null;
@@ -1334,6 +1344,31 @@ window.upgradeEthPairs = async function() {
   }
 };
 
+/* ================= UPGRADE FUTURES TRADING ================= */
+  
+  window.upgradeFuturesTrading = async function() {
+  try {
+    const res = await fetch("/upgrade-futures-trading", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.futuresTrading = data.futuresTrading || null;
+      renderMarketSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade futures trading error", e);
+  }
+};
+  
   /* ================= UPGRADE MY TEAM ================= */
   
   window.upgradeMyTeam = async function() {
@@ -1534,7 +1569,7 @@ function getCardProfit(level) {
 function getCardCost(level) {
   return 500 * Math.pow(4, level - 1);
 }
-
+  
 function renderMarketSection() {
   if (!mineTabContent) return;
 
@@ -1556,9 +1591,17 @@ function renderMarketSection() {
     upgradeEndTime: null
   };
 
+  const futures = appState.futuresTrading || {
+    level: 1,
+    upgrading: false,
+    currentProfit: 25,
+    nextCost: 800,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
   const btcIsMax = btc.level >= 20;
   const btcIsUpgrading = btc.upgrading;
-
   let btcButtonHtml = "";
   let btcMiddleHtml = "";
 
@@ -1592,7 +1635,6 @@ function renderMarketSection() {
 
   const ethIsMax = eth.level >= 20;
   const ethIsUpgrading = eth.upgrading;
-
   let ethButtonHtml = "";
   let ethMiddleHtml = "";
 
@@ -1603,9 +1645,9 @@ function renderMarketSection() {
     );
 
     ethMiddleHtml = `
-  <div class="mine-card-profit-label">Upgrade time</div>
-  <div class="mine-card-profit-value" id="ethPairsCountdown">${formatCountdown(secondsLeft)}</div>
-`;
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value" id="ethPairsCountdown">${formatCountdown(secondsLeft)}</div>
+    `;
 
     ethButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
   } else if (ethIsMax) {
@@ -1623,6 +1665,40 @@ function renderMarketSection() {
 
     ethButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeEthPairs()">Upgrade</button>`;
   }
+
+  const futuresIsMax = futures.level >= 20;
+  const futuresIsUpgrading = futures.upgrading;
+  let futuresButtonHtml = "";
+  let futuresMiddleHtml = "";
+
+  if (futuresIsUpgrading && futures.upgradeEndTime) {
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(futures.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    futuresMiddleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value" id="futuresTradingCountdown">${formatCountdown(secondsLeft)}</div>
+    `;
+
+    futuresButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (futuresIsMax) {
+    futuresMiddleHtml = `
+      <div class="mine-card-profit-label">Profit per hour</div>
+      <div class="mine-card-profit-value">+${futures.currentProfit}</div>
+    `;
+
+    futuresButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+  } else {
+    futuresMiddleHtml = `
+      <div class="mine-card-profit-label">Profit per hour</div>
+      <div class="mine-card-profit-value">+${futures.currentProfit}</div>
+    `;
+
+    futuresButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeFuturesTrading()">Upgrade</button>`;
+  }
+
   mineTabContent.innerHTML = `
     <div class="mine-cards-grid">
       <div class="mine-card-box">
@@ -1634,7 +1710,6 @@ function renderMarketSection() {
               <div class="mine-card-subtitle">Bitcoin market</div>
             </div>
           </div>
-
           <div class="mine-card-level">lvl ${btc.level}</div>
         </div>
 
@@ -1655,7 +1730,6 @@ function renderMarketSection() {
               <div class="mine-card-subtitle">Ethereum market</div>
             </div>
           </div>
-
           <div class="mine-card-level">lvl ${eth.level}</div>
         </div>
 
@@ -1666,11 +1740,32 @@ function renderMarketSection() {
           ${ethButtonHtml}
         </div>
       </div>
+
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="models/futurestrading.png" alt="Futures Trading" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">Futures Trading</h3>
+              <div class="mine-card-subtitle">High risk, high reward</div>
+            </div>
+          </div>
+          <div class="mine-card-level">lvl ${futures.level}</div>
+        </div>
+
+        ${futuresMiddleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${futuresIsMax ? "MAX" : futures.nextCost}</span></div>
+          ${futuresButtonHtml}
+        </div>
+      </div>
     </div>
   `;
 
   startBtcPairsCountdown();
-startEthPairsCountdown();
+  startEthPairsCountdown();
+  startFuturesTradingCountdown();
 }
   
 /* ================= BTC PAIRS COUNTDOWN ================= */
@@ -1752,6 +1847,46 @@ function startEthPairsCountdown() {
     }
   }, 1000);
 }
+
+/* ================= FUTURES TRADING COUNTDOWN ================= */
+
+  function startFuturesTradingCountdown() {
+  if (futuresTradingTimerInterval) {
+    clearInterval(futuresTradingTimerInterval);
+    futuresTradingTimerInterval = null;
+  }
+
+  if (!appState.futuresTrading || !appState.futuresTrading.upgrading || !appState.futuresTrading.upgradeEndTime) {
+    return;
+  }
+
+  futuresTradingTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("futuresTradingCountdown");
+
+    if (!countdownEl || !appState.futuresTrading?.upgradeEndTime) {
+      clearInterval(futuresTradingTimerInterval);
+      futuresTradingTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.futuresTrading.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(futuresTradingTimerInterval);
+      futuresTradingTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("market");
+        }
+      });
+    }
+  }, 1000);
+  }
   
 /* ================= MINE TABS ================= */
 
