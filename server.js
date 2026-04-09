@@ -189,6 +189,13 @@ btcPairs: {
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
   },
+
+  courtSettlement: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  },
   
   turboCharger: {
   level: { type: Number, default: 1 },
@@ -1670,6 +1677,91 @@ app.post("/upgrade-legal-advisory", async (req, res) => {
   }
 });
 
+/* ================= UPGRADE COURT SETTLEMENT ================= */
+
+app.post("/upgrade-court-settlement", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.courtSettlement) {
+      user.courtSettlement = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeCourtSettlementUpgrade(user);
+
+    const level = user.courtSettlement.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.courtSettlement.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = applyLegalAdvisoryDiscount(
+      getCourtSettlementCost(level),
+      user.legalAdvisory?.level || 1
+    );
+
+    const baseUpgradeTime = getCourtSettlementUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.courtSettlement.upgrading = true;
+    user.courtSettlement.upgradeStartTime = new Date();
+    user.courtSettlement.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      courtSettlement: {
+        level: user.courtSettlement.level,
+        upgrading: true,
+        currentRecovery: getCourtSettlementRecovery(user.courtSettlement.level),
+        effectiveExtraProfit: getCourtSettlementExtraProfit(
+          user.profitPerHour,
+          user.taxOptimization?.level || 1,
+          user.auditProtection?.level || 1,
+          user.courtSettlement.level
+        ),
+        nextRecovery:
+          user.courtSettlement.level >= 20
+            ? getCourtSettlementRecovery(user.courtSettlement.level)
+            : getCourtSettlementRecovery(user.courtSettlement.level + 1),
+        nextCost: applyLegalAdvisoryDiscount(
+          getCourtSettlementCost(user.courtSettlement.level),
+          user.legalAdvisory?.level || 1
+        ),
+        upgradeTime,
+        upgradeEndTime: user.courtSettlement.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-court-settlement error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
 /* ================= TAX OPTIMIZATION SECTION ================= */
 
 const BASE_TAX_PERCENT = 10;
@@ -1903,6 +1995,55 @@ async function finalizeLegalAdvisoryUpgrade(user) {
   }
 }
 
+/* ================= COURT SETTLEMENT SECTION ================= */
+
+function getCourtSettlementRecovery(level) {
+  return Math.min(level * 4, 60);
+}
+
+function getCourtSettlementExtraProfit(baseProfit, taxLevel, auditLevel, courtLevel) {
+  const taxSaved = getTaxOptimizationSavedProfit(baseProfit || 0, taxLevel || 1);
+  const auditExtra = getAuditProtectionExtraProfit(baseProfit || 0, auditLevel || 1);
+  const legalBaseGain = taxSaved + auditExtra;
+
+  return Math.floor(legalBaseGain * (getCourtSettlementRecovery(courtLevel || 1) / 100));
+}
+
+function getCourtSettlementCost(level) {
+  return 1600 * Math.pow(4, level - 1);
+}
+
+function getCourtSettlementUpgradeTime(level) {
+  return 30 * level;
+}
+
+async function finalizeCourtSettlementUpgrade(user) {
+  if (!user.courtSettlement) {
+    user.courtSettlement = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.courtSettlement.upgrading &&
+    user.courtSettlement.upgradeEndTime &&
+    new Date(user.courtSettlement.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.courtSettlement.level < 20) {
+      user.courtSettlement.level += 1;
+    }
+
+    user.courtSettlement.upgrading = false;
+    user.courtSettlement.upgradeStartTime = null;
+    user.courtSettlement.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 /* ================= ENERGY ================= */
 function rechargeEnergy(user) {
   const now = Date.now();
@@ -1961,6 +2102,7 @@ app.post("/load", async (req, res) => {
     await finalizeAuditProtectionUpgrade(user);
     await finalizeRegulatoryLicenseUpgrade(user);
     await finalizeLegalAdvisoryUpgrade(user);
+    await finalizeCourtSettlementUpgrade(user);
     await finalizeTurboChargerUpgrade(user);
     await finalizeEnergyCoreUpgrade(user);
 
@@ -1997,6 +2139,12 @@ user.energy = Math.min(user.maxEnergy, user.energy);
     user.profitPerHour,
     user.auditProtection?.level || 1,
     user.regulatoryLicense?.level || 1
+  ) +
+  getCourtSettlementExtraProfit(
+    user.profitPerHour,
+    user.taxOptimization?.level || 1,
+    user.auditProtection?.level || 1,
+    user.courtSettlement?.level || 1
   ),
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
@@ -2216,6 +2364,31 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   upgradeEndTime: user.legalAdvisory?.upgradeEndTime || null
 },
       
+      courtSettlement: {
+  level: user.courtSettlement?.level || 1,
+  upgrading: user.courtSettlement?.upgrading || false,
+  currentRecovery: getCourtSettlementRecovery(user.courtSettlement?.level || 1),
+  effectiveExtraProfit: getCourtSettlementExtraProfit(
+    user.profitPerHour,
+    user.taxOptimization?.level || 1,
+    user.auditProtection?.level || 1,
+    user.courtSettlement?.level || 1
+  ),
+  nextRecovery:
+    (user.courtSettlement?.level || 1) >= 20
+      ? getCourtSettlementRecovery(user.courtSettlement?.level || 1)
+      : getCourtSettlementRecovery((user.courtSettlement?.level || 1) + 1),
+  nextCost:
+    (user.courtSettlement?.level || 1) >= 20
+      ? 0
+      : getCourtSettlementCost(user.courtSettlement?.level || 1),
+  upgradeTime:
+    (user.courtSettlement?.level || 1) >= 20
+      ? 0
+      : getCourtSettlementUpgradeTime(user.courtSettlement?.level || 1),
+  upgradeEndTime: user.courtSettlement?.upgradeEndTime || null
+},
+      
       ambassadorProgram: {
   level: user.ambassadorProgram?.level || 1,
   upgrading: user.ambassadorProgram?.upgrading || false,
@@ -2400,6 +2573,7 @@ await finalizeComplianceLicenseUpgrade(user);
 await finalizeAuditProtectionUpgrade(user);
 await finalizeRegulatoryLicenseUpgrade(user);
 await finalizeLegalAdvisoryUpgrade(user);
+await finalizeCourtSettlementUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
     
@@ -2457,6 +2631,7 @@ await finalizeComplianceLicenseUpgrade(user);
 await finalizeAuditProtectionUpgrade(user);
 await finalizeRegulatoryLicenseUpgrade(user);
 await finalizeLegalAdvisoryUpgrade(user);
+await finalizeCourtSettlementUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
     
