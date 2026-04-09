@@ -169,6 +169,13 @@ btcPairs: {
   upgradeEndTime: { type: Date, default: null }
   },
 
+  auditProtection: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  },
+  
   turboCharger: {
   level: { type: Number, default: 1 },
   upgrading: { type: Boolean, default: false },
@@ -1412,6 +1419,82 @@ app.post("/upgrade-compliance-license", async (req, res) => {
   }
 });
 
+/* ================= UPGRADE AUDIT PROTECTION ================= */
+
+app.post("/upgrade-audit-protection", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.auditProtection) {
+      user.auditProtection = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeAuditProtectionUpgrade(user);
+
+    const level = user.auditProtection.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.auditProtection.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getAuditProtectionCost(level);
+    const baseUpgradeTime = getAuditProtectionUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.auditProtection.upgrading = true;
+    user.auditProtection.upgradeStartTime = new Date();
+    user.auditProtection.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      auditProtection: {
+        level: user.auditProtection.level,
+        upgrading: true,
+        currentProtection: getAuditProtectionPercent(user.auditProtection.level),
+        effectiveExtraProfit: getAuditProtectionExtraProfit(
+          user.profitPerHour,
+          user.auditProtection.level
+        ),
+        nextProtection:
+          user.auditProtection.level >= 20
+            ? getAuditProtectionPercent(user.auditProtection.level)
+            : getAuditProtectionPercent(user.auditProtection.level + 1),
+        nextCost: getAuditProtectionCost(user.auditProtection.level),
+        upgradeTime,
+        upgradeEndTime: user.auditProtection.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-audit-protection error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
 /* ================= TAX OPTIMIZATION SECTION ================= */
 
 const BASE_TAX_PERCENT = 10;
@@ -1509,6 +1592,51 @@ async function finalizeComplianceLicenseUpgrade(user) {
   }
 }
 
+/* ================= AUDIT PROTECTION SECTION ================= */
+
+function getAuditProtectionPercent(level) {
+  return Math.min(level * 2, 40);
+}
+
+function getAuditProtectionExtraProfit(baseProfit, level) {
+  return Math.floor((baseProfit || 0) * (getAuditProtectionPercent(level || 1) / 100));
+}
+
+function getAuditProtectionCost(level) {
+  return 1000 * Math.pow(4, level - 1);
+}
+
+function getAuditProtectionUpgradeTime(level) {
+  return 30 * level;
+}
+
+async function finalizeAuditProtectionUpgrade(user) {
+  if (!user.auditProtection) {
+    user.auditProtection = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.auditProtection.upgrading &&
+    user.auditProtection.upgradeEndTime &&
+    new Date(user.auditProtection.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.auditProtection.level < 20) {
+      user.auditProtection.level += 1;
+    }
+
+    user.auditProtection.upgrading = false;
+    user.auditProtection.upgradeStartTime = null;
+    user.auditProtection.upgradeEndTime = null;
+
+    await user.save();
+  }
+   }
+
 /* ================= ENERGY ================= */
 function rechargeEnergy(user) {
   const now = Date.now();
@@ -1564,6 +1692,7 @@ app.post("/load", async (req, res) => {
     await finalizeVipPartnersUpgrade(user);
     await finalizeTaxOptimizationUpgrade(user);
     await finalizeComplianceLicenseUpgrade(user);
+    await finalizeAuditProtectionUpgrade(user);
     await finalizeTurboChargerUpgrade(user);
     await finalizeEnergyCoreUpgrade(user);
 
@@ -1594,7 +1723,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
     user.ambassadorProgram?.level || 1,
     user.vipPartners?.level || 1
   ) +
-  getTaxOptimizationSavedProfit(user.profitPerHour, user.taxOptimization?.level || 1),
+  getTaxOptimizationSavedProfit(user.profitPerHour, user.taxOptimization?.level || 1) +
+  getAuditProtectionExtraProfit(user.profitPerHour, user.auditProtection?.level || 1),
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
       league: user.league,
@@ -1739,6 +1869,29 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   upgradeEndTime: user.complianceLicense?.upgradeEndTime || null
       },
 
+      auditProtection: {
+  level: user.auditProtection?.level || 1,
+  upgrading: user.auditProtection?.upgrading || false,
+  currentProtection: getAuditProtectionPercent(user.auditProtection?.level || 1),
+  effectiveExtraProfit: getAuditProtectionExtraProfit(
+    user.profitPerHour,
+    user.auditProtection?.level || 1
+  ),
+  nextProtection:
+    (user.auditProtection?.level || 1) >= 20
+      ? getAuditProtectionPercent(user.auditProtection?.level || 1)
+      : getAuditProtectionPercent((user.auditProtection?.level || 1) + 1),
+  nextCost:
+    (user.auditProtection?.level || 1) >= 20
+      ? 0
+      : getAuditProtectionCost(user.auditProtection?.level || 1),
+  upgradeTime:
+    (user.auditProtection?.level || 1) >= 20
+      ? 0
+      : getAuditProtectionUpgradeTime(user.auditProtection?.level || 1),
+  upgradeEndTime: user.auditProtection?.upgradeEndTime || null
+},
+      
       ambassadorProgram: {
   level: user.ambassadorProgram?.level || 1,
   upgrading: user.ambassadorProgram?.upgrading || false,
@@ -1917,6 +2070,7 @@ await finalizeAmbassadorProgramUpgrade(user);
 await finalizeVipPartnersUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
+await finalizeAuditProtectionUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
     
@@ -1971,6 +2125,7 @@ await finalizeAmbassadorProgramUpgrade(user);
 await finalizeVipPartnersUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
+await finalizeAuditProtectionUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
     
