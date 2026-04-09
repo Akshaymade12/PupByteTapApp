@@ -1644,7 +1644,8 @@ if (tabName === "team") {
   if (mineTabSpecial) mineTabSpecial.classList.add("active");
   renderSpecialSection();
 }
-
+    }
+  
 if (mineTabMarket) mineTabMarket.onclick = () => switchMineTab("market");
 if (mineTabTeam) mineTabTeam.onclick = () => switchMineTab("team");
 if (mineTabLegal) mineTabLegal.onclick = () => switchMineTab("legal");
