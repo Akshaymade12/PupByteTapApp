@@ -134,6 +134,13 @@ btcPairs: {
   upgradeEndTime: { type: Date, default: null }
   },
 
+  partnershipDeals: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  },
+
   taxOptimization: {
   level: { type: Number, default: 1 },
   upgrading: { type: Boolean, default: false },
@@ -880,6 +887,52 @@ async function finalizeCommunityManagerUpgrade(user) {
   }
 }
 
+/* ================= PARTNERSHIP DEALS SECTION ================= */
+
+function getPartnershipDealsBoost(level) {
+  return level * 3;
+}
+
+function getPartnershipDealsExtraProfit(referrals, communityManagerLevel, partnershipLevel) {
+  const communityBase = getCommunityManagerExtraProfit(referrals || 0, communityManagerLevel || 1);
+  return Math.floor(communityBase * (getPartnershipDealsBoost(partnershipLevel || 1) / 100));
+}
+
+function getPartnershipDealsCost(level) {
+  return 1100 * Math.pow(4, level - 1);
+}
+
+function getPartnershipDealsUpgradeTime(level) {
+  return 30 * level;
+}
+
+async function finalizePartnershipDealsUpgrade(user) {
+  if (!user.partnershipDeals) {
+    user.partnershipDeals = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.partnershipDeals.upgrading &&
+    user.partnershipDeals.upgradeEndTime &&
+    new Date(user.partnershipDeals.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.partnershipDeals.level < 20) {
+      user.partnershipDeals.level += 1;
+    }
+
+    user.partnershipDeals.upgrading = false;
+    user.partnershipDeals.upgradeStartTime = null;
+    user.partnershipDeals.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+             
 /* ================= UPGRADE TAX OPTIMIZATION ================= */
 
 app.post("/upgrade-tax-optimization", async (req, res) => {
@@ -1167,6 +1220,7 @@ app.post("/load", async (req, res) => {
     await finalizeMyTeamUpgrade(user);
     await finalizeMarketingUpgrade(user);
     await finalizeCommunityManagerUpgrade(user);
+    await finalizePartnershipDealsUpgrade(user);
     await finalizeTaxOptimizationUpgrade(user);
     await finalizeComplianceLicenseUpgrade(user);
     await finalizeTurboChargerUpgrade(user);
@@ -1184,6 +1238,11 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   user.profitPerHour +
   getMarketingExtraProfit(user.profitPerHour, user.marketing?.level || 1) +
   getCommunityManagerExtraProfit(user.referrals || 0, user.communityManager?.level || 1) +
+  getPartnershipDealsExtraProfit(
+    user.referrals || 0,
+    user.communityManager?.level || 1,
+    user.partnershipDeals?.level || 1
+  ) +
   getTaxOptimizationSavedProfit(user.profitPerHour, user.taxOptimization?.level || 1),
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
@@ -1284,7 +1343,29 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       : getCommunityManagerUpgradeTime(user.communityManager?.level || 1),
   upgradeEndTime: user.communityManager?.upgradeEndTime || null
 },
-      
+      partnershipDeals: {
+  level: user.partnershipDeals?.level || 1,
+  upgrading: user.partnershipDeals?.upgrading || false,
+  currentBoost: getPartnershipDealsBoost(user.partnershipDeals?.level || 1),
+  effectiveExtraProfit: getPartnershipDealsExtraProfit(
+    user.referrals || 0,
+    user.communityManager?.level || 1,
+    user.partnershipDeals?.level || 1
+  ),
+  nextBoost:
+    (user.partnershipDeals?.level || 1) >= 20
+      ? getPartnershipDealsBoost(user.partnershipDeals?.level || 1)
+      : getPartnershipDealsBoost((user.partnershipDeals?.level || 1) + 1),
+  nextCost:
+    (user.partnershipDeals?.level || 1) >= 20
+      ? 0
+      : getPartnershipDealsCost(user.partnershipDeals?.level || 1),
+  upgradeTime:
+    (user.partnershipDeals?.level || 1) >= 20
+      ? 0
+      : getPartnershipDealsUpgradeTime(user.partnershipDeals?.level || 1),
+  upgradeEndTime: user.partnershipDeals?.upgradeEndTime || null
+},
       complianceLicense: {
   level: user.complianceLicense?.level || 1,
   upgrading: user.complianceLicense?.upgrading || false,
@@ -1432,6 +1513,7 @@ await finalizeSignalNetworkUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeCommunityManagerUpgrade(user);
+await finalizePartnershipDealsUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
@@ -1483,6 +1565,7 @@ await finalizeSignalNetworkUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeCommunityManagerUpgrade(user);
+await finalizePartnershipDealsUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
