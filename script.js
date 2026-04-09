@@ -103,6 +103,17 @@ complianceLicense: {
   nextCost: 600,
   upgradeTime: 25,
   upgradeEndTime: null
+  },
+
+  energyCore: {
+  level: 1,
+  upgrading: false,
+  currentBonus: 20,
+  currentMax: 120,
+  nextBonus: 40,
+  nextCost: 700,
+  upgradeTime: 25,
+  upgradeEndTime: null
   }
 };
 
@@ -113,6 +124,7 @@ let btcPairsTimerInterval = null;
   let taxOptimizationTimerInterval = null;
   let complianceLicenseTimerInterval = null;
   let turboChargerTimerInterval = null;
+  let energyCoreTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -138,7 +150,7 @@ let btcPairsTimerInterval = null;
       }
 
       coinsEl.innerText = Math.floor(data.coins || 0);
-      energyEl.innerText = data.energy || 0;
+      energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || 100}`;
       profitEl.innerText = data.profitPerHour || 0;
 
       const leagueText = document.getElementById("currentLeagueText");
@@ -190,6 +202,7 @@ appState.marketing = data.marketing || null;
 appState.taxOptimization = data.taxOptimization || null;
 appState.complianceLicense = data.complianceLicense || null;
       appState.turboCharger = data.turboCharger || null;
+      appState.energyCore = data.energyCore || null;
       
       
       loadDailyCombo();
@@ -254,7 +267,7 @@ appState.complianceLicense = data.complianceLicense || null;
 
         if (data.success) {
           coinsEl.innerText = Math.floor(data.coins || 0);
-          energyEl.innerText = data.energy || 0;
+          energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || 100}`;
           profitEl.innerText = data.profitPerHour || 0;
 
           const leagueText = document.getElementById("currentLeagueText");
@@ -604,38 +617,83 @@ function renderLegalSection() {
     upgradeEndTime: null
   };
 
-  const isMax = turbo.level >= 20;
-  const isUpgrading = turbo.upgrading;
+  const energyCore = appState.energyCore || {
+    level: 1,
+    upgrading: false,
+    currentBonus: 20,
+    currentMax: 120,
+    nextBonus: 40,
+    nextCost: 700,
+    upgradeTime: 25,
+    upgradeEndTime: null
+  };
 
-  let buttonHtml = "";
-  let middleHtml = "";
+  const turboIsMax = turbo.level >= 20;
+  const turboIsUpgrading = turbo.upgrading;
 
-  if (isUpgrading && turbo.upgradeEndTime) {
+  let turboButtonHtml = "";
+  let turboMiddleHtml = "";
+
+  if (turboIsUpgrading && turbo.upgradeEndTime) {
     const secondsLeft = Math.max(
       0,
       Math.floor((new Date(turbo.upgradeEndTime).getTime() - Date.now()) / 1000)
     );
 
-    middleHtml = `
+    turboMiddleHtml = `
       <div class="mine-card-profit-label">Upgrade time</div>
       <div class="mine-card-profit-value" id="turboChargerCountdown">${formatCountdown(secondsLeft)}</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (isMax) {
-    middleHtml = `
+    turboButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (turboIsMax) {
+    turboMiddleHtml = `
       <div class="mine-card-profit-label">Tap boost</div>
       <div class="mine-card-profit-value">+${turbo.currentBonus}</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+    turboButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
   } else {
-    middleHtml = `
+    turboMiddleHtml = `
       <div class="mine-card-profit-label">Tap boost</div>
       <div class="mine-card-profit-value">+${turbo.currentBonus}</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeTurboCharger()">Upgrade</button>`;
+    turboButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeTurboCharger()">Upgrade</button>`;
+  }
+
+  const energyIsMax = energyCore.level >= 20;
+  const energyIsUpgrading = energyCore.upgrading;
+
+  let energyButtonHtml = "";
+  let energyMiddleHtml = "";
+
+  if (energyIsUpgrading && energyCore.upgradeEndTime) {
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(energyCore.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    energyMiddleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value" id="energyCoreCountdown">${formatCountdown(secondsLeft)}</div>
+    `;
+
+    energyButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (energyIsMax) {
+    energyMiddleHtml = `
+      <div class="mine-card-profit-label">Max energy</div>
+      <div class="mine-card-profit-value">+${energyCore.currentBonus}</div>
+    `;
+
+    energyButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+  } else {
+    energyMiddleHtml = `
+      <div class="mine-card-profit-label">Max energy</div>
+      <div class="mine-card-profit-value">+${energyCore.currentBonus}</div>
+    `;
+
+    energyButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeEnergyCore()">Upgrade</button>`;
   }
 
   mineTabContent.innerHTML = `
@@ -652,18 +710,39 @@ function renderLegalSection() {
           <div class="mine-card-level">lvl ${turbo.level}</div>
         </div>
 
-        ${middleHtml}
+        ${turboMiddleHtml}
 
         <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : turbo.nextCost}</span></div>
-          ${buttonHtml}
+          <div class="mine-card-cost">🪙 <span>${turboIsMax ? "MAX" : turbo.nextCost}</span></div>
+          ${turboButtonHtml}
+        </div>
+      </div>
+
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="models/energycore.png" alt="Energy Core" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">Energy Core</h3>
+              <div class="mine-card-subtitle">Increase max energy</div>
+            </div>
+          </div>
+          <div class="mine-card-level">lvl ${energyCore.level}</div>
+        </div>
+
+        ${energyMiddleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${energyIsMax ? "MAX" : energyCore.nextCost}</span></div>
+          ${energyButtonHtml}
         </div>
       </div>
     </div>
   `;
 
   startTurboChargerCountdown();
-  }
+  startEnergyCoreCountdown();
+}
   
 /* ================= Team Section ================= */
   
@@ -970,6 +1049,50 @@ function startMyTeamCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(turboChargerTimerInterval);
       turboChargerTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("special");
+        }
+      });
+    }
+  }, 1000);
+  }
+  
+/* ================= ENERGY CORE COUNTDOWN ================= */
+  
+  function startEnergyCoreCountdown() {
+  if (energyCoreTimerInterval) {
+    clearInterval(energyCoreTimerInterval);
+    energyCoreTimerInterval = null;
+  }
+
+  if (
+    !appState.energyCore ||
+    !appState.energyCore.upgrading ||
+    !appState.energyCore.upgradeEndTime
+  ) {
+    return;
+  }
+
+  energyCoreTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("energyCoreCountdown");
+
+    if (!countdownEl || !appState.energyCore?.upgradeEndTime) {
+      clearInterval(energyCoreTimerInterval);
+      energyCoreTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.energyCore.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(energyCoreTimerInterval);
+      energyCoreTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("special");
@@ -1363,6 +1486,31 @@ window.upgradeEthPairs = async function() {
   }
 };
   
+/* ================= UPGRADE ENERGY CORE ================= */
+  
+  window.upgradeEnergyCore = async function() {
+  try {
+    const res = await fetch("/upgrade-energy-core", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.energyCore = data.energyCore || null;
+      renderSpecialSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade energy core error", e);
+  }
+};
+
 /* ================= DAILY COMBO ================= */
 const comboContainer = document.getElementById("combo");
 
