@@ -111,6 +111,13 @@ btcPairs: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
+  },
+
+  turboCharger: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
   }
 });
 
@@ -282,6 +289,47 @@ async function finalizeEthPairsUpgrade(user) {
     user.ethPairs.upgrading = false;
     user.ethPairs.upgradeStartTime = null;
     user.ethPairs.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
+/* ================= TURBO CHARGER SECTION ================= */
+
+function getTurboTapBonus(level) {
+  return level;
+}
+
+function getTurboChargerCost(level) {
+  return 600 * Math.pow(4, level - 1);
+}
+
+function getTurboChargerUpgradeTime(level) {
+  return 25 * level;
+}
+
+async function finalizeTurboChargerUpgrade(user) {
+  if (!user.turboCharger) {
+    user.turboCharger = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.turboCharger.upgrading &&
+    user.turboCharger.upgradeEndTime &&
+    new Date(user.turboCharger.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.turboCharger.level < 20) {
+      user.turboCharger.level += 1;
+    }
+
+    user.turboCharger.upgrading = false;
+    user.turboCharger.upgradeStartTime = null;
+    user.turboCharger.upgradeEndTime = null;
 
     await user.save();
   }
@@ -731,6 +779,7 @@ app.post("/load", async (req, res) => {
     await finalizeMarketingUpgrade(user);
     await finalizeTaxOptimizationUpgrade(user);
     await finalizeComplianceLicenseUpgrade(user);
+    await finalizeTurboChargerUpgrade(user);
     
     return res.json({
       success: true,
@@ -828,7 +877,26 @@ app.post("/load", async (req, res) => {
       ? 0
       : getTaxOptimizationUpgradeTime(user.taxOptimization?.level || 1),
   upgradeEndTime: user.taxOptimization?.upgradeEndTime || null
-       }
+       },
+
+      turboCharger: {
+  level: user.turboCharger?.level || 1,
+  upgrading: user.turboCharger?.upgrading || false,
+  currentBonus: getTurboTapBonus(user.turboCharger?.level || 1),
+  nextBonus:
+    (user.turboCharger?.level || 1) >= 20
+      ? getTurboTapBonus(user.turboCharger?.level || 1)
+      : getTurboTapBonus((user.turboCharger?.level || 1) + 1),
+  nextCost:
+    (user.turboCharger?.level || 1) >= 20
+      ? 0
+      : getTurboChargerCost(user.turboCharger?.level || 1),
+  upgradeTime:
+    (user.turboCharger?.level || 1) >= 20
+      ? 0
+      : getTurboChargerUpgradeTime(user.turboCharger?.level || 1),
+  upgradeEndTime: user.turboCharger?.upgradeEndTime || null
+      }
     });
   } catch (e) {
     console.log("/load error", e);
@@ -853,8 +921,11 @@ app.post("/tap", async (req, res) => {
       });
     }
 
-    user.coins += user.tapPower;
-    user.energy -= user.tapPower;
+    const turboBonus = getTurboTapBonus(user.turboCharger?.level || 1);
+const finalTapPower = user.tapPower + turboBonus;
+
+user.coins += finalTapPower;
+user.energy -= user.tapPower;
     user.lastActive = new Date();
     user.league = getLeague(user.coins);
 
@@ -864,7 +935,7 @@ app.post("/tap", async (req, res) => {
       success: true,
       coins: user.coins,
       energy: user.energy,
-      tapPower: user.tapPower,
+      tapPower: user.tapPower + getTurboTapBonus(user.turboCharger?.level || 1),
       profitPerHour: user.profitPerHour,
       league: user.league
     });
@@ -888,6 +959,7 @@ await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
+await finalizeTurboChargerUpgrade(user);
     
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
@@ -932,6 +1004,7 @@ await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
+await finalizeTurboChargerUpgrade(user);
     
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
@@ -1150,6 +1223,74 @@ const upgradeTime = applyComplianceReduction(baseUpgradeTime, user.complianceLic
     });
   } catch (e) {
     console.log("/upgrade-my-team error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE TURBO CHARGER ================= */
+
+app.post("/upgrade-turbo-charger", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.turboCharger) {
+      user.turboCharger = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeTurboChargerUpgrade(user);
+
+    const level = user.turboCharger.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.turboCharger.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getTurboChargerCost(level);
+    const upgradeTime = getTurboChargerUpgradeTime(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.turboCharger.upgrading = true;
+    user.turboCharger.upgradeStartTime = new Date();
+    user.turboCharger.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      turboCharger: {
+        level: user.turboCharger.level,
+        upgrading: true,
+        currentBonus: getTurboTapBonus(user.turboCharger.level),
+        nextBonus:
+          user.turboCharger.level >= 20
+            ? getTurboTapBonus(user.turboCharger.level)
+            : getTurboTapBonus(user.turboCharger.level + 1),
+        nextCost: getTurboChargerCost(user.turboCharger.level),
+        upgradeTime,
+        upgradeEndTime: user.turboCharger.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-turbo-charger error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
