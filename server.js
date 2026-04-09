@@ -2097,14 +2097,18 @@ async function finalizeCourtSettlementUpgrade(user) {
 }
 
 /* ================= ENERGY ================= */
+
 function rechargeEnergy(user) {
   const now = Date.now();
-  const diff = (now - user.lastEnergyUpdate) / 1000;
-  const add = Math.floor(diff * 2);
+  const secondsPassed = (now - user.lastEnergyUpdate) / 1000;
+  const baseRecoveredEnergy = Math.floor(secondsPassed * 2);
+  const recoveredEnergy = Math.floor(
+    baseRecoveredEnergy * getPowerSurgeRecoveryMultiplier(user.powerSurge?.level || 1)
+  );
   const maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 
-  if (add > 0) {
-    user.energy = Math.min(maxEnergy, user.energy + add);
+  if (recoveredEnergy > 0) {
+    user.energy = Math.min(maxEnergy, user.energy + recoveredEnergy);
     user.lastEnergyUpdate = now;
   } else {
     user.energy = Math.min(maxEnergy, user.energy);
