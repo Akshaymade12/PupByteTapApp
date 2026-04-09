@@ -148,6 +148,13 @@ btcPairs: {
   upgradeEndTime: { type: Date, default: null }
   },
 
+  vipPartners: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  },
+  
   taxOptimization: {
   level: { type: Number, default: 1 },
   upgrading: { type: Boolean, default: false },
@@ -956,6 +963,84 @@ app.post("/upgrade-ambassador-program", async (req, res) => {
   }
 });
 
+/* ================= UPGRADE VIP PARTNERS ================= */
+
+app.post("/upgrade-vip-partners", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.vipPartners) {
+      user.vipPartners = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeVipPartnersUpgrade(user);
+
+    const level = user.vipPartners.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.vipPartners.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getVipPartnersCost(level);
+    const baseUpgradeTime = getVipPartnersUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.vipPartners.upgrading = true;
+    user.vipPartners.upgradeStartTime = new Date();
+    user.vipPartners.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      vipPartners: {
+        level: user.vipPartners.level,
+        upgrading: true,
+        currentBoost: getVipPartnersBoost(user.vipPartners.level),
+        effectiveExtraProfit: getVipPartnersExtraProfit(
+          user.referrals || 0,
+          user.communityManager?.level || 1,
+          user.ambassadorProgram?.level || 1,
+          user.vipPartners.level
+        ),
+        nextBoost:
+          user.vipPartners.level >= 20
+            ? getVipPartnersBoost(user.vipPartners.level)
+            : getVipPartnersBoost(user.vipPartners.level + 1),
+        nextCost: getVipPartnersCost(user.vipPartners.level),
+        upgradeTime,
+        upgradeEndTime: user.vipPartners.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-vip-partners error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
 /* ================= MARKETING SECTION ================= */
 
 function getMarketingBoost(level) {
@@ -1133,6 +1218,55 @@ async function finalizeAmbassadorProgramUpgrade(user) {
     user.ambassadorProgram.upgrading = false;
     user.ambassadorProgram.upgradeStartTime = null;
     user.ambassadorProgram.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
+/* ================= VIP PARTNERS SECTION ================= */
+
+function getVipPartnersBoost(level) {
+  return level * 4;
+}
+
+function getVipPartnersExtraProfit(referrals, communityLevel, ambassadorLevel, vipLevel) {
+  const communityIncome = getCommunityManagerExtraProfit(referrals || 0, communityLevel || 1);
+  const ambassadorIncome = getAmbassadorProgramExtraProfit(referrals || 0, ambassadorLevel || 1);
+  const baseReferralIncome = communityIncome + ambassadorIncome;
+
+  return Math.floor(baseReferralIncome * (getVipPartnersBoost(vipLevel || 1) / 100));
+}
+
+function getVipPartnersCost(level) {
+  return 1500 * Math.pow(4, level - 1);
+}
+
+function getVipPartnersUpgradeTime(level) {
+  return 30 * level;
+}
+
+async function finalizeVipPartnersUpgrade(user) {
+  if (!user.vipPartners) {
+    user.vipPartners = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.vipPartners.upgrading &&
+    user.vipPartners.upgradeEndTime &&
+    new Date(user.vipPartners.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.vipPartners.level < 20) {
+      user.vipPartners.level += 1;
+    }
+
+    user.vipPartners.upgrading = false;
+    user.vipPartners.upgradeStartTime = null;
+    user.vipPartners.upgradeEndTime = null;
 
     await user.save();
   }
@@ -1427,6 +1561,7 @@ app.post("/load", async (req, res) => {
     await finalizeCommunityManagerUpgrade(user);
     await finalizePartnershipDealsUpgrade(user);
     await finalizeAmbassadorProgramUpgrade(user);
+    await finalizeVipPartnersUpgrade(user);
     await finalizeTaxOptimizationUpgrade(user);
     await finalizeComplianceLicenseUpgrade(user);
     await finalizeTurboChargerUpgrade(user);
@@ -1452,6 +1587,12 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   getAmbassadorProgramExtraProfit(
     user.referrals || 0,
     user.ambassadorProgram?.level || 1
+  ) +
+  getVipPartnersExtraProfit(
+    user.referrals || 0,
+    user.communityManager?.level || 1,
+    user.ambassadorProgram?.level || 1,
+    user.vipPartners?.level || 1
   ) +
   getTaxOptimizationSavedProfit(user.profitPerHour, user.taxOptimization?.level || 1),
       tapLevel: user.tapLevel,
@@ -1620,6 +1761,31 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       : getAmbassadorProgramUpgradeTime(user.ambassadorProgram?.level || 1),
   upgradeEndTime: user.ambassadorProgram?.upgradeEndTime || null
 },
+
+      vipPartners: {
+  level: user.vipPartners?.level || 1,
+  upgrading: user.vipPartners?.upgrading || false,
+  currentBoost: getVipPartnersBoost(user.vipPartners?.level || 1),
+  effectiveExtraProfit: getVipPartnersExtraProfit(
+    user.referrals || 0,
+    user.communityManager?.level || 1,
+    user.ambassadorProgram?.level || 1,
+    user.vipPartners?.level || 1
+  ),
+  nextBoost:
+    (user.vipPartners?.level || 1) >= 20
+      ? getVipPartnersBoost(user.vipPartners?.level || 1)
+      : getVipPartnersBoost((user.vipPartners?.level || 1) + 1),
+  nextCost:
+    (user.vipPartners?.level || 1) >= 20
+      ? 0
+      : getVipPartnersCost(user.vipPartners?.level || 1),
+  upgradeTime:
+    (user.vipPartners?.level || 1) >= 20
+      ? 0
+      : getVipPartnersUpgradeTime(user.vipPartners?.level || 1),
+  upgradeEndTime: user.vipPartners?.upgradeEndTime || null
+},
       
        taxOptimization: {
   level: user.taxOptimization?.level || 1,
@@ -1748,6 +1914,7 @@ await finalizeMarketingUpgrade(user);
 await finalizeCommunityManagerUpgrade(user);
 await finalizePartnershipDealsUpgrade(user);
 await finalizeAmbassadorProgramUpgrade(user);
+await finalizeVipPartnersUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
@@ -1801,6 +1968,7 @@ await finalizeMarketingUpgrade(user);
 await finalizeCommunityManagerUpgrade(user);
 await finalizePartnershipDealsUpgrade(user);
 await finalizeAmbassadorProgramUpgrade(user);
+await finalizeVipPartnersUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
