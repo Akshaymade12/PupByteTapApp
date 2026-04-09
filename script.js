@@ -249,6 +249,20 @@ complianceLicense: {
   nextCost: 900,
   upgradeTime: 25,
   upgradeEndTime: null
+  },
+
+  overclockEngine: {
+  level: 1,
+  upgrading: false,
+  currentTapBoost: 5,
+  currentProfitBoost: 2,
+  effectiveTapPower: 0,
+  effectiveExtraProfit: 0,
+  nextTapBoost: 10,
+  nextProfitBoost: 4,
+  nextCost: 2000,
+  upgradeTime: 35,
+  upgradeEndTime: null
   }
 };
 
@@ -273,6 +287,7 @@ let btcPairsTimerInterval = null;
   let turboChargerTimerInterval = null;
   let energyCoreTimerInterval = null;
   let powerSurgeTimerInterval = null;
+  let overclockEngineTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -364,6 +379,7 @@ appState.courtSettlement = data.courtSettlement || null;
 appState.turboCharger = data.turboCharger || null;
 appState.energyCore = data.energyCore || null;
 appState.powerSurge = data.powerSurge || null;
+appState.overclockEngine = data.overclockEngine || null;
       
       
       loadDailyCombo();
@@ -823,7 +839,7 @@ window.claimSpecialTask = async function() {
       
  /* ================= SPECIAL SECTION ================= */
 
- function renderSpecialSection() {
+  function renderSpecialSection() {
   if (!mineTabContent) return;
 
   const turbo = appState.turboCharger || {
@@ -855,6 +871,20 @@ window.claimSpecialTask = async function() {
     nextBoost: 20,
     nextCost: 900,
     upgradeTime: 25,
+    upgradeEndTime: null
+  };
+
+  const overclock = appState.overclockEngine || {
+    level: 1,
+    upgrading: false,
+    currentTapBoost: 5,
+    currentProfitBoost: 2,
+    effectiveTapPower: 0,
+    effectiveExtraProfit: 0,
+    nextTapBoost: 10,
+    nextProfitBoost: 4,
+    nextCost: 2000,
+    upgradeTime: 35,
     upgradeEndTime: null
   };
 
@@ -950,14 +980,26 @@ window.claimSpecialTask = async function() {
         `+${powerSurge.currentBoost}%`,
         "upgradePowerSurge"
       )}
+
+      ${makeSpecialCard(
+        "overclockEngine",
+        "Overclock Engine",
+        "Boost all tap efficiency",
+        "models/overclockengine.png",
+        overclock,
+        "Tap boost",
+        `+${overclock.currentTapBoost}%`,
+        "upgradeOverclockEngine"
+      )}
     </div>
   `;
 
   startTurboChargerCountdown();
   startEnergyCoreCountdown();
   startPowerSurgeCountdown();
- }
-  
+  startOverclockEngineCountdown();
+  }
+ 
 /* ================= Team Section ================= */
 
 function renderTeamSection() {
@@ -1591,6 +1633,50 @@ function startMyTeamCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(powerSurgeTimerInterval);
       powerSurgeTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("special");
+        }
+      });
+    }
+  }, 1000);
+  }
+  
+/* ================= OVERCLOCK ENGINE COUNTDOWN ================= */
+  
+  function startOverclockEngineCountdown() {
+  if (overclockEngineTimerInterval) {
+    clearInterval(overclockEngineTimerInterval);
+    overclockEngineTimerInterval = null;
+  }
+
+  if (
+    !appState.overclockEngine ||
+    !appState.overclockEngine.upgrading ||
+    !appState.overclockEngine.upgradeEndTime
+  ) {
+    return;
+  }
+
+  overclockEngineTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("overclockEngineCountdown");
+
+    if (!countdownEl || !appState.overclockEngine?.upgradeEndTime) {
+      clearInterval(overclockEngineTimerInterval);
+      overclockEngineTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.overclockEngine.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(overclockEngineTimerInterval);
+      overclockEngineTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("special");
@@ -2507,6 +2593,31 @@ window.upgradeEthPairs = async function() {
     }
   } catch (e) {
     console.log("upgrade power surge error", e);
+  }
+};
+  
+/* ================= OVERCLOCK ENGINE UPGRADE ================= */
+
+  window.upgradeOverclockEngine = async function() {
+  try {
+    const res = await fetch("/upgrade-overclock-engine", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.overclockEngine = data.overclockEngine || null;
+      renderSpecialSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade overclock engine error", e);
   }
 };
   
