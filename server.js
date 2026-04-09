@@ -175,6 +175,13 @@ btcPairs: {
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
   },
+
+  regulatoryLicense: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  },
   
   turboCharger: {
   level: { type: Number, default: 1 },
@@ -1495,6 +1502,83 @@ app.post("/upgrade-audit-protection", async (req, res) => {
   }
 });
 
+/* ================= UPGRADE REGULATORY LICENSE ================= */
+
+app.post("/upgrade-regulatory-license", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.regulatoryLicense) {
+      user.regulatoryLicense = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeRegulatoryLicenseUpgrade(user);
+
+    const level = user.regulatoryLicense.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.regulatoryLicense.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getRegulatoryLicenseCost(level);
+    const baseUpgradeTime = getRegulatoryLicenseUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.regulatoryLicense.upgrading = true;
+    user.regulatoryLicense.upgradeStartTime = new Date();
+    user.regulatoryLicense.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      regulatoryLicense: {
+        level: user.regulatoryLicense.level,
+        upgrading: true,
+        currentBoost: getRegulatoryLicenseBoost(user.regulatoryLicense.level),
+        effectiveExtraProfit: getRegulatoryLicenseExtraProfit(
+          user.profitPerHour,
+          user.auditProtection?.level || 1,
+          user.regulatoryLicense.level
+        ),
+        nextBoost:
+          user.regulatoryLicense.level >= 20
+            ? getRegulatoryLicenseBoost(user.regulatoryLicense.level)
+            : getRegulatoryLicenseBoost(user.regulatoryLicense.level + 1),
+        nextCost: getRegulatoryLicenseCost(user.regulatoryLicense.level),
+        upgradeTime,
+        upgradeEndTime: user.regulatoryLicense.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-regulatory-license error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
 /* ================= TAX OPTIMIZATION SECTION ================= */
 
 const BASE_TAX_PERCENT = 10;
@@ -1637,6 +1721,52 @@ async function finalizeAuditProtectionUpgrade(user) {
   }
    }
 
+/* ================= REGULATORY LICENSE SECTION ================= */
+
+function getRegulatoryLicenseBoost(level) {
+  return level * 3;
+}
+
+function getRegulatoryLicenseExtraProfit(baseProfit, auditLevel, regulatoryLevel) {
+  const auditExtra = getAuditProtectionExtraProfit(baseProfit || 0, auditLevel || 1);
+  return Math.floor(auditExtra * (getRegulatoryLicenseBoost(regulatoryLevel || 1) / 100));
+}
+
+function getRegulatoryLicenseCost(level) {
+  return 1200 * Math.pow(4, level - 1);
+}
+
+function getRegulatoryLicenseUpgradeTime(level) {
+  return 30 * level;
+}
+
+async function finalizeRegulatoryLicenseUpgrade(user) {
+  if (!user.regulatoryLicense) {
+    user.regulatoryLicense = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.regulatoryLicense.upgrading &&
+    user.regulatoryLicense.upgradeEndTime &&
+    new Date(user.regulatoryLicense.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.regulatoryLicense.level < 20) {
+      user.regulatoryLicense.level += 1;
+    }
+
+    user.regulatoryLicense.upgrading = false;
+    user.regulatoryLicense.upgradeStartTime = null;
+    user.regulatoryLicense.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 /* ================= ENERGY ================= */
 function rechargeEnergy(user) {
   const now = Date.now();
@@ -1693,6 +1823,7 @@ app.post("/load", async (req, res) => {
     await finalizeTaxOptimizationUpgrade(user);
     await finalizeComplianceLicenseUpgrade(user);
     await finalizeAuditProtectionUpgrade(user);
+    await finalizeRegulatoryLicenseUpgrade(user);
     await finalizeTurboChargerUpgrade(user);
     await finalizeEnergyCoreUpgrade(user);
 
@@ -1724,7 +1855,12 @@ user.energy = Math.min(user.maxEnergy, user.energy);
     user.vipPartners?.level || 1
   ) +
   getTaxOptimizationSavedProfit(user.profitPerHour, user.taxOptimization?.level || 1) +
-  getAuditProtectionExtraProfit(user.profitPerHour, user.auditProtection?.level || 1),
+  getAuditProtectionExtraProfit(user.profitPerHour, user.auditProtection?.level || 1) +
+  getRegulatoryLicenseExtraProfit(
+    user.profitPerHour,
+    user.auditProtection?.level || 1,
+    user.regulatoryLicense?.level || 1
+  ),
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
       league: user.league,
@@ -1890,6 +2026,29 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getAuditProtectionUpgradeTime(user.auditProtection?.level || 1),
   upgradeEndTime: user.auditProtection?.upgradeEndTime || null
+},
+      regulatoryLicense: {
+  level: user.regulatoryLicense?.level || 1,
+  upgrading: user.regulatoryLicense?.upgrading || false,
+  currentBoost: getRegulatoryLicenseBoost(user.regulatoryLicense?.level || 1),
+  effectiveExtraProfit: getRegulatoryLicenseExtraProfit(
+    user.profitPerHour,
+    user.auditProtection?.level || 1,
+    user.regulatoryLicense?.level || 1
+  ),
+  nextBoost:
+    (user.regulatoryLicense?.level || 1) >= 20
+      ? getRegulatoryLicenseBoost(user.regulatoryLicense?.level || 1)
+      : getRegulatoryLicenseBoost((user.regulatoryLicense?.level || 1) + 1),
+  nextCost:
+    (user.regulatoryLicense?.level || 1) >= 20
+      ? 0
+      : getRegulatoryLicenseCost(user.regulatoryLicense?.level || 1),
+  upgradeTime:
+    (user.regulatoryLicense?.level || 1) >= 20
+      ? 0
+      : getRegulatoryLicenseUpgradeTime(user.regulatoryLicense?.level || 1),
+  upgradeEndTime: user.regulatoryLicense?.upgradeEndTime || null
 },
       
       ambassadorProgram: {
@@ -2071,6 +2230,7 @@ await finalizeVipPartnersUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeAuditProtectionUpgrade(user);
+await finalizeRegulatoryLicenseUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
     
@@ -2126,6 +2286,7 @@ await finalizeVipPartnersUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
 await finalizeComplianceLicenseUpgrade(user);
 await finalizeAuditProtectionUpgrade(user);
+await finalizeRegulatoryLicenseUpgrade(user);
 await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
     
