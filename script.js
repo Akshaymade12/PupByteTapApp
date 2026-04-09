@@ -74,7 +74,7 @@ let appState = {
   upgradeTime: 30,
   upgradeEndTime: null
 },
-  taxOptimization: {
+taxOptimization: {
   level: 1,
   upgrading: false,
   currentReduction: 1,
@@ -84,7 +84,16 @@ let appState = {
   nextCost: 800,
   upgradeTime: 30,
   upgradeEndTime: null
-  }
+},
+complianceLicense: {
+  level: 1,
+  upgrading: false,
+  currentReduction: 3,
+  nextReduction: 6,
+  nextCost: 1200,
+  upgradeTime: 30,
+  upgradeEndTime: null
+}
 };
 
 let btcPairsTimerInterval = null;
@@ -92,6 +101,7 @@ let btcPairsTimerInterval = null;
   let myTeamTimerInterval = null;
   let marketingTimerInterval = null;
   let taxOptimizationTimerInterval = null;
+  let complianceLicenseTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -167,6 +177,7 @@ appState.ethPairs = data.ethPairs || null;
 appState.myTeam = data.myTeam || null;
 appState.marketing = data.marketing || null;
 appState.taxOptimization = data.taxOptimization || null;
+appState.complianceLicense = data.complianceLicense || null;
       
       loadDailyCombo();
     } catch (e) {
@@ -439,38 +450,82 @@ function renderLegalSection() {
     upgradeEndTime: null
   };
 
-  const isMax = tax.level >= 20;
-  const isUpgrading = tax.upgrading;
+  const compliance = appState.complianceLicense || {
+    level: 1,
+    upgrading: false,
+    currentReduction: 3,
+    nextReduction: 6,
+    nextCost: 1200,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
 
-  let buttonHtml = "";
-  let middleHtml = "";
+  const taxIsMax = tax.level >= 20;
+  const taxIsUpgrading = tax.upgrading;
 
-  if (isUpgrading && tax.upgradeEndTime) {
+  let taxButtonHtml = "";
+  let taxMiddleHtml = "";
+
+  if (taxIsUpgrading && tax.upgradeEndTime) {
     const secondsLeft = Math.max(
       0,
       Math.floor((new Date(tax.upgradeEndTime).getTime() - Date.now()) / 1000)
     );
 
-    middleHtml = `
+    taxMiddleHtml = `
       <div class="mine-card-profit-label">Upgrade time</div>
       <div class="mine-card-profit-value" id="taxOptimizationCountdown">${formatCountdown(secondsLeft)}</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
-  } else if (isMax) {
-    middleHtml = `
+    taxButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (taxIsMax) {
+    taxMiddleHtml = `
       <div class="mine-card-profit-label">Tax reduction</div>
       <div class="mine-card-profit-value">-${tax.currentReduction}%</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+    taxButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
   } else {
-    middleHtml = `
+    taxMiddleHtml = `
       <div class="mine-card-profit-label">Tax reduction</div>
       <div class="mine-card-profit-value">-${tax.currentReduction}%</div>
     `;
 
-    buttonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeTaxOptimization()">Upgrade</button>`;
+    taxButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeTaxOptimization()">Upgrade</button>`;
+  }
+
+  const complianceIsMax = compliance.level >= 20;
+  const complianceIsUpgrading = compliance.upgrading;
+
+  let complianceButtonHtml = "";
+  let complianceMiddleHtml = "";
+
+  if (complianceIsUpgrading && compliance.upgradeEndTime) {
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(compliance.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    complianceMiddleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value" id="complianceLicenseCountdown">${formatCountdown(secondsLeft)}</div>
+    `;
+
+    complianceButtonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (complianceIsMax) {
+    complianceMiddleHtml = `
+      <div class="mine-card-profit-label">Timer reduction</div>
+      <div class="mine-card-profit-value">-${compliance.currentReduction}%</div>
+    `;
+
+    complianceButtonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+  } else {
+    complianceMiddleHtml = `
+      <div class="mine-card-profit-label">Timer reduction</div>
+      <div class="mine-card-profit-value">-${compliance.currentReduction}%</div>
+    `;
+
+    complianceButtonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeComplianceLicense()">Upgrade</button>`;
   }
 
   mineTabContent.innerHTML = `
@@ -487,17 +542,38 @@ function renderLegalSection() {
           <div class="mine-card-level">lvl ${tax.level}</div>
         </div>
 
-        ${middleHtml}
+        ${taxMiddleHtml}
 
         <div class="mine-card-bottom">
-          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : tax.nextCost}</span></div>
-          ${buttonHtml}
+          <div class="mine-card-cost">🪙 <span>${taxIsMax ? "MAX" : tax.nextCost}</span></div>
+          ${taxButtonHtml}
+        </div>
+      </div>
+
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="models/compliancelicense.png" alt="Compliance License" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">Compliance License</h3>
+              <div class="mine-card-subtitle">Reduce upgrade time</div>
+            </div>
+          </div>
+          <div class="mine-card-level">lvl ${compliance.level}</div>
+        </div>
+
+        ${complianceMiddleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${complianceIsMax ? "MAX" : compliance.nextCost}</span></div>
+          ${complianceButtonHtml}
         </div>
       </div>
     </div>
   `;
 
   startTaxOptimizationCountdown();
+  startComplianceLicenseCountdown();
 }
   
 /* ================= Team Section ================= */
@@ -717,6 +793,50 @@ function startMyTeamCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(taxOptimizationTimerInterval);
       taxOptimizationTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("legal");
+        }
+      });
+    }
+  }, 1000);
+  }
+
+ /* ================= COMPLIANCEL LICENSE COUNTDOWN ================= */
+  
+  function startComplianceLicenseCountdown() {
+  if (complianceLicenseTimerInterval) {
+    clearInterval(complianceLicenseTimerInterval);
+    complianceLicenseTimerInterval = null;
+  }
+
+  if (
+    !appState.complianceLicense ||
+    !appState.complianceLicense.upgrading ||
+    !appState.complianceLicense.upgradeEndTime
+  ) {
+    return;
+  }
+
+  complianceLicenseTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("complianceLicenseCountdown");
+
+    if (!countdownEl || !appState.complianceLicense?.upgradeEndTime) {
+      clearInterval(complianceLicenseTimerInterval);
+      complianceLicenseTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.complianceLicense.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(complianceLicenseTimerInterval);
+      complianceLicenseTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("legal");
@@ -1057,6 +1177,31 @@ window.upgradeEthPairs = async function() {
     }
   } catch (e) {
     console.log("upgrade tax optimization error", e);
+  }
+};
+
+/* ================= COMPLIANCE LICENSE UPGRADE ================= */
+
+  window.upgradeComplianceLicense = async function() {
+  try {
+    const res = await fetch("/upgrade-compliance-license", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.complianceLicense = data.complianceLicense || null;
+      renderLegalSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade compliance license error", e);
   }
 };
   
