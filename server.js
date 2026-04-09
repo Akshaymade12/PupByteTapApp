@@ -1013,13 +1013,14 @@ user.energy -= user.tapPower;
     await user.save();
 
     return res.json({
-      success: true,
-      coins: user.coins,
-      energy: user.energy,
-      tapPower: user.tapPower + getTurboTapBonus(user.turboCharger?.level || 1),
-      profitPerHour: user.profitPerHour,
-      league: user.league
-    });
+  success: true,
+  coins: user.coins,
+  energy: user.energy,
+  maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
+  tapPower: user.tapPower + getTurboTapBonus(user.turboCharger?.level || 1),
+  profitPerHour: user.profitPerHour,
+  league: user.league
+});
   } catch (e) {
     console.log("/tap error", e);
     res.json({ success: false, message: "Server error" });
