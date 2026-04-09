@@ -73,13 +73,25 @@ let appState = {
   nextCost: 500,
   upgradeTime: 30,
   upgradeEndTime: null
-}
+},
+  taxOptimization: {
+  level: 1,
+  upgrading: false,
+  currentReduction: 1,
+  currentTax: 9,
+  nextReduction: 2,
+  savedProfit: 0,
+  nextCost: 800,
+  upgradeTime: 30,
+  upgradeEndTime: null
+  }
 };
 
 let btcPairsTimerInterval = null;
   let ethPairsTimerInterval = null;
   let myTeamTimerInterval = null;
   let marketingTimerInterval = null;
+  let taxOptimizationTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -154,6 +166,7 @@ appState.btcPairs = data.btcPairs || null;
 appState.ethPairs = data.ethPairs || null;
 appState.myTeam = data.myTeam || null;
 appState.marketing = data.marketing || null;
+appState.taxOptimization = data.taxOptimization || null;
       
       loadDailyCombo();
     } catch (e) {
@@ -408,7 +421,85 @@ window.claimSpecialTask = async function() {
     console.log("Claim special task error", e);
   }
 };
+  
+/* ================= Legal Section ================= */
+  
+function renderLegalSection() {
+  if (!mineTabContent) return;
 
+  const tax = appState.taxOptimization || {
+    level: 1,
+    upgrading: false,
+    currentReduction: 1,
+    currentTax: 9,
+    nextReduction: 2,
+    savedProfit: 0,
+    nextCost: 800,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
+  const isMax = tax.level >= 20;
+  const isUpgrading = tax.upgrading;
+
+  let buttonHtml = "";
+  let middleHtml = "";
+
+  if (isUpgrading && tax.upgradeEndTime) {
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(tax.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    middleHtml = `
+      <div class="mine-card-profit-label">Upgrade time</div>
+      <div class="mine-card-profit-value" id="taxOptimizationCountdown">${formatCountdown(secondsLeft)}</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>Upgrading...</button>`;
+  } else if (isMax) {
+    middleHtml = `
+      <div class="mine-card-profit-label">Tax reduction</div>
+      <div class="mine-card-profit-value">-${tax.currentReduction}%</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" disabled>MAX</button>`;
+  } else {
+    middleHtml = `
+      <div class="mine-card-profit-label">Tax reduction</div>
+      <div class="mine-card-profit-value">-${tax.currentReduction}%</div>
+    `;
+
+    buttonHtml = `<button class="mine-card-upgrade-btn" onclick="upgradeTaxOptimization()">Upgrade</button>`;
+  }
+
+  mineTabContent.innerHTML = `
+    <div class="mine-cards-grid">
+      <div class="mine-card-box">
+        <div class="mine-card-top">
+          <div class="mine-card-left">
+            <img src="models/taxoptimization.png" alt="Tax Optimization" class="mine-card-icon">
+            <div class="mine-card-title-wrap">
+              <h3 class="mine-card-title">Tax Optimization</h3>
+              <div class="mine-card-subtitle">Reduce income tax</div>
+            </div>
+          </div>
+          <div class="mine-card-level">lvl ${tax.level}</div>
+        </div>
+
+        ${middleHtml}
+
+        <div class="mine-card-bottom">
+          <div class="mine-card-cost">🪙 <span>${isMax ? "MAX" : tax.nextCost}</span></div>
+          ${buttonHtml}
+        </div>
+      </div>
+    </div>
+  `;
+
+  startTaxOptimizationCountdown();
+}
+  
 /* ================= Team Section ================= */
   
 function renderTeamSection() {
@@ -590,6 +681,50 @@ function startMyTeamCountdown() {
     }
   }, 1000);
 }
+
+  function startTaxOptimizationCountdown() {
+  if (taxOptimizationTimerInterval) {
+    clearInterval(taxOptimizationTimerInterval);
+    taxOptimizationTimerInterval = null;
+  }
+
+  if (
+    !appState.taxOptimization ||
+    !appState.taxOptimization.upgrading ||
+    !appState.taxOptimization.upgradeEndTime
+  ) {
+    return;
+  }
+    
+/* ================= TAX OPTIMIZATION COUNTDOWN ================= */
+    
+  taxOptimizationTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("taxOptimizationCountdown");
+
+    if (!countdownEl || !appState.taxOptimization?.upgradeEndTime) {
+      clearInterval(taxOptimizationTimerInterval);
+      taxOptimizationTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.taxOptimization.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(taxOptimizationTimerInterval);
+      taxOptimizationTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("legal");
+        }
+      });
+    }
+  }, 1000);
+  }
   
 /* ================= MARKETING CONNDOWN ================= */
   
@@ -899,6 +1034,31 @@ window.upgradeEthPairs = async function() {
     console.log("upgrade marketing error", e);
   }
 };
+
+/* ================= UPGRADE TAX OPTIMIZATION ================= */
+  
+  window.upgradeTaxOptimization = async function() {
+  try {
+    const res = await fetch("/upgrade-tax-optimization", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.taxOptimization = data.taxOptimization || null;
+      renderLegalSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade tax optimization error", e);
+  }
+};
   
 /* ================= DAILY COMBO ================= */
 const comboContainer = document.getElementById("combo");
@@ -1173,11 +1333,9 @@ if (tabName === "team") {
 }
 
   if (tabName === "legal") {
-    if (mineTabLegal) mineTabLegal.classList.add("active");
-    mineTabContent.innerHTML = `
-      <div class="mine-placeholder-card">Legal section</div>
-    `;
-  }
+  if (mineTabLegal) mineTabLegal.classList.add("active");
+  renderLegalSection();
+}
 
   if (tabName === "special") {
     if (mineTabSpecial) mineTabSpecial.classList.add("active");
