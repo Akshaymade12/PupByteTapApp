@@ -90,7 +90,14 @@ btcPairs: {
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
   },
-  
+
+  liquidityPool: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  },
+    
   myTeam: {
   level: { type: Number, default: 1 },
   upgrading: { type: Boolean, default: false },
@@ -347,6 +354,50 @@ async function finalizeFuturesTradingUpgrade(user) {
     user.futuresTrading.upgrading = false;
     user.futuresTrading.upgradeStartTime = null;
     user.futuresTrading.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
+/* ================= LIQUIDITY POOL ================= */
+
+function getLiquidityPoolProfit(level) {
+  return 18 * Math.pow(2, level - 1);
+}
+
+function getLiquidityPoolCost(level) {
+  return 700 * Math.pow(4, level - 1);
+}
+
+function getLiquidityPoolUpgradeTime(level) {
+  return 30 * level;
+}
+
+async function finalizeLiquidityPoolUpgrade(user) {
+  if (!user.liquidityPool) {
+    user.liquidityPool = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.liquidityPool.upgrading &&
+    user.liquidityPool.upgradeEndTime &&
+    new Date(user.liquidityPool.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.liquidityPool.level < 20) {
+      const oldProfit = getLiquidityPoolProfit(user.liquidityPool.level);
+      user.liquidityPool.level += 1;
+      const newProfit = getLiquidityPoolProfit(user.liquidityPool.level);
+      user.profitPerHour += (newProfit - oldProfit);
+    }
+
+    user.liquidityPool.upgrading = false;
+    user.liquidityPool.upgradeStartTime = null;
+    user.liquidityPool.upgradeEndTime = null;
 
     await user.save();
   }
@@ -882,6 +933,7 @@ app.post("/load", async (req, res) => {
     await applyOfflineMining(user);
     await finalizeBtcPairsUpgrade(user);
     await finalizeFuturesTradingUpgrade(user);
+    await finalizeLiquidityPoolUpgrade(user);
     await finalizeEthPairsUpgrade(user);
     await finalizeMyTeamUpgrade(user);
     await finalizeMarketingUpgrade(user);
@@ -936,6 +988,14 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   nextCost: (user.futuresTrading?.level || 1) >= 20 ? 0 : getFuturesTradingCost(user.futuresTrading?.level || 1),
   upgradeTime: (user.futuresTrading?.level || 1) >= 20 ? 0 : getFuturesTradingUpgradeTime(user.futuresTrading?.level || 1),
   upgradeEndTime: user.futuresTrading?.upgradeEndTime || null
+},
+      liquidityPool: {
+  level: user.liquidityPool?.level || 1,
+  upgrading: user.liquidityPool?.upgrading || false,
+  currentProfit: getLiquidityPoolProfit(user.liquidityPool?.level || 1),
+  nextCost: (user.liquidityPool?.level || 1) >= 20 ? 0 : getLiquidityPoolCost(user.liquidityPool?.level || 1),
+  upgradeTime: (user.liquidityPool?.level || 1) >= 20 ? 0 : getLiquidityPoolUpgradeTime(user.liquidityPool?.level || 1),
+  upgradeEndTime: user.liquidityPool?.upgradeEndTime || null
 },
 
       myTeam: {
@@ -1099,6 +1159,7 @@ if (!user) return res.json({ success: false, message: "Invalid user" });
 await finalizeBtcPairsUpgrade(user);
 await finalizeEthPairsUpgrade(user);
 await finalizeFuturesTradingUpgrade(user);
+await finalizeLiquidityPoolUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
@@ -1146,6 +1207,7 @@ if (!user) return res.json({ success: false, message: "Invalid user" });
 await finalizeBtcPairsUpgrade(user);
 await finalizeEthPairsUpgrade(user);
 await finalizeFuturesTradingUpgrade(user);
+await finalizeLiquidityPoolUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
@@ -1370,6 +1432,74 @@ app.post("/upgrade-futures-trading", async (req, res) => {
     });
   } catch (e) {
     console.log("/upgrade-futures-trading error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE LIQUIDITY POOL ================= */
+
+app.post("/upgrade-liquidity-pool", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.liquidityPool) {
+      user.liquidityPool = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeLiquidityPoolUpgrade(user);
+
+    const level = user.liquidityPool.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.liquidityPool.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getLiquidityPoolCost(level);
+    const baseUpgradeTime = getLiquidityPoolUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.liquidityPool.upgrading = true;
+    user.liquidityPool.upgradeStartTime = new Date();
+    user.liquidityPool.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      liquidityPool: {
+        level: user.liquidityPool.level,
+        upgrading: true,
+        currentProfit: getLiquidityPoolProfit(user.liquidityPool.level),
+        nextCost: getLiquidityPoolCost(user.liquidityPool.level),
+        upgradeTime,
+        upgradeEndTime: user.liquidityPool.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-liquidity-pool error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
