@@ -104,7 +104,14 @@ btcPairs: {
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
   },
-    
+
+  signalNetwork: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+  },
+  
   myTeam: {
   level: { type: Number, default: 1 },
   upgrading: { type: Boolean, default: false },
@@ -449,6 +456,50 @@ async function finalizeArbitrageBotUpgrade(user) {
     user.arbitrageBot.upgrading = false;
     user.arbitrageBot.upgradeStartTime = null;
     user.arbitrageBot.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
+/* ================= SIGNAL NETWORK ================= */
+
+function getSignalNetworkProfit(level) {
+  return 40 * Math.pow(2, level - 1);
+}
+
+function getSignalNetworkCost(level) {
+  return 1200 * Math.pow(4, level - 1);
+}
+
+function getSignalNetworkUpgradeTime(level) {
+  return 30 * level;
+}
+
+async function finalizeSignalNetworkUpgrade(user) {
+  if (!user.signalNetwork) {
+    user.signalNetwork = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.signalNetwork.upgrading &&
+    user.signalNetwork.upgradeEndTime &&
+    new Date(user.signalNetwork.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.signalNetwork.level < 20) {
+      const oldProfit = getSignalNetworkProfit(user.signalNetwork.level);
+      user.signalNetwork.level += 1;
+      const newProfit = getSignalNetworkProfit(user.signalNetwork.level);
+      user.profitPerHour += (newProfit - oldProfit);
+    }
+
+    user.signalNetwork.upgrading = false;
+    user.signalNetwork.upgradeStartTime = null;
+    user.signalNetwork.upgradeEndTime = null;
 
     await user.save();
   }
@@ -987,6 +1038,7 @@ app.post("/load", async (req, res) => {
     await finalizeLiquidityPoolUpgrade(user);
     await finalizeArbitrageBotUpgrade(user);
     await finalizeEthPairsUpgrade(user);
+    await finalizeSignalNetworkUpgrade(user);
     await finalizeMyTeamUpgrade(user);
     await finalizeMarketingUpgrade(user);
     await finalizeTaxOptimizationUpgrade(user);
@@ -1057,6 +1109,15 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   upgradeTime: (user.arbitrageBot?.level || 1) >= 20 ? 0 : getArbitrageBotUpgradeTime(user.arbitrageBot?.level || 1),
   upgradeEndTime: user.arbitrageBot?.upgradeEndTime || null
 },
+      signalNetwork: {
+  level: user.signalNetwork?.level || 1,
+  upgrading: user.signalNetwork?.upgrading || false,
+  currentProfit: getSignalNetworkProfit(user.signalNetwork?.level || 1),
+  nextCost: (user.signalNetwork?.level || 1) >= 20 ? 0 : getSignalNetworkCost(user.signalNetwork?.level || 1),
+  upgradeTime: (user.signalNetwork?.level || 1) >= 20 ? 0 : getSignalNetworkUpgradeTime(user.signalNetwork?.level || 1),
+  upgradeEndTime: user.signalNetwork?.upgradeEndTime || null
+},
+      
       myTeam: {
   level: user.myTeam?.level || 1,
   upgrading: user.myTeam?.upgrading || false,
@@ -1220,6 +1281,7 @@ await finalizeEthPairsUpgrade(user);
 await finalizeFuturesTradingUpgrade(user);
 await finalizeLiquidityPoolUpgrade(user);
 await finalizeArbitrageBotUpgrade(user);
+await finalizeSignalNetworkUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
@@ -1269,6 +1331,7 @@ await finalizeEthPairsUpgrade(user);
 await finalizeFuturesTradingUpgrade(user);
 await finalizeLiquidityPoolUpgrade(user);
 await finalizeArbitrageBotUpgrade(user);
+await finalizeSignalNetworkUpgrade(user);
 await finalizeMyTeamUpgrade(user);
 await finalizeMarketingUpgrade(user);
 await finalizeTaxOptimizationUpgrade(user);
@@ -1629,6 +1692,74 @@ app.post("/upgrade-arbitrage-bot", async (req, res) => {
     });
   } catch (e) {
     console.log("/upgrade-arbitrage-bot error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE SIGNAL NETWORK ================= */
+
+app.post("/upgrade-signal-network", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.signalNetwork) {
+      user.signalNetwork = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizeSignalNetworkUpgrade(user);
+
+    const level = user.signalNetwork.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.signalNetwork.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getSignalNetworkCost(level);
+    const baseUpgradeTime = getSignalNetworkUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.signalNetwork.upgrading = true;
+    user.signalNetwork.upgradeStartTime = new Date();
+    user.signalNetwork.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      signalNetwork: {
+        level: user.signalNetwork.level,
+        upgrading: true,
+        currentProfit: getSignalNetworkProfit(user.signalNetwork.level),
+        nextCost: getSignalNetworkCost(user.signalNetwork.level),
+        upgradeTime,
+        upgradeEndTime: user.signalNetwork.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-signal-network error", e);
     res.json({ success: false, message: "Server error" });
   }
 });
