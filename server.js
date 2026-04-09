@@ -796,6 +796,83 @@ app.post("/upgrade-community-manager", async (req, res) => {
   }
 });
 
+/* ================= UPGRADE PARTNERSHIP DEALS ================= */
+
+app.post("/upgrade-partnership-deals", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.partnershipDeals) {
+      user.partnershipDeals = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
+    await finalizePartnershipDealsUpgrade(user);
+
+    const level = user.partnershipDeals.level;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.partnershipDeals.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
+    const cost = getPartnershipDealsCost(level);
+    const baseUpgradeTime = getPartnershipDealsUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.partnershipDeals.upgrading = true;
+    user.partnershipDeals.upgradeStartTime = new Date();
+    user.partnershipDeals.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      partnershipDeals: {
+        level: user.partnershipDeals.level,
+        upgrading: true,
+        currentBoost: getPartnershipDealsBoost(user.partnershipDeals.level),
+        effectiveExtraProfit: getPartnershipDealsExtraProfit(
+          user.referrals || 0,
+          user.communityManager?.level || 1,
+          user.partnershipDeals.level
+        ),
+        nextBoost:
+          user.partnershipDeals.level >= 20
+            ? getPartnershipDealsBoost(user.partnershipDeals.level)
+            : getPartnershipDealsBoost(user.partnershipDeals.level + 1),
+        nextCost: getPartnershipDealsCost(user.partnershipDeals.level),
+        upgradeTime,
+        upgradeEndTime: user.partnershipDeals.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    console.log("/upgrade-partnership-deals error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
 /* ================= MARKETING SECTION ================= */
 
 function getMarketingBoost(level) {
