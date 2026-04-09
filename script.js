@@ -121,6 +121,17 @@ let appState = {
   upgradeTime: 30,
   upgradeEndTime: null
 },
+
+  partnershipDeals: {
+  level: 1,
+  upgrading: false,
+  currentBoost: 3,
+  effectiveExtraProfit: 0,
+  nextBoost: 6,
+  nextCost: 1100,
+  upgradeTime: 30,
+  upgradeEndTime: null
+},
   
 taxOptimization: {
   level: 1,
@@ -174,6 +185,7 @@ let btcPairsTimerInterval = null;
   let myTeamTimerInterval = null;
   let marketingTimerInterval = null;
   let communityManagerTimerInterval = null;
+  let partnershipDealsTimerInterval = null;
   let taxOptimizationTimerInterval = null;
   let complianceLicenseTimerInterval = null;
   let turboChargerTimerInterval = null;
@@ -257,6 +269,7 @@ appState.signalNetwork = data.signalNetwork || null;
 appState.myTeam = data.myTeam || null;
 appState.marketing = data.marketing || null;
 appState.communityManager = data.communityManager || null;
+appState.partnershipDeals = data.partnershipDeals || null;
 appState.taxOptimization = data.taxOptimization || null;
 appState.complianceLicense = data.complianceLicense || null;
       appState.turboCharger = data.turboCharger || null;
@@ -799,7 +812,7 @@ function renderLegalSection() {
   
 /* ================= Team Section ================= */
 
-  function renderTeamSection() {
+function renderTeamSection() {
   if (!mineTabContent) return;
 
   const team = appState.myTeam || {
@@ -830,6 +843,17 @@ function renderLegalSection() {
     effectiveExtraProfit: 0,
     nextBonus: 2,
     nextCost: 900,
+    upgradeTime: 30,
+    upgradeEndTime: null
+  };
+
+  const partnership = appState.partnershipDeals || {
+    level: 1,
+    upgrading: false,
+    currentBoost: 3,
+    effectiveExtraProfit: 0,
+    nextBoost: 6,
+    nextCost: 1100,
     upgradeTime: 30,
     upgradeEndTime: null
   };
@@ -926,13 +950,25 @@ function renderLegalSection() {
         `+${community.currentBonus}`,
         "upgradeCommunityManager"
       )}
+
+      ${makeTeamCard(
+        "partnershipDeals",
+        "Partnership Deals",
+        "Boost team income share",
+        "models/partnershipdeals.png",
+        partnership,
+        "Partner boost",
+        `+${partnership.currentBoost}%`,
+        "upgradePartnershipDeals"
+      )}
     </div>
   `;
 
   startMyTeamCountdown();
   startMarketingCountdown();
   startCommunityManagerCountdown();
-  }
+  startPartnershipDealsCountdown();
+}
   
 /* ================= START MY TEAM COUNTDOWN ================= */
   
@@ -1225,6 +1261,50 @@ function startMyTeamCountdown() {
     if (secondsLeft <= 0) {
       clearInterval(communityManagerTimerInterval);
       communityManagerTimerInterval = null;
+      loadUser().then(() => {
+        if (mineSection && mineSection.style.display !== "none") {
+          switchMineTab("team");
+        }
+      });
+    }
+  }, 1000);
+  }
+  
+/* ================= PARTNERSHIP DEALS COUNTDOWN ================= */
+  
+  function startPartnershipDealsCountdown() {
+  if (partnershipDealsTimerInterval) {
+    clearInterval(partnershipDealsTimerInterval);
+    partnershipDealsTimerInterval = null;
+  }
+
+  if (
+    !appState.partnershipDeals ||
+    !appState.partnershipDeals.upgrading ||
+    !appState.partnershipDeals.upgradeEndTime
+  ) {
+    return;
+  }
+
+  partnershipDealsTimerInterval = setInterval(() => {
+    const countdownEl = document.getElementById("partnershipDealsCountdown");
+
+    if (!countdownEl || !appState.partnershipDeals?.upgradeEndTime) {
+      clearInterval(partnershipDealsTimerInterval);
+      partnershipDealsTimerInterval = null;
+      return;
+    }
+
+    const secondsLeft = Math.max(
+      0,
+      Math.floor((new Date(appState.partnershipDeals.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    countdownEl.innerText = formatCountdown(secondsLeft);
+
+    if (secondsLeft <= 0) {
+      clearInterval(partnershipDealsTimerInterval);
+      partnershipDealsTimerInterval = null;
       loadUser().then(() => {
         if (mineSection && mineSection.style.display !== "none") {
           switchMineTab("team");
@@ -1625,6 +1705,31 @@ window.upgradeEthPairs = async function() {
     }
   } catch (e) {
     console.log("upgrade community manager error", e);
+  }
+};
+
+ /* ================= PARTNERSHIP DEALS UPGRADE ================= */
+
+  window.upgradePartnershipDeals = async function() {
+  try {
+    const res = await fetch("/upgrade-partnership-deals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.partnershipDeals = data.partnershipDeals || null;
+      renderTeamSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade partnership deals error", e);
   }
 };
   
