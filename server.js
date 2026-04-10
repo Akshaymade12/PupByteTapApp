@@ -223,6 +223,13 @@ btcPairs: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
+  },
+
+  neuralSync: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
   }
 });
 
@@ -754,6 +761,55 @@ async function finalizeOverclockEngineUpgrade(user) {
     user.overclockEngine.upgrading = false;
     user.overclockEngine.upgradeStartTime = null;
     user.overclockEngine.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
+/* ================= NEURAL SYNC SECTION ================= */
+
+function getNeuralSyncBoost(level) {
+  return Math.min(level * 3, 60);
+}
+
+function applyNeuralBoost(baseValue, neuralLevel) {
+  return Math.floor((baseValue || 0) * (1 + getNeuralSyncBoost(neuralLevel || 1) / 100));
+}
+
+function getNeuralSyncExtraProfit(baseProfit, level) {
+  return Math.floor((baseProfit || 0) * (getNeuralSyncBoost(level || 1) / 100));
+}
+
+function getNeuralSyncCost(level) {
+  return 2500 * Math.pow(4, level - 1);
+}
+
+function getNeuralSyncUpgradeTime(level) {
+  return 40 * level;
+}
+
+async function finalizeNeuralSyncUpgrade(user) {
+  if (!user.neuralSync) {
+    user.neuralSync = {
+      level: 1,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
+    };
+  }
+
+  if (
+    user.neuralSync.upgrading &&
+    user.neuralSync.upgradeEndTime &&
+    new Date(user.neuralSync.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.neuralSync.level < 20) {
+      user.neuralSync.level += 1;
+    }
+
+    user.neuralSync.upgrading = false;
+    user.neuralSync.upgradeStartTime = null;
+    user.neuralSync.upgradeEndTime = null;
 
     await user.save();
   }
@@ -2162,9 +2218,11 @@ function rechargeEnergy(user) {
   const now = Date.now();
   const secondsPassed = (now - user.lastEnergyUpdate) / 1000;
   const baseRecoveredEnergy = Math.floor(secondsPassed * 2);
-  const recoveredEnergy = Math.floor(
-    baseRecoveredEnergy * getPowerSurgeRecoveryMultiplier(user.powerSurge?.level || 1)
-  );
+const baseRecovery = getPowerSurgeRecoveryMultiplier(user.powerSurge?.level || 1);
+const finalRecovery = baseRecovery * (1 + getNeuralSyncBoost(user.neuralSync?.level || 1) / 100);
+const recoveredEnergy = Math.floor(
+  baseRecoveredEnergy * finalRecovery
+);
   const maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 
   if (recoveredEnergy > 0) {
@@ -2223,6 +2281,7 @@ app.post("/load", async (req, res) => {
     await finalizeEnergyCoreUpgrade(user);
     await finalizePowerSurgeUpgrade(user);
     await finalizeOverclockEngineUpgrade(user);
+    await finalizeNeuralSyncUpgrade(user);
 
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
@@ -2273,7 +2332,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       totalClaims: user.totalClaims,
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
       nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
-
+/* ================= BTC PAIRS ================= */
       btcPairs: {
         level: user.btcPairs?.level || 1,
         upgrading: user.btcPairs?.upgrading || false,
@@ -2282,7 +2341,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
         upgradeTime: (user.btcPairs?.level || 1) >= 20 ? 0 : getBtcPairsUpgradeTime(user.btcPairs?.level || 1),
         upgradeEndTime: user.btcPairs?.upgradeEndTime || null
       },
-
+/* ================= ETH PARIS ================= */
       ethPairs: {
   level: user.ethPairs?.level || 1,
   upgrading: user.ethPairs?.upgrading || false,
@@ -2291,7 +2350,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   upgradeTime: (user.ethPairs?.level || 1) >= 20 ? 0 : getEthPairsUpgradeTime(user.ethPairs?.level || 1),
   upgradeEndTime: user.ethPairs?.upgradeEndTime || null
       },
-
+/* ================= FUTURES TRADING ================= */
       futuresTrading: {
   level: user.futuresTrading?.level || 1,
   upgrading: user.futuresTrading?.upgrading || false,
@@ -2299,7 +2358,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   nextCost: (user.futuresTrading?.level || 1) >= 20 ? 0 : getFuturesTradingCost(user.futuresTrading?.level || 1),
   upgradeTime: (user.futuresTrading?.level || 1) >= 20 ? 0 : getFuturesTradingUpgradeTime(user.futuresTrading?.level || 1),
   upgradeEndTime: user.futuresTrading?.upgradeEndTime || null
-},
+      },
+ /* ================= LIQUIDITY POOL ================= */  
       liquidityPool: {
   level: user.liquidityPool?.level || 1,
   upgrading: user.liquidityPool?.upgrading || false,
@@ -2307,7 +2367,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   nextCost: (user.liquidityPool?.level || 1) >= 20 ? 0 : getLiquidityPoolCost(user.liquidityPool?.level || 1),
   upgradeTime: (user.liquidityPool?.level || 1) >= 20 ? 0 : getLiquidityPoolUpgradeTime(user.liquidityPool?.level || 1),
   upgradeEndTime: user.liquidityPool?.upgradeEndTime || null
-},
+      },
+/* ================= ARBITRAGE BOT ================= */   
       arbitrageBot: {
   level: user.arbitrageBot?.level || 1,
   upgrading: user.arbitrageBot?.upgrading || false,
@@ -2315,7 +2376,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   nextCost: (user.arbitrageBot?.level || 1) >= 20 ? 0 : getArbitrageBotCost(user.arbitrageBot?.level || 1),
   upgradeTime: (user.arbitrageBot?.level || 1) >= 20 ? 0 : getArbitrageBotUpgradeTime(user.arbitrageBot?.level || 1),
   upgradeEndTime: user.arbitrageBot?.upgradeEndTime || null
-},
+       },
+/* ================= SIGNAL NETWORK ================= */    
       signalNetwork: {
   level: user.signalNetwork?.level || 1,
   upgrading: user.signalNetwork?.upgrading || false,
@@ -2323,8 +2385,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   nextCost: (user.signalNetwork?.level || 1) >= 20 ? 0 : getSignalNetworkCost(user.signalNetwork?.level || 1),
   upgradeTime: (user.signalNetwork?.level || 1) >= 20 ? 0 : getSignalNetworkUpgradeTime(user.signalNetwork?.level || 1),
   upgradeEndTime: user.signalNetwork?.upgradeEndTime || null
-},
-      
+        },
+ /* ================= MY TEAM ================= */
       myTeam: {
   level: user.myTeam?.level || 1,
   upgrading: user.myTeam?.upgrading || false,
@@ -2334,7 +2396,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   upgradeEndTime: user.myTeam?.upgradeEndTime || null,
   members: user.referrals || 0
       },
-
+/* ================= MARKETING ================= */
       marketing: {
   level: user.marketing?.level || 1,
   upgrading: user.marketing?.upgrading || false,
@@ -2344,7 +2406,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   nextCost: (user.marketing?.level || 1) >= 20 ? 0 : getMarketingCost(user.marketing?.level || 1),
   upgradeTime: (user.marketing?.level || 1) >= 20 ? 0 : getMarketingUpgradeTime(user.marketing?.level || 1),
   upgradeEndTime: user.marketing?.upgradeEndTime || null
-},
+       },
+/* ================= COMMUITY MANAGER ================= */
       communityManager: {
   level: user.communityManager?.level || 1,
   upgrading: user.communityManager?.upgrading || false,
@@ -2363,7 +2426,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getCommunityManagerUpgradeTime(user.communityManager?.level || 1),
   upgradeEndTime: user.communityManager?.upgradeEndTime || null
-},
+         },
+ /* ================= PARTNERSHIP DEALS ================= */
       partnershipDeals: {
   level: user.partnershipDeals?.level || 1,
   upgrading: user.partnershipDeals?.upgrading || false,
@@ -2386,7 +2450,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getPartnershipDealsUpgradeTime(user.partnershipDeals?.level || 1),
   upgradeEndTime: user.partnershipDeals?.upgradeEndTime || null
-},
+        },
+ /* ================= COMPLIANCE LICENSE ================= */
       complianceLicense: {
   level: user.complianceLicense?.level || 1,
   upgrading: user.complianceLicense?.upgrading || false,
@@ -2411,7 +2476,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
         ),
   upgradeEndTime: user.complianceLicense?.upgradeEndTime || null
       },
-
+/* ================= AUDI PROTECTION ================= */
       auditProtection: {
   level: user.auditProtection?.level || 1,
   upgrading: user.auditProtection?.upgrading || false,
@@ -2436,7 +2501,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getAuditProtectionUpgradeTime(user.auditProtection?.level || 1),
   upgradeEndTime: user.auditProtection?.upgradeEndTime || null
-},
+          },
+/* ================= REGULATORY LICENSE ================= */   
       regulatoryLicense: {
   level: user.regulatoryLicense?.level || 1,
   upgrading: user.regulatoryLicense?.upgrading || false,
@@ -2462,8 +2528,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getRegulatoryLicenseUpgradeTime(user.regulatoryLicense?.level || 1),
   upgradeEndTime: user.regulatoryLicense?.upgradeEndTime || null
-},
-
+       },
+/* ================= IEGAL ADVISORY ================= */
    legalAdvisory: {
   level: user.legalAdvisory?.level || 1,
   upgrading: user.legalAdvisory?.upgrading || false,
@@ -2481,8 +2547,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getLegalAdvisoryUpgradeTime(user.legalAdvisory?.level || 1),
   upgradeEndTime: user.legalAdvisory?.upgradeEndTime || null
-},
-      
+         },
+ /* ================= COURT SETTLEMENT ================= */
       courtSettlement: {
   level: user.courtSettlement?.level || 1,
   upgrading: user.courtSettlement?.upgrading || false,
@@ -2506,8 +2572,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getCourtSettlementUpgradeTime(user.courtSettlement?.level || 1),
   upgradeEndTime: user.courtSettlement?.upgradeEndTime || null
-},
-      
+         },
+ /* ================= AMBASSADOR PROGRAM ================= */
       ambassadorProgram: {
   level: user.ambassadorProgram?.level || 1,
   upgrading: user.ambassadorProgram?.upgrading || false,
@@ -2529,8 +2595,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getAmbassadorProgramUpgradeTime(user.ambassadorProgram?.level || 1),
   upgradeEndTime: user.ambassadorProgram?.upgradeEndTime || null
-},
-
+         },
+/* ================= VIP PARTNERS ================= */
       vipPartners: {
   level: user.vipPartners?.level || 1,
   upgrading: user.vipPartners?.upgrading || false,
@@ -2554,8 +2620,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getVipPartnersUpgradeTime(user.vipPartners?.level || 1),
   upgradeEndTime: user.vipPartners?.upgradeEndTime || null
-},
-      
+          },
+/* ================= TAX OPTIMIZATION ================= */ 
        taxOptimization: {
   level: user.taxOptimization?.level || 1,
   upgrading: user.taxOptimization?.upgrading || false,
@@ -2579,7 +2645,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       : getTaxOptimizationUpgradeTime(user.taxOptimization?.level || 1),
   upgradeEndTime: user.taxOptimization?.upgradeEndTime || null
        },
-
+/* ================= TURBO CHARGER ================= */
       turboCharger: {
   level: user.turboCharger?.level || 1,
   upgrading: user.turboCharger?.upgrading || false,
@@ -2598,7 +2664,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       : getTurboChargerUpgradeTime(user.turboCharger?.level || 1),
   upgradeEndTime: user.turboCharger?.upgradeEndTime || null
       },
-
+/* ================= ENERGY CORE ================= */
       energyCore: {
   level: user.energyCore?.level || 1,
   upgrading: user.energyCore?.upgrading || false,
@@ -2618,12 +2684,15 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       : getEnergyCoreUpgradeTime(user.energyCore?.level || 1),
   upgradeEndTime: user.energyCore?.upgradeEndTime || null
       },
-
+/* ================= POWER SURGE ================= */
       powerSurge: {
   level: user.powerSurge?.level || 1,
   upgrading: user.powerSurge?.upgrading || false,
   currentBoost: getPowerSurgeBoost(user.powerSurge?.level || 1),
-  recoveryMultiplier: getPowerSurgeRecoveryMultiplier(user.powerSurge?.level || 1),
+  recoveryMultiplier: (() => {
+  const baseRecovery = getPowerSurgeRecoveryMultiplier(user.powerSurge?.level || 1);
+  return baseRecovery * (1 + getNeuralSyncBoost(user.neuralSync?.level || 1) / 100);
+})(),
   nextBoost:
     (user.powerSurge?.level || 1) >= 20
       ? getPowerSurgeBoost(user.powerSurge?.level || 1)
@@ -2638,13 +2707,19 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       : getPowerSurgeUpgradeTime(user.powerSurge?.level || 1),
   upgradeEndTime: user.powerSurge?.upgradeEndTime || null
       },
-
+/* ================= OVERCLOCK ENGINE ================= */
       overclockEngine: {
   level: user.overclockEngine?.level || 1,
   upgrading: user.overclockEngine?.upgrading || false,
   currentTapBoost: getOverclockTapBoost(user.overclockEngine?.level || 1),
   currentProfitBoost: getOverclockProfitBoost(user.overclockEngine?.level || 1),
-  effectiveTapPower: getOverclockTapPower(user.tapPower, user.overclockEngine?.level || 1),
+  effectiveTapPower: (() => {
+  const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
+  const turboBonus = applyNeuralBoost(turboBase, user.neuralSync?.level || 1);
+  const baseTapPower = user.tapPower + turboBonus;
+  const baseTap = getOverclockTapPower(baseTapPower, user.overclockEngine?.level || 1);
+  return applyNeuralBoost(baseTap, user.neuralSync?.level || 1);
+})(),
   effectiveExtraProfit: getOverclockExtraProfit(user.profitPerHour, user.overclockEngine?.level || 1),
   nextTapBoost:
     (user.overclockEngine?.level || 1) >= 20
@@ -2663,7 +2738,26 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getOverclockEngineUpgradeTime(user.overclockEngine?.level || 1),
   upgradeEndTime: user.overclockEngine?.upgradeEndTime || null
-      }
+      },
+/* ================= NEURAL SYNCE ================= */
+      neuralSync: {
+  level: user.neuralSync?.level || 1,
+  upgrading: user.neuralSync?.upgrading || false,
+  currentBoost: getNeuralSyncBoost(user.neuralSync?.level || 1),
+  nextBoost:
+    (user.neuralSync?.level || 1) >= 20
+      ? getNeuralSyncBoost(user.neuralSync?.level || 1)
+      : getNeuralSyncBoost((user.neuralSync?.level || 1) + 1),
+  nextCost:
+    (user.neuralSync?.level || 1) >= 20
+      ? 0
+      : getNeuralSyncCost(user.neuralSync?.level || 1),
+  upgradeTime:
+    (user.neuralSync?.level || 1) >= 20
+      ? 0
+      : getNeuralSyncUpgradeTime(user.neuralSync?.level || 1),
+  upgradeEndTime: user.neuralSync?.upgradeEndTime || null
+    }
     });
   } catch (e) {
     console.log("/load error", e);
@@ -2688,9 +2782,11 @@ app.post("/tap", async (req, res) => {
       });
     }
 
-    const turboBonus = getTurboTapBonus(user.turboCharger?.level || 1);
+    const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
+const turboBonus = applyNeuralBoost(turboBase, user.neuralSync?.level || 1);
 const baseTapPower = user.tapPower + turboBonus;
-const finalTapPower = getOverclockTapPower(baseTapPower, user.overclockEngine?.level || 1);
+const baseTap = getOverclockTapPower(baseTapPower, user.overclockEngine?.level || 1);
+const finalTapPower = applyNeuralBoost(baseTap, user.neuralSync?.level || 1);
 
 user.coins += finalTapPower;
 user.energy -= user.tapPower;
@@ -2704,10 +2800,13 @@ user.energy -= user.tapPower;
   coins: user.coins,
   energy: user.energy,
   maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
-  tapPower: getOverclockTapPower(
-  user.tapPower + getTurboTapBonus(user.turboCharger?.level || 1),
-  user.overclockEngine?.level || 1
-),
+tapPower: (() => {
+  const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
+  const turboBonus = applyNeuralBoost(turboBase, user.neuralSync?.level || 1);
+  const baseTapPower = user.tapPower + turboBonus;
+  const baseTap = getOverclockTapPower(baseTapPower, user.overclockEngine?.level || 1);
+  return applyNeuralBoost(baseTap, user.neuralSync?.level || 1);
+})(),
   profitPerHour: user.profitPerHour,
   league: user.league
 });
@@ -3498,7 +3597,10 @@ app.post("/upgrade-power-surge", async (req, res) => {
         level: user.powerSurge.level,
         upgrading: true,
         currentBoost: getPowerSurgeBoost(user.powerSurge.level),
-        recoveryMultiplier: getPowerSurgeRecoveryMultiplier(user.powerSurge.level),
+        recoveryMultiplier: (() => {
+  const baseRecovery = getPowerSurgeRecoveryMultiplier(user.powerSurge.level);
+  return baseRecovery * (1 + getNeuralSyncBoost(user.neuralSync?.level || 1) / 100);
+})(),
         nextBoost:
           user.powerSurge.level >= 20
             ? getPowerSurgeBoost(user.powerSurge.level)
@@ -3572,10 +3674,13 @@ app.post("/upgrade-overclock-engine", async (req, res) => {
         upgrading: true,
         currentTapBoost: getOverclockTapBoost(user.overclockEngine.level),
         currentProfitBoost: getOverclockProfitBoost(user.overclockEngine.level),
-        effectiveTapPower: getOverclockTapPower(
-          user.tapPower + getTurboTapBonus(user.turboCharger?.level || 1),
-          user.overclockEngine.level
-        ),
+        effectiveTapPower: (() => {
+  const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
+  const turboBonus = applyNeuralBoost(turboBase, user.neuralSync?.level || 1);
+  const baseTapPower = user.tapPower + turboBonus;
+  const baseTap = getOverclockTapPower(baseTapPower, user.overclockEngine.level);
+  return applyNeuralBoost(baseTap, user.neuralSync?.level || 1);
+})(),
         effectiveExtraProfit: getOverclockExtraProfit(user.profitPerHour, user.overclockEngine.level),
         nextTapBoost:
           user.overclockEngine.level >= 20
@@ -3593,6 +3698,58 @@ app.post("/upgrade-overclock-engine", async (req, res) => {
   } catch (e) {
     console.log("/upgrade-overclock-engine error", e);
     res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= NEURAL SYNC UPGRADE ================= */
+
+app.post("/upgrade-neural-sync", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+
+    if (!user.neuralSync) {
+      user.neuralSync = {
+        level: 1,
+        upgrading: false
+      };
+    }
+
+    await finalizeNeuralSyncUpgrade(user);
+
+    const level = user.neuralSync.level;
+
+    if (level >= 20) return res.json({ success: false, message: "Max level" });
+
+    const cost = getNeuralSyncCost(level);
+    const time = getNeuralSyncUpgradeTime(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.neuralSync.upgrading = true;
+    user.neuralSync.upgradeEndTime = new Date(Date.now() + time * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      neuralSync: {
+        level,
+        upgrading: true,
+        currentBoost: getNeuralSyncBoost(level),
+        nextBoost: getNeuralSyncBoost(level + 1),
+        nextCost: getNeuralSyncCost(level),
+        upgradeTime: time,
+        upgradeEndTime: user.neuralSync.upgradeEndTime
+      }
+    });
+  } catch (e) {
+    res.json({ success: false });
   }
 });
 
