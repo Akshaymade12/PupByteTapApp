@@ -3842,14 +3842,12 @@ app.post("/upgrade-quantum-core", async (req, res) => {
 
     if (level >= 20) {
   return res.json({ success: false, message: "Max level reached" });
-    }
+    
 
     const cost = getQuantumCost(level);
     const time = getQuantumUpgradeTime(level);
 
-    if (user.coins < cost) {
-      return res.json({ success: false, message: "Not enough coins" });
-    }
+    if (user.coins < cost) return res.json({ success: false, message: "Not enough coins" });
 
     user.coins -= cost;
     user.quantumCore.upgrading = true;
