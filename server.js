@@ -3824,8 +3824,9 @@ app.post("/upgrade-neural-sync", async (req, res) => {
       }
     });
   } catch (e) {
-    res.json({ success: false });
-  }
+  console.log("/upgrade-neural-sync error", e);
+  res.json({ success: false, message: "Server error" });
+}
 });
 
 /* ================= QUANTUM CORE UPGRADE ================= */
@@ -3839,7 +3840,9 @@ app.post("/upgrade-quantum-core", async (req, res) => {
 
     const level = user.quantumCore.level;
 
-    if (level >= 20) return res.json({ success: false });
+    if (level >= 20) {
+  return res.json({ success: false, message: "Max level reached" });
+    }
 
     const cost = getQuantumCost(level);
     const time = getQuantumUpgradeTime(level);
@@ -3868,9 +3871,9 @@ app.post("/upgrade-quantum-core", async (req, res) => {
         upgradeEndTime: user.quantumCore.upgradeEndTime
       }
     });
-  } catch {
-    res.json({ success: false });
-  }
+  } catch (e) {
+  console.log("/upgrade-quantum-core error", e);
+  res.json({ success: false, message: "Server error" });
 });
 
 /* ================= DAILY REWARD ================= */
