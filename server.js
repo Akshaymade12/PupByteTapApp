@@ -2331,13 +2331,22 @@ async function applyOfflineMining(user) {
   const now = new Date();
   const seconds = (now - user.lastActive) / 1000;
 
+  let offlineCoins = 0;
+
   if (seconds > 0) {
     const earned = (user.profitPerHour / 3600) * seconds;
-    user.coins += Math.floor(earned);
+    offlineCoins = Math.floor(earned);
+
+    if (offlineCoins > 0) {
+      user.coins += offlineCoins;
+    }
+
     user.lastActive = now;
     user.league = getLeague(user.coins);
     await user.save();
   }
+
+  return offlineCoins;
 }
 
 /* ================= LOAD ================= */
@@ -2348,7 +2357,7 @@ app.post("/load", async (req, res) => {
     const user = await getValidUser(String(telegramId), initData);
     if (!user) return res.json({ success: false, message: "Invalid user" });
 
-    await applyOfflineMining(user);
+    const offlineCoins = await applyOfflineMining(user);
     await finalizeBtcPairsUpgrade(user);
     await finalizeFuturesTradingUpgrade(user);
     await finalizeLiquidityPoolUpgrade(user);
@@ -2429,6 +2438,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   remaining: getRewardAdsRemaining(user),
   cooldownLeftMs: getRewardAdCooldownLeft(user)
 },
+      offlineCoins,
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
       nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
 /* ================= BTC PAIRS ================= */
