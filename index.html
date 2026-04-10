@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PupByte Tap Bot</title>
-  <link rel="stylesheet" href="style.css?v=58">
+  <link rel="stylesheet" href="style.css?v=59">
 </head>
 <body>
 
@@ -329,18 +329,31 @@
   </div>
 
   <!-- ================= DAILY POPUP ================= -->
-  <div id="dailyRewardPopup" class="daily-popup" style="display:none;">
-    <div class="daily-box">
-      <h2>Daily Reward</h2>
-      <div id="dailyGrid" class="daily-grid"></div>
-      <button id="claimDailyBtn">Claim</button>
-    </div>
+  
+<div id="dailyRewardPopup" class="daily-popup" style="display:none;">
+  <div class="daily-popup-card">
+    <div class="daily-popup-title">Daily Reward</div>
+    <div class="daily-popup-subtitle">Come back every day and claim coins</div>
+    <div id="dailyGrid" class="daily-grid"></div>
+    <button id="claimDailyBtn" class="daily-claim-btn">Claim</button>
   </div>
-
+</div>
+  
+<!-- ================= OFFLINE POPUP ================= -->
+  
+  <div id="offlinePopup" class="offline-popup" style="display:none;">
+  <div class="offline-popup-card">
+    <div class="offline-popup-title">Offline Earnings</div>
+    <div class="offline-popup-subtitle">You earned while away</div>
+    <div class="offline-popup-amount" id="offlineCoinsText">+0 coins</div>
+    <button id="closeOfflinePopup" class="offline-popup-btn">Awesome</button>
+  </div>
+  </div>
+  
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="script.js?v=58"></script>
+<script src="script.js?v=59"></script>
 
 </body>
 </html>
