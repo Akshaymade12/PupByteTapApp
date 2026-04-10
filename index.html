@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PupByte Tap Bot</title>
-  <link rel="stylesheet" href="style.css?v=57">
+  <link rel="stylesheet" href="style.css?v=58">
 </head>
 <body>
 
@@ -26,22 +26,39 @@
     <div class="glass-card">👛 Connect Wallet</div>
   </div>
 
-  <!-- ================= EARN SECTION ================= -->
-  <div id="earnSection">
-    <div class="coin-wrapper">
-      <div class="coin-circle">
-        <button id="tapBtn" class="tap-button">
-          <img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/taplogo.png" class="main-coin">
-        </button>
-      </div>
-    </div>
-
-    <div class="energy-row">
-      <div>⚡ <span id="energy">100/120</span></div>
-      <button id="openBoost" class="boost-btn">🔥 Boost</button>
+<!-- ================= EARN SECTION ================= -->
+<div id="earnSection">
+  <div class="coin-wrapper">
+    <div class="coin-circle">
+      <button id="tapBtn" class="tap-button">
+        <img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/taplogo.png" class="main-coin">
+      </button>
     </div>
   </div>
 
+  <div class="energy-row">
+    <div>⚡ <span id="energy">100/120</span></div>
+    <button id="openBoost" class="boost-btn">🔥 Boost</button>
+  </div>
+
+  <!-- ✅ YAHAN PASTE KARNA HAI -->
+  <div class="reward-ad-card">
+    <div class="reward-ad-left">
+      <div class="reward-ad-icon">🎥</div>
+      <div>
+        <div class="reward-ad-title">Watch Ad</div>
+        <div class="reward-ad-subtitle">Earn 1000 coins instantly</div>
+      </div>
+    </div>
+    <button class="reward-ad-btn" id="watchAdBtn">Watch</button>
+  </div>
+
+  <div class="reward-ad-limit" id="rewardAdLimitText">
+    Remaining: 5/5 today
+  </div>
+
+</div>
+  
   <!-- ================= MINE SECTION ================= -->
 <div id="mineSection" style="display:none;">
 
@@ -323,7 +340,7 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="script.js?v=57"></script>
+<script src="script.js?v=58"></script>
 
 </body>
 </html>
