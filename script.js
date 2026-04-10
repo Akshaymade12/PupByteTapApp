@@ -899,6 +899,16 @@ window.claimSpecialTask = async function() {
     upgradeEndTime: null
   };
 
+const neuralSync = appState.neuralSync || {
+  level: 1,
+  upgrading: false,
+  currentBoost: 3,
+  nextBoost: 6,
+  nextCost: 2200,
+  upgradeTime: 35,
+  upgradeEndTime: null
+ };
+    
   const makeSpecialCard = (id, title, subtitle, icon, data, label, value, upgradeFnName) => {
     const isMax = data.level >= 20;
     const isUpgrading = data.upgrading;
