@@ -443,8 +443,6 @@ startRewardAdCooldownTimer();
     };
   }
 
-});
-
   /* ================= LEAGUE PROGRESS ================= */
   function updateLeagueProgress(coins) {
     const LEAGUES = [
