@@ -2744,37 +2744,53 @@ window.upgradeEthPairs = async function() {
 
 /* ================= NEURAL SYNC UPGRADE ================= */
 
-  window.upgradeNeuralSync = async function () {
-  const res = await fetch("/upgrade-neural-sync", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId, initData })
-  });
+  window.upgradeNeuralSync = async function() {
+  try {
+    const res = await fetch("/upgrade-neural-sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (data.success) {
-    appState.neuralSync = data.neuralSync;
-    renderSpecialSection();
-    loadUser();
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.neuralSync = data.neuralSync || null;
+      renderSpecialSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade neural sync error", e);
+    alert("Server error");
   }
 };
   
 /* ================= QUANTUM CORE UPGRADE ================= */
   
-  window.upgradeQuantumCore = async function () {
-  const res = await fetch("/upgrade-quantum-core", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId, initData })
-  });
+  window.upgradeQuantumCore = async function() {
+  try {
+    const res = await fetch("/upgrade-quantum-core", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (data.success) {
-    appState.quantumCore = data.quantumCore;
-    renderSpecialSection();
-    loadUser();
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.quantumCore = data.quantumCore || null;
+      renderSpecialSection();
+      loadUser();
+    } else {
+      alert(data.message || "Upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade quantum core error", e);
+    alert("Server error");
   }
 };
   
