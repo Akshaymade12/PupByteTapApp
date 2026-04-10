@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const energyEl = document.getElementById("energy");
   const profitEl = document.getElementById("profit");
 
+  const watchAdBtn = document.getElementById("watchAdBtn");
+const rewardAdLimitText = document.getElementById("rewardAdLimitText");
+
   const tapBtn = document.getElementById("tapBtn");
   const upgradeTapBtn = document.getElementById("upgradeTapBtn");
   const upgradeProfitBtn = document.getElementById("upgradeProfitBtn");
@@ -55,6 +58,14 @@ const copyRefBtn = document.getElementById("copyRefBtn");
 let appState = {
   btcPairs: null,
   ethPairs: null,
+
+  rewardedAds: {
+  reward: 1000,
+  watchedToday: 0,
+  dailyLimit: 5,
+  remaining: 5,
+  cooldownLeftMs: 0
+},
   
   futuresTrading: {
   level: 1,
@@ -286,7 +297,8 @@ complianceLicense: {
   upgradeEndTime: null
   }
 };
-
+  
+let rewardedAdInterval = null;
 let btcPairsTimerInterval = null;
   let ethPairsTimerInterval = null;
   let futuresTradingTimerInterval = null;
@@ -404,6 +416,9 @@ appState.overclockEngine = data.overclockEngine || null;
 appState.neuralSync = data.neuralSync || null;
 appState.quantumCore = data.quantumCore || null;
       
+appState.rewardedAds = data.rewardedAds || appState.rewardedAds;
+renderRewardAdUI();
+startRewardAdCooldownTimer();
       
       loadDailyCombo();
     } catch (e) {
@@ -1273,7 +1288,84 @@ function renderTeamSection() {
   startAmbassadorProgramCountdown();
   startVipPartnersCountdown();
 }
-      
+  
+/* ================= AD FORMAT UI ================= */
+  
+  function formatAdCooldown(ms) {
+  const totalSec = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+  
+function renderRewardAdUI() {
+  const ads = appState.rewardedAds || {
+    reward: 1000,
+    watchedToday: 0,
+    dailyLimit: 5,
+    remaining: 5,
+    cooldownLeftMs: 0
+  };
+
+  if (rewardAdLimitText) {
+    rewardAdLimitText.innerText = `Remaining: ${ads.remaining}/${ads.dailyLimit} today`;
+  }
+
+  if (!watchAdBtn) return;
+
+  if (ads.remaining <= 0) {
+    watchAdBtn.innerText = "Limit Reached";
+    watchAdBtn.disabled = true;
+    return;
+  }
+
+  if (ads.cooldownLeftMs > 0) {
+    watchAdBtn.innerText = formatAdCooldown(ads.cooldownLeftMs);
+    watchAdBtn.disabled = true;
+    return;
+  }
+
+  watchAdBtn.innerText = "Watch";
+  watchAdBtn.disabled = false;
+}
+
+  /* ================= ADS REWARD COUNTDOWN ================= */
+
+  function startRewardAdCooldownTimer() {
+  if (rewardedAdInterval) {
+    clearInterval(rewardedAdInterval);
+    rewardedAdInterval = null;
+  }
+
+  if (!appState.rewardedAds || appState.rewardedAds.cooldownLeftMs <= 0) {
+    renderRewardAdUI();
+    return;
+  }
+
+  renderRewardAdUI();
+
+  rewardedAdInterval = setInterval(() => {
+    if (!appState.rewardedAds) {
+      clearInterval(rewardedAdInterval);
+      rewardedAdInterval = null;
+      return;
+    }
+
+    appState.rewardedAds.cooldownLeftMs = Math.max(
+      0,
+      appState.rewardedAds.cooldownLeftMs - 1000
+    );
+
+    renderRewardAdUI();
+
+    if (appState.rewardedAds.cooldownLeftMs <= 0) {
+      clearInterval(rewardedAdInterval);
+      rewardedAdInterval = null;
+      renderRewardAdUI();
+    }
+  }, 1000);
+  }
+  
 /* ================= START MY TEAM COUNTDOWN ================= */
   
 function startMyTeamCountdown() {
@@ -3529,7 +3621,48 @@ if (navTasks) {
 
     setTimeout(() => plus.remove(), 800);
   }
+  
+/* ================= ADS WATCHING ================= */
+  
+  window.watchAdReward = async function() {
+  if (!watchAdBtn || watchAdBtn.disabled) return;
 
+  watchAdBtn.disabled = true;
+  watchAdBtn.innerText = "Loading...";
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    const res = await fetch("/watch-rewarded-ad", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
+
+      appState.rewardedAds = data.rewardedAds || appState.rewardedAds;
+      renderRewardAdUI();
+      startRewardAdCooldownTimer();
+
+      alert(`🎉 +${data.reward} coins`);
+      loadUser();
+    } else {
+      alert(data.message || "Ad reward failed");
+      renderRewardAdUI();
+      startRewardAdCooldownTimer();
+    }
+  } catch (e) {
+    console.log("watch ad reward error", e);
+    alert("Server error");
+    renderRewardAdUI();
+  }
+};
+  
   /* ================= VERIFY TASK ================= */
   window.verifyTask = async function () {
     try {
@@ -3554,4 +3687,13 @@ if (navTasks) {
       console.log("Verify task error", e);
     }
   };
+
+  // ================= WATCH AD BUTTON BIND =================
+setTimeout(() => {
+  const watchAdBtn = document.getElementById("watchAdBtn");
+  if (watchAdBtn) {
+    watchAdBtn.onclick = () => window.watchAdReward();
+  }
+}, 500);
+
 });
