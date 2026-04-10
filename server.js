@@ -230,6 +230,13 @@ btcPairs: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
+  },
+
+  quantumCore: {
+  level: { type: Number, default: 1 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
   }
 });
 
@@ -811,6 +818,51 @@ async function finalizeNeuralSyncUpgrade(user) {
     user.neuralSync.upgradeStartTime = null;
     user.neuralSync.upgradeEndTime = null;
 
+    await user.save();
+  }
+}
+
+/* ================= QUANTUM CORE ================= */
+
+function getQuantumCoreBoost(level) {
+  return Math.min(level * 3, 60);
+}
+
+function getQuantumMultiplier(level) {
+  return 1 + getQuantumCoreBoost(level || 1) / 100;
+}
+
+function applyQuantum(value, level) {
+  return Math.floor(value * getQuantumMultiplier(level));
+}
+
+function getQuantumCost(level) {
+  return 3000 * Math.pow(4, level - 1);
+}
+
+function getQuantumUpgradeTime(level) {
+  return 40 * level;
+}
+
+async function finalizeQuantumUpgrade(user) {
+  if (!user.quantumCore) {
+    user.quantumCore = {
+      level: 1,
+      upgrading: false
+    };
+  }
+
+  if (
+    user.quantumCore.upgrading &&
+    user.quantumCore.upgradeEndTime &&
+    new Date(user.quantumCore.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.quantumCore.level < 20) {
+      user.quantumCore.level++;
+    }
+
+    user.quantumCore.upgrading = false;
+    user.quantumCore.upgradeEndTime = null;
     await user.save();
   }
 }
@@ -2282,6 +2334,7 @@ app.post("/load", async (req, res) => {
     await finalizePowerSurgeUpgrade(user);
     await finalizeOverclockEngineUpgrade(user);
     await finalizeNeuralSyncUpgrade(user);
+    await finalizeQuantumUpgrade(user);
 
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
@@ -2323,7 +2376,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
     user.auditProtection?.level || 1,
     user.courtSettlement?.level || 1
   ) +
-  getOverclockExtraProfit(user.profitPerHour, user.overclockEngine?.level || 1),
+  getOverclockExtraProfit(user.profitPerHour, user.overclockEngine?.level || 1) +
+  getQuantumMultiplier(user.quantumCore?.level || 1),
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
       league: user.league,
@@ -2757,7 +2811,27 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       ? 0
       : getNeuralSyncUpgradeTime(user.neuralSync?.level || 1),
   upgradeEndTime: user.neuralSync?.upgradeEndTime || null
-    }
+    },
+/* ================= NEURAL SYNCE ================= */
+      quantumCore: {
+  level: user.quantumCore?.level || 1,
+  upgrading: user.quantumCore?.upgrading || false,
+  currentBoost: getQuantumCoreBoost(user.quantumCore?.level || 1),
+  multiplier: getQuantumMultiplier(user.quantumCore?.level || 1),
+  nextBoost:
+    (user.quantumCore?.level || 1) >= 20
+      ? getQuantumCoreBoost(user.quantumCore?.level || 1)
+      : getQuantumCoreBoost((user.quantumCore?.level || 1) + 1),
+  nextCost:
+    (user.quantumCore?.level || 1) >= 20
+      ? 0
+      : getQuantumCost(user.quantumCore?.level || 1),
+  upgradeTime:
+    (user.quantumCore?.level || 1) >= 20
+      ? 0
+      : getQuantumUpgradeTime(user.quantumCore?.level || 1),
+  upgradeEndTime: user.quantumCore?.upgradeEndTime || null
+      }
     });
   } catch (e) {
     console.log("/load error", e);
@@ -2788,7 +2862,8 @@ const baseTapPower = user.tapPower + turboBonus;
 const baseTap = getOverclockTapPower(baseTapPower, user.overclockEngine?.level || 1);
 const finalTapPower = applyNeuralBoost(baseTap, user.neuralSync?.level || 1);
 
-user.coins += finalTapPower;
+const quantumTap = applyQuantum(finalTapPower, user.quantumCore?.level || 1);
+user.coins += quantumTap;
 user.energy -= user.tapPower;
     user.lastActive = new Date();
     user.league = getLeague(user.coins);
@@ -2800,13 +2875,13 @@ user.energy -= user.tapPower;
   coins: user.coins,
   energy: user.energy,
   maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
-tapPower: (() => {
-  const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
-  const turboBonus = applyNeuralBoost(turboBase, user.neuralSync?.level || 1);
-  const baseTapPower = user.tapPower + turboBonus;
-  const baseTap = getOverclockTapPower(baseTapPower, user.overclockEngine?.level || 1);
-  return applyNeuralBoost(baseTap, user.neuralSync?.level || 1);
-})(),
+tapPower: applyQuantum(
+  getOverclockTapPower(
+    user.tapPower + getTurboTapBonus(user.turboCharger?.level || 1),
+    user.overclockEngine?.level || 1
+  ),
+  user.quantumCore?.level || 1
+),
   profitPerHour: user.profitPerHour,
   league: user.league
 });
@@ -3749,6 +3824,51 @@ app.post("/upgrade-neural-sync", async (req, res) => {
       }
     });
   } catch (e) {
+    res.json({ success: false });
+  }
+});
+
+/* ================= QUANTUM CORE UPGRADE ================= */
+
+app.post("/upgrade-quantum-core", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+    const user = await getValidUser(String(telegramId), initData);
+
+    await finalizeQuantumUpgrade(user);
+
+    const level = user.quantumCore.level;
+
+    if (level >= 20) return res.json({ success: false });
+
+    const cost = getQuantumCost(level);
+    const time = getQuantumUpgradeTime(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.quantumCore.upgrading = true;
+    user.quantumCore.upgradeEndTime = new Date(Date.now() + time * 1000);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      coins: user.coins,
+      quantumCore: {
+        level,
+        upgrading: true,
+        currentBoost: getQuantumCoreBoost(level),
+        multiplier: getQuantumMultiplier(level),
+        nextBoost: getQuantumCoreBoost(level + 1),
+        nextCost: getQuantumCost(level),
+        upgradeTime: time,
+        upgradeEndTime: user.quantumCore.upgradeEndTime
+      }
+    });
+  } catch {
     res.json({ success: false });
   }
 });
