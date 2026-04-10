@@ -263,6 +263,16 @@ complianceLicense: {
   nextCost: 2000,
   upgradeTime: 35,
   upgradeEndTime: null
+  },
+
+  neuralSync: {
+  level: 1,
+  upgrading: false,
+  currentBoost: 3,
+  nextBoost: 6,
+  nextCost: 2200,
+  upgradeTime: 35,
+  upgradeEndTime: null
   }
 };
 
@@ -380,6 +390,7 @@ appState.turboCharger = data.turboCharger || null;
 appState.energyCore = data.energyCore || null;
 appState.powerSurge = data.powerSurge || null;
 appState.overclockEngine = data.overclockEngine || null;
+appState.neuralSync = data.neuralSync || null;
       
       
       loadDailyCombo();
@@ -991,6 +1002,17 @@ window.claimSpecialTask = async function() {
         `+${overclock.currentTapBoost}%`,
         "upgradeOverclockEngine"
       )}
+
+      ${makeSpecialCard(
+  "neuralSync",
+  "Neural Sync",
+  "Boost all special effects",
+  "models/neuralsync.png",
+  neuralSync,
+  "Boost",
+  `+${neuralSync.currentBoost}%`,
+  "upgradeNeuralSync"
+)}
     </div>
   `;
 
@@ -998,6 +1020,7 @@ window.claimSpecialTask = async function() {
   startEnergyCoreCountdown();
   startPowerSurgeCountdown();
   startOverclockEngineCountdown();
+  startNeuralSyncCountdown();
   }
  
 /* ================= Team Section ================= */
@@ -1685,6 +1708,34 @@ function startMyTeamCountdown() {
     }
   }, 1000);
   }
+
+/* ================= NEURAL SYNC COUNTDOWN ================= */
+
+  let neuralSyncTimerInterval = null;
+
+function startNeuralSyncCountdown() {
+  if (neuralSyncTimerInterval) clearInterval(neuralSyncTimerInterval);
+
+  if (!appState.neuralSync?.upgrading) return;
+
+  neuralSyncTimerInterval = setInterval(() => {
+    const el = document.getElementById("neuralSyncCountdown");
+
+    if (!el) return;
+
+    const sec = Math.max(
+      0,
+      Math.floor((new Date(appState.neuralSync.upgradeEndTime).getTime() - Date.now()) / 1000)
+    );
+
+    el.innerText = formatCountdown(sec);
+
+    if (sec <= 0) {
+      clearInterval(neuralSyncTimerInterval);
+      loadUser().then(() => switchMineTab("special"));
+    }
+  }, 1000);
+}
   
 /* ================= MARKETING COUNTDOWN ================= */
   
@@ -2618,6 +2669,24 @@ window.upgradeEthPairs = async function() {
     }
   } catch (e) {
     console.log("upgrade overclock engine error", e);
+  }
+};
+
+/* ================= NEURAL SYNC UPGRADE ================= */
+
+  window.upgradeNeuralSync = async function () {
+  const res = await fetch("/upgrade-neural-sync", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId, initData })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    appState.neuralSync = data.neuralSync;
+    renderSpecialSection();
+    loadUser();
   }
 };
   
