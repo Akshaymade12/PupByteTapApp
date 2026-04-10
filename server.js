@@ -70,7 +70,10 @@ rewardClaimed: { type: Boolean, default: false },
 streakDay: { type: Number, default: 0 },
 lastClaim: { type: Date, default: null },
 totalClaims: { type: Number, default: 0 },
-
+rewardAdsWatched: { type: Number, default: 0 },
+lastRewardAdAt: { type: Date, default: null },
+rewardAdDate: { type: String, default: "" },
+  
 btcPairs: {
   level: { type: Number, default: 1 },
   upgrading: { type: Boolean, default: false },
@@ -2264,6 +2267,41 @@ async function finalizeCourtSettlementUpgrade(user) {
   }
 }
 
+/* ================= REWARDED ADS ================= */
+
+const REWARDED_AD_COINS = 1000;
+const REWARDED_AD_DAILY_LIMIT = 5;
+const REWARDED_AD_COOLDOWN_MS = 2 * 60 * 1000;
+
+function getTodayKey() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function normalizeRewardAdState(user) {
+  const today = getTodayKey();
+
+  if (user.rewardAdDate !== today) {
+    user.rewardAdDate = today;
+    user.rewardAdsWatched = 0;
+  }
+}
+
+function getRewardAdsRemaining(user) {
+  normalizeRewardAdState(user);
+  return Math.max(0, REWARDED_AD_DAILY_LIMIT - (user.rewardAdsWatched || 0));
+}
+
+function getRewardAdCooldownLeft(user) {
+  if (!user.lastRewardAdAt) return 0;
+
+  const diff = Date.now() - new Date(user.lastRewardAdAt).getTime();
+  return Math.max(0, REWARDED_AD_COOLDOWN_MS - diff);
+}
+
 /* ================= ENERGY ================= */
 
 function rechargeEnergy(user) {
@@ -2384,6 +2422,13 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       referrals: user.referrals,
       streak: user.streakDay,
       totalClaims: user.totalClaims,
+      rewardedAds: {
+  reward: REWARDED_AD_COINS,
+  watchedToday: user.rewardAdsWatched || 0,
+  dailyLimit: REWARDED_AD_DAILY_LIMIT,
+  remaining: getRewardAdsRemaining(user),
+  cooldownLeftMs: getRewardAdCooldownLeft(user)
+},
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
       nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
 /* ================= BTC PAIRS ================= */
@@ -3899,6 +3944,60 @@ app.post("/upgrade-quantum-core", async (req, res) => {
   } catch (e) {
     console.log("/upgrade-quantum-core error", e);
     res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= WATCH REWARDED AD ================= */
+
+app.post("/watch-rewarded-ad", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeRewardAdState(user);
+
+    if ((user.rewardAdsWatched || 0) >= REWARDED_AD_DAILY_LIMIT) {
+      return res.json({
+        success: false,
+        message: "Daily ad limit reached"
+      });
+    }
+
+    const cooldownLeftMs = getRewardAdCooldownLeft(user);
+    if (cooldownLeftMs > 0) {
+      return res.json({
+        success: false,
+        message: `Wait ${Math.ceil(cooldownLeftMs / 1000)} sec`
+      });
+    }
+
+    user.coins += REWARDED_AD_COINS;
+    user.rewardAdsWatched = (user.rewardAdsWatched || 0) + 1;
+    user.lastRewardAdAt = new Date();
+    user.lastActive = new Date();
+    user.league = getLeague(user.coins);
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      reward: REWARDED_AD_COINS,
+      coins: user.coins,
+      rewardedAds: {
+        reward: REWARDED_AD_COINS,
+        watchedToday: user.rewardAdsWatched,
+        dailyLimit: REWARDED_AD_DAILY_LIMIT,
+        remaining: getRewardAdsRemaining(user),
+        cooldownLeftMs: getRewardAdCooldownLeft(user)
+      }
+    });
+  } catch (e) {
+    console.log("/watch-rewarded-ad error", e);
+    return res.json({ success: false, message: "Server error" });
   }
 });
 
