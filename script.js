@@ -273,6 +273,17 @@ complianceLicense: {
   nextCost: 2200,
   upgradeTime: 35,
   upgradeEndTime: null
+  },
+
+  quantumCore: {
+  level: 1,
+  upgrading: false,
+  currentBoost: 3,
+  multiplier: 1.03,
+  nextBoost: 6,
+  nextCost: 3000,
+  upgradeTime: 40,
+  upgradeEndTime: null
   }
 };
 
@@ -391,6 +402,7 @@ appState.energyCore = data.energyCore || null;
 appState.powerSurge = data.powerSurge || null;
 appState.overclockEngine = data.overclockEngine || null;
 appState.neuralSync = data.neuralSync || null;
+appState.quantumCore = data.quantumCore || null;
       
       
       loadDailyCombo();
@@ -908,6 +920,17 @@ const neuralSync = appState.neuralSync || {
   upgradeTime: 35,
   upgradeEndTime: null
  };
+
+const quantumCore = appState.quantumCore || {
+  level: 1,
+  upgrading: false,
+  currentBoost: 3,
+  multiplier: 1.03,
+  nextBoost: 6,
+  nextCost: 3000,
+  upgradeTime: 40,
+  upgradeEndTime: null
+};
     
   const makeSpecialCard = (id, title, subtitle, icon, data, label, value, upgradeFnName) => {
     const isMax = data.level >= 20;
@@ -1023,6 +1046,17 @@ const neuralSync = appState.neuralSync || {
   `+${neuralSync.currentBoost}%`,
   "upgradeNeuralSync"
 )}
+
+${makeSpecialCard(
+  "quantumCore",
+  "Quantum Core",
+  "Multiply all income",
+  "models/quantumcore.png",
+  quantumCore,
+  "Multiplier",
+  `x${quantumCore.multiplier}`,
+  "upgradeQuantumCore"
+)}
     </div>
   `;
 
@@ -1031,6 +1065,7 @@ const neuralSync = appState.neuralSync || {
   startPowerSurgeCountdown();
   startOverclockEngineCountdown();
   startNeuralSyncCountdown();
+  startQuantumCountdown();
   }
  
 /* ================= Team Section ================= */
@@ -1742,6 +1777,31 @@ function startNeuralSyncCountdown() {
 
     if (sec <= 0) {
       clearInterval(neuralSyncTimerInterval);
+      loadUser().then(() => switchMineTab("special"));
+    }
+  }, 1000);
+}
+
+/* ================= QUANTUM CORE COUNTDOWN ================= */
+
+  let quantumTimer = null;
+
+function startQuantumCountdown() {
+  if (quantumTimer) clearInterval(quantumTimer);
+
+  if (!appState.quantumCore?.upgrading) return;
+
+  quantumTimer = setInterval(() => {
+    const el = document.getElementById("quantumCoreCountdown");
+
+    const sec = Math.floor(
+      (new Date(appState.quantumCore.upgradeEndTime) - Date.now()) / 1000
+    );
+
+    if (el) el.innerText = formatCountdown(sec);
+
+    if (sec <= 0) {
+      clearInterval(quantumTimer);
       loadUser().then(() => switchMineTab("special"));
     }
   }, 1000);
@@ -2695,6 +2755,24 @@ window.upgradeEthPairs = async function() {
 
   if (data.success) {
     appState.neuralSync = data.neuralSync;
+    renderSpecialSection();
+    loadUser();
+  }
+};
+  
+/* ================= QUANTUM CORE UPGRADE ================= */
+  
+  window.upgradeQuantumCore = async function () {
+  const res = await fetch("/upgrade-quantum-core", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId, initData })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    appState.quantumCore = data.quantumCore;
     renderSpecialSection();
     loadUser();
   }
