@@ -2344,7 +2344,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       coins: user.coins,
       energy: user.energy,
       maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
-      profitPerHour:
+      profitPerHour: Math.floor((
   user.profitPerHour +
   getMarketingExtraProfit(user.profitPerHour, user.marketing?.level || 1) +
   getCommunityManagerExtraProfit(user.referrals || 0, user.communityManager?.level || 1) +
@@ -2376,8 +2376,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
     user.auditProtection?.level || 1,
     user.courtSettlement?.level || 1
   ) +
-  getOverclockExtraProfit(user.profitPerHour, user.overclockEngine?.level || 1) +
-  getQuantumMultiplier(user.quantumCore?.level || 1),
+  getOverclockExtraProfit(user.profitPerHour, user.overclockEngine?.level || 1)
+) * getQuantumMultiplier(user.quantumCore?.level || 1)),
       tapLevel: user.tapLevel,
       tapPower: user.tapPower,
       league: user.league,
@@ -2921,6 +2921,8 @@ await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
 await finalizePowerSurgeUpgrade(user);
 await finalizeOverclockEngineUpgrade(user);
+await finalizeNeuralSyncUpgrade(user);
+await finalizeQuantumUpgrade(user);
     
     const cost = Math.floor(40 * Math.pow(1.7, user.tapLevel));
 
@@ -2981,6 +2983,8 @@ await finalizeTurboChargerUpgrade(user);
 await finalizeEnergyCoreUpgrade(user);
 await finalizePowerSurgeUpgrade(user);
 await finalizeOverclockEngineUpgrade(user);
+await finalizeNeuralSyncUpgrade(user);
+await finalizeQuantumUpgrade(user);
     
     const cost = Math.floor(60 * Math.pow(1.8, user.upgradeLevel));
 
@@ -3836,21 +3840,41 @@ app.post("/upgrade-quantum-core", async (req, res) => {
     const { telegramId, initData } = req.body;
     const user = await getValidUser(String(telegramId), initData);
 
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    if (!user.quantumCore) {
+      user.quantumCore = {
+        level: 1,
+        upgrading: false,
+        upgradeStartTime: null,
+        upgradeEndTime: null
+      };
+    }
+
     await finalizeQuantumUpgrade(user);
 
     const level = user.quantumCore.level;
 
     if (level >= 20) {
-  return res.json({ success: false, message: "Max level reached" });
-    
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    if (user.quantumCore.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
 
     const cost = getQuantumCost(level);
     const time = getQuantumUpgradeTime(level);
 
-    if (user.coins < cost) return res.json({ success: false, message: "Not enough coins" });
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
 
     user.coins -= cost;
     user.quantumCore.upgrading = true;
+    user.quantumCore.upgradeStartTime = new Date();
     user.quantumCore.upgradeEndTime = new Date(Date.now() + time * 1000);
 
     await user.save();
@@ -3859,19 +3883,23 @@ app.post("/upgrade-quantum-core", async (req, res) => {
       success: true,
       coins: user.coins,
       quantumCore: {
-        level,
+        level: user.quantumCore.level,
         upgrading: true,
-        currentBoost: getQuantumCoreBoost(level),
-        multiplier: getQuantumMultiplier(level),
-        nextBoost: getQuantumCoreBoost(level + 1),
-        nextCost: getQuantumCost(level),
+        currentBoost: getQuantumCoreBoost(user.quantumCore.level),
+        multiplier: getQuantumMultiplier(user.quantumCore.level),
+        nextBoost:
+          user.quantumCore.level >= 20
+            ? getQuantumCoreBoost(user.quantumCore.level)
+            : getQuantumCoreBoost(user.quantumCore.level + 1),
+        nextCost: getQuantumCost(user.quantumCore.level),
         upgradeTime: time,
         upgradeEndTime: user.quantumCore.upgradeEndTime
       }
     });
   } catch (e) {
-  console.log("/upgrade-quantum-core error", e);
-  res.json({ success: false, message: "Server error" });
+    console.log("/upgrade-quantum-core error", e);
+    res.json({ success: false, message: "Server error" });
+  }
 });
 
 /* ================= DAILY REWARD ================= */
