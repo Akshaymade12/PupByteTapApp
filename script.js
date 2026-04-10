@@ -48,6 +48,10 @@ const rewardAdLimitText = document.getElementById("rewardAdLimitText");
   const accountReferrals = document.getElementById("accountReferrals");
 const accountRefLink = document.getElementById("accountRefLink");
 const copyRefBtn = document.getElementById("copyRefBtn");
+
+  const offlinePopup = document.getElementById("offlinePopup");
+const offlineCoinsText = document.getElementById("offlineCoinsText");
+const closeOfflinePopup = document.getElementById("closeOfflinePopup");
   
   const dailyPopup = document.getElementById("dailyRewardPopup");
   const dailyGrid = document.getElementById("dailyGrid");
@@ -340,10 +344,15 @@ let btcPairsTimerInterval = null;
 
       const data = await res.json();
 
-      if (!data || data.success === false) {
-        console.log("User load failed ❌", data);
-        return;
-      }
+if (!data || data.success === false) {
+  console.log("User load failed ❌", data);
+  return;
+}
+
+if (offlinePopup && offlineCoinsText && (data.offlineCoins || 0) > 0) {
+  offlineCoinsText.innerText = `+${Math.floor(data.offlineCoins)} coins`;
+  offlinePopup.style.display = "flex";
+}
 
       coinsEl.innerText = Math.floor(data.coins || 0);
       energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || appState.energyCore?.currentMax || 120}`;
@@ -427,6 +436,14 @@ startRewardAdCooldownTimer();
   }
 
   loadUser();
+
+  if (closeOfflinePopup) {
+    closeOfflinePopup.onclick = () => {
+      if (offlinePopup) offlinePopup.style.display = "none";
+    };
+  }
+
+});
 
   /* ================= LEAGUE PROGRESS ================= */
   function updateLeagueProgress(coins) {
