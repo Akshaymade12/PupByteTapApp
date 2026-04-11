@@ -3017,14 +3017,6 @@ app.post("/tap", async (req, res) => {
     }
 
     await applyOfflineMining(user);
-
-    if (user.energy < user.tapPower) {
-      return res.json({
-        success: false,
-        message: "Not enough energy"
-      });
-    }
-
     normalizeBoostX2(user);
 
     const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
@@ -3050,8 +3042,15 @@ app.post("/tap", async (req, res) => {
       user.quantumCore?.level || 1
     );
 
+    if (user.energy < finalTapPower) {
+      return res.json({
+        success: false,
+        message: "Not enough energy"
+      });
+    }
+
     user.coins += finalTapPower;
-    user.energy -= user.tapPower;
+    user.energy -= finalTapPower;
     user.lastActive = new Date();
     user.league = getLeague(user.coins);
 
