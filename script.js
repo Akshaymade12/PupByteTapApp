@@ -1349,7 +1349,29 @@ function renderRewardAdUI() {
     cooldownLeftMs: 0
   };
 
-  /* ================= BOOST SECTION UI ================= */
+  if (rewardAdLimitText) {
+    rewardAdLimitText.innerText = `Remaining: ${ads.remaining}/${ads.dailyLimit} today`;
+  }
+
+  if (!watchAdBtn) return;
+
+  if (ads.remaining <= 0) {
+    watchAdBtn.innerText = "Limit Reached";
+    watchAdBtn.disabled = true;
+    return;
+  }
+
+  if (ads.cooldownLeftMs > 0) {
+    watchAdBtn.innerText = formatAdCooldown(ads.cooldownLeftMs);
+    watchAdBtn.disabled = true;
+    return;
+  }
+
+  watchAdBtn.innerText = "Watch";
+  watchAdBtn.disabled = false;
+}
+
+/* ================= BOOST SECTION UI ================= */
 
 function formatBoostTimeLeft(ms) {
   const totalSec = Math.max(0, Math.floor(ms / 1000));
@@ -1369,45 +1391,6 @@ function renderBoostSectionUI() {
     endTime: null
   };
 
-  let boostX2TimerInterval = null;
-
-function startBoostX2Timer() {
-  if (boostX2TimerInterval) {
-    clearInterval(boostX2TimerInterval);
-    boostX2TimerInterval = null;
-  }
-
-  if (!appState.boostX2?.active || !appState.boostX2?.endTime) {
-    renderBoostSectionUI();
-    return;
-  }
-
-  renderBoostSectionUI();
-
-  boostX2TimerInterval = setInterval(() => {
-    if (!appState.boostX2?.active || !appState.boostX2?.endTime) {
-      clearInterval(boostX2TimerInterval);
-      boostX2TimerInterval = null;
-      renderBoostSectionUI();
-      return;
-    }
-
-    const leftMs = Math.max(0, new Date(appState.boostX2.endTime).getTime() - Date.now());
-
-    if (leftMs <= 0) {
-      appState.boostX2.active = false;
-      appState.boostX2.endTime = null;
-      clearInterval(boostX2TimerInterval);
-      boostX2TimerInterval = null;
-      renderBoostSectionUI();
-      loadUser();
-      return;
-    }
-
-    renderBoostSectionUI();
-  }, 1000);
-}
-  
   if (boostX2CostText) {
     boostX2CostText.innerText = x2.priceGems || 400;
   }
@@ -1537,64 +1520,46 @@ function startBoostX2Timer() {
   }
 }
   
-  if (rewardAdLimitText) {
-    rewardAdLimitText.innerText = `Remaining: ${ads.remaining}/${ads.dailyLimit} today`;
+/* ================= BOOST X2 TIMER  ================= */
+
+let boostX2TimerInterval = null;
+
+function startBoostX2Timer() {
+  if (boostX2TimerInterval) {
+    clearInterval(boostX2TimerInterval);
+    boostX2TimerInterval = null;
   }
 
-  if (!watchAdBtn) return;
-
-  if (ads.remaining <= 0) {
-    watchAdBtn.innerText = "Limit Reached";
-    watchAdBtn.disabled = true;
+  if (!appState.boostX2?.active || !appState.boostX2?.endTime) {
+    renderBoostSectionUI();
     return;
   }
 
-  if (ads.cooldownLeftMs > 0) {
-    watchAdBtn.innerText = formatAdCooldown(ads.cooldownLeftMs);
-    watchAdBtn.disabled = true;
-    return;
-  }
+  renderBoostSectionUI();
 
-  watchAdBtn.innerText = "Watch";
-  watchAdBtn.disabled = false;
-}
-
-  /* ================= ADS REWARD COUNTDOWN ================= */
-
-  function startRewardAdCooldownTimer() {
-  if (rewardedAdInterval) {
-    clearInterval(rewardedAdInterval);
-    rewardedAdInterval = null;
-  }
-
-  if (!appState.rewardedAds || appState.rewardedAds.cooldownLeftMs <= 0) {
-    renderRewardAdUI();
-    return;
-  }
-
-  renderRewardAdUI();
-
-  rewardedAdInterval = setInterval(() => {
-    if (!appState.rewardedAds) {
-      clearInterval(rewardedAdInterval);
-      rewardedAdInterval = null;
+  boostX2TimerInterval = setInterval(() => {
+    if (!appState.boostX2?.active || !appState.boostX2?.endTime) {
+      clearInterval(boostX2TimerInterval);
+      boostX2TimerInterval = null;
+      renderBoostSectionUI();
       return;
     }
 
-    appState.rewardedAds.cooldownLeftMs = Math.max(
-      0,
-      appState.rewardedAds.cooldownLeftMs - 1000
-    );
+    const leftMs = Math.max(0, new Date(appState.boostX2.endTime).getTime() - Date.now());
 
-    renderRewardAdUI();
-
-    if (appState.rewardedAds.cooldownLeftMs <= 0) {
-      clearInterval(rewardedAdInterval);
-      rewardedAdInterval = null;
-      renderRewardAdUI();
+    if (leftMs <= 0) {
+      appState.boostX2.active = false;
+      appState.boostX2.endTime = null;
+      clearInterval(boostX2TimerInterval);
+      boostX2TimerInterval = null;
+      renderBoostSectionUI();
+      loadUser();
+      return;
     }
+
+    renderBoostSectionUI();
   }, 1000);
-  }
+}
   
 /* ================= START MY TEAM COUNTDOWN ================= */
   
@@ -3645,7 +3610,7 @@ if (tabName === "team") {
 if (mineTabMarket) mineTabMarket.onclick = () => switchMineTab("market");
 if (mineTabTeam) mineTabTeam.onclick = () => switchMineTab("team");
 if (mineTabLegal) mineTabLegal.onclick = () => switchMineTab("legal");
-if (tabSpecial) tabSpecial.onclick = () => switchTaskTab("special");
+if (mineTabSpecial) mineTabSpecial.onclick = () => switchMineTab("special");
 /* ================= BOOST BUTTON BINDINGS ================= */
 
 if (upgradeBoostX2Btn) {
@@ -3654,7 +3619,7 @@ if (upgradeBoostX2Btn) {
     activateBoostX2();
   };
 }
-
+  
 if (upgradeMultitapBtn) {
   upgradeMultitapBtn.onclick = () => {
     if (upgradeMultitapBtn.disabled) return;
@@ -3696,10 +3661,10 @@ async function loadDailyCombo() {
   const openBoostBtn = document.getElementById("openBoost");
   const backBtn = document.getElementById("backBtn");
 
-  if (openBoost) {
-  openBoost.onclick = () => {
-    earnSection.style.display = "none";
-    boostSection.style.display = "block";
+if (openBoostBtn) {
+  openBoostBtn.onclick = () => {
+    if (earnSection) earnSection.style.display = "none";
+    if (boostSection) boostSection.style.display = "block";
     renderBoostSectionUI();
     startBoostX2Timer();
   };
