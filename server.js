@@ -261,6 +261,14 @@ quantumCore: {
     priceGems: { type: Number, default: 400 },
     durationMinutes: { type: Number, default: 30 },
     endTime: { type: Date, default: null }
+  },
+
+  autoTapBot: {
+    active: { type: Boolean, default: false },
+    priceCoins: { type: Number, default: 200000 },
+    durationHours: { type: Number, default: 12 },
+    endTime: { type: Date, default: null },
+    lastClaimAt: { type: Date, default: null }
   }
 });
 
@@ -2467,6 +2475,40 @@ function getFreeEnergyDailyState(user) {
   };
 }
 
+/* ================= AUTO BOT TAP  ================= */
+
+function normalizeAutoTapBot(user) {
+  if (!user.autoTapBot) {
+    user.autoTapBot = {
+      active: false,
+      priceCoins: 200000,
+      durationHours: 12,
+      endTime: null,
+      lastClaimAt: null
+    };
+  }
+
+  if (
+    user.autoTapBot.active &&
+    user.autoTapBot.endTime &&
+    new Date(user.autoTapBot.endTime).getTime() <= Date.now()
+  ) {
+    user.autoTapBot.active = false;
+    user.autoTapBot.endTime = null;
+  }
+}
+
+function getAutoTapBotState(user) {
+  normalizeAutoTapBot(user);
+
+  return {
+    active: !!user.autoTapBot?.active,
+    priceCoins: user.autoTapBot?.priceCoins || 200000,
+    durationHours: user.autoTapBot?.durationHours || 12,
+    endTime: user.autoTapBot?.endTime || null
+  };
+}
+
 /* ================= OFFLINE ================= */
 async function applyOfflineMining(user) {
   rechargeEnergy(user);
@@ -2493,6 +2535,68 @@ async function applyOfflineMining(user) {
   return offlineCoins;
 }
 
+/* ================= OFFLINE AUTO TAP ================= */
+
+async function applyAutoTapBotIncome(user) {
+  normalizeAutoTapBot(user);
+
+  if (
+    !user.autoTapBot?.active ||
+    !user.autoTapBot?.endTime ||
+    !user.autoTapBot?.lastClaimAt
+  ) {
+    return 0;
+  }
+
+  const now = Date.now();
+  const endTime = new Date(user.autoTapBot.endTime).getTime();
+  const lastClaimAt = new Date(user.autoTapBot.lastClaimAt).getTime();
+
+  const effectiveNow = Math.min(now, endTime);
+  const secondsPassed = Math.floor((effectiveNow - lastClaimAt) / 1000);
+
+  if (secondsPassed <= 0) {
+    return 0;
+  }
+
+  const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
+  const turboBonus = applyNeuralBoost(
+    turboBase,
+    user.neuralSync?.level || 1
+  );
+
+  let autoTapPower = applyNeuralBoost(
+    getOverclockTapPower(
+      user.tapPower + turboBonus,
+      user.overclockEngine?.level || 1
+    ),
+    user.neuralSync?.level || 1
+  );
+
+  autoTapPower = applyQuantum(
+    autoTapPower,
+    user.quantumCore?.level || 1
+  );
+
+  const coinsEarned = secondsPassed * autoTapPower;
+
+  if (coinsEarned > 0) {
+    user.coins += coinsEarned;
+    user.league = getLeague(user.coins);
+  }
+
+  user.autoTapBot.lastClaimAt = new Date(effectiveNow);
+
+  if (effectiveNow >= endTime) {
+    user.autoTapBot.active = false;
+    user.autoTapBot.endTime = null;
+  }
+
+  await user.save();
+
+  return coinsEarned;
+}
+
 /* ================= LOAD ================= */
 app.post("/load", async (req, res) => {
   try {
@@ -2502,6 +2606,7 @@ app.post("/load", async (req, res) => {
     if (!user) return res.json({ success: false, message: "Invalid user" });
 
     const offlineCoins = await applyOfflineMining(user);
+    const autoTapBotCoins = await applyAutoTapBotIncome(user);
     await finalizeBtcPairsUpgrade(user);
     await finalizeFuturesTradingUpgrade(user);
     await finalizeLiquidityPoolUpgrade(user);
@@ -2528,6 +2633,7 @@ app.post("/load", async (req, res) => {
     await finalizeQuantumUpgrade(user);
     normalizeBoostX2(user);
     normalizeFreeEnergyDaily(user);
+    normalizeAutoTapBot(user);
 
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
@@ -2587,6 +2693,8 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       boostX2: getBoostX2State(user),
       freeTapDaily: getFreeTapDailyState(user),
       freeEnergyDaily: getFreeEnergyDailyState(user),
+      autoTapBot: getAutoTapBotState(user),
+      autoTapBotCoins,
       offlineCoins,
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
       nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
@@ -3107,6 +3215,7 @@ app.post("/tap", async (req, res) => {
 
     await applyOfflineMining(user);
     normalizeBoostX2(user);
+    normalizeAutoTapBot(user);
 normalizeFreeTapDaily(user);
     
     const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
@@ -3360,6 +3469,49 @@ app.post("/claim-free-energy-daily", async (req, res) => {
     });
   } catch (e) {
     console.log("/claim-free-energy-daily error", e);
+    return res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= UPGRADE BTC PAIRS ================= */
+
+app.post("/activate-auto-tap-bot", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeAutoTapBot(user);
+
+    if (user.autoTapBot?.active) {
+      return res.json({ success: false, message: "Auto Tap Bot already active" });
+    }
+
+    const cost = user.autoTapBot?.priceCoins || 200000;
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.autoTapBot.active = true;
+    user.autoTapBot.priceCoins = 200000;
+    user.autoTapBot.durationHours = 12;
+    user.autoTapBot.lastClaimAt = new Date();
+    user.autoTapBot.endTime = new Date(Date.now() + 12 * 60 * 60 * 1000);
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      coins: user.coins,
+      autoTapBot: getAutoTapBotState(user)
+    });
+  } catch (e) {
+    console.log("/activate-auto-tap-bot error", e);
     return res.json({ success: false, message: "Server error" });
   }
 });
