@@ -3012,7 +3012,9 @@ app.post("/tap", async (req, res) => {
     const { telegramId, initData } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
-    if (!user) return res.json({ success: false, message: "Invalid user" });
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
 
     await applyOfflineMining(user);
 
@@ -3023,56 +3025,51 @@ app.post("/tap", async (req, res) => {
       });
     }
 
-normalizeBoostX2(user);
+    normalizeBoostX2(user);
 
-const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
-const turboBonus = applyNeuralBoost(turboBase, user.neuralSync?.level || 1);
+    const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
+    const turboBonus = applyNeuralBoost(
+      turboBase,
+      user.neuralSync?.level || 1
+    );
 
-let shownTapPower = applyNeuralBoost(
-  getOverclockTapPower(
-    user.tapPower + turboBonus,
-    user.overclockEngine?.level || 1
-  ),
-  user.neuralSync?.level || 1
-);
+    let finalTapPower = applyNeuralBoost(
+      getOverclockTapPower(
+        user.tapPower + turboBonus,
+        user.overclockEngine?.level || 1
+      ),
+      user.neuralSync?.level || 1
+    );
 
-if (isBoostX2Active(user)) {
-  shownTapPower *= (user.boostX2?.multiplier || 2);
-}
+    if (isBoostX2Active(user)) {
+      finalTapPower *= (user.boostX2?.multiplier || 2);
+    }
 
-shownTapPower = applyQuantum(shownTapPower, user.quantumCore?.level || 1);
+    finalTapPower = applyQuantum(
+      finalTapPower,
+      user.quantumCore?.level || 1
+    );
 
-if (isBoostX2Active(user)) {
-  finalTapPower = finalTapPower * (user.boostX2?.multiplier || 2);
-}
-
-const quantumTap = applyQuantum(finalTapPower, user.quantumCore?.level || 1);
-user.coins += quantumTap;
-user.energy -= user.tapPower;
+    user.coins += finalTapPower;
+    user.energy -= user.tapPower;
     user.lastActive = new Date();
     user.league = getLeague(user.coins);
 
     await user.save();
 
     return res.json({
-  success: true,
-  coins: user.coins,
-  energy: user.energy,
-  maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
-tapPower: applyQuantum(
-  getOverclockTapPower(
-    user.tapPower + getTurboTapBonus(user.turboCharger?.level || 1),
-    user.overclockEngine?.level || 1
-  ),
-  user.quantumCore?.level || 1
-),
-  profitPerHour: user.profitPerHour,
-  league: user.league,
-  boostX2: getBoostX2State(user)
-});
+      success: true,
+      coins: user.coins,
+      energy: user.energy,
+      maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
+      tapPower: finalTapPower,
+      profitPerHour: user.profitPerHour,
+      league: user.league,
+      boostX2: getBoostX2State(user)
+    });
   } catch (e) {
-    console.log("/tap error", e);
-    res.json({ success: false, message: "Server error" });
+    console.log("/tap error FULL =>", e);
+    return res.json({ success: false, message: "Server error" });
   }
 });
 
