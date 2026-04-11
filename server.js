@@ -2495,8 +2495,7 @@ app.post("/load", async (req, res) => {
     await finalizeNeuralSyncUpgrade(user);
     await finalizeQuantumUpgrade(user);
     normalizeBoostX2(user);
-freeTapDaily: getFreeTapDailyState(user),
-  
+
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
     
@@ -2553,6 +2552,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   cooldownLeftMs: getRewardAdCooldownLeft(user)
 },
       boostX2: getBoostX2State(user),
+      freeTapDaily: getFreeTapDailyState(user),
       offlineCoins,
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
       nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
