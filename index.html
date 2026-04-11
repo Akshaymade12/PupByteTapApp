@@ -296,28 +296,118 @@
 
   <!-- ================= BOOST SECTION ================= -->
   <div id="boostSection" style="display:none;">
-    <div class="boost-header">
-      <button id="backBtn">← Back</button>
-      <h2>🔥 Boots</h2>
-    </div>
+  <div class="boost-page-header">
+    <button id="backBtn" class="boost-back-btn">← Back</button>
+    <h2 class="boost-page-title">Boosts</h2>
+  </div>
 
-    <div class="boost-card">
-      <h3>Tap Level</h3>
-      <p>Increase coins per tap</p>
-      <button id="upgradeTapBtn" class="upgrade-btn">
-        Upgrade Tap (<span id="tapCost">100</span>)
-      </button>
-    </div>
+  <!-- DAILY BOOSTERS -->
+  <div class="boost-block">
+    <h3 class="boost-block-title">Your daily boosters:</h3>
 
-    <div class="boost-card">
-      <h3>Profit Level</h3>
-      <p>Increase hourly income</p>
-      <button id="upgradeProfitBtn" class="upgrade-btn">
-        Upgrade Profit (<span id="profitCost">150</span>)
-      </button>
+    <div class="boost-daily-grid">
+      <div class="boost-daily-card boost-daily-disabled">
+        <div class="boost-daily-icon">🔥</div>
+        <div class="boost-daily-info">
+          <div class="boost-daily-name">Free Tap Daily</div>
+          <div class="boost-daily-count">Coming Later</div>
+        </div>
+      </div>
+
+      <div class="boost-daily-card boost-daily-disabled">
+        <div class="boost-daily-icon">⚡</div>
+        <div class="boost-daily-info">
+          <div class="boost-daily-name">Free Energy Daily</div>
+          <div class="boost-daily-count">Coming Later</div>
+        </div>
+      </div>
+
+      <div class="boost-daily-card boost-daily-disabled">
+        <div class="boost-daily-icon">🤖</div>
+        <div class="boost-daily-info">
+          <div class="boost-daily-name">Auto Tap Bot Free Daily</div>
+          <div class="boost-daily-count">Coming Later</div>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- MAIN BOOSTERS -->
+  <div class="boost-block">
+    <h3 class="boost-block-title">Boosters:</h3>
+
+    <div class="boost-list">
+
+      <!-- BOOST X2 -->
+      <div class="boost-item-card">
+        <div class="boost-item-left">
+          <div class="boost-item-icon">🚀</div>
+          <div class="boost-item-text">
+            <div class="boost-item-name">Boost X2</div>
+            <div class="boost-item-meta">
+              <span class="boost-currency boost-gem">💎</span>
+              <span id="boostX2CostText">400</span>
+            </div>
+          </div>
+        </div>
+        <button id="upgradeBoostX2Btn" class="boost-arrow-btn">›</button>
+      </div>
+
+      <!-- MULTITAP -->
+      <div class="boost-item-card">
+        <div class="boost-item-left">
+          <div class="boost-item-icon">✋</div>
+          <div class="boost-item-text">
+            <div class="boost-item-name">Multitap</div>
+            <div class="boost-item-meta">
+              <span class="boost-currency">🪙</span>
+              <span id="multitapCostText">200</span>
+              <span class="boost-separator">|</span>
+              <span id="multitapLevelText">1 level</span>
+            </div>
+          </div>
+        </div>
+        <button id="upgradeMultitapBtn" class="boost-arrow-btn">›</button>
+      </div>
+
+      <!-- ENERGY LIMIT -->
+      <div class="boost-item-card">
+        <div class="boost-item-left">
+          <div class="boost-item-icon">🔋</div>
+          <div class="boost-item-text">
+            <div class="boost-item-name">Energy Limit</div>
+            <div class="boost-item-meta">
+              <span class="boost-currency">🪙</span>
+              <span id="energyLimitCostText">200</span>
+              <span class="boost-separator">|</span>
+              <span id="energyLimitLevelText">1 level</span>
+            </div>
+          </div>
+        </div>
+        <button id="upgradeEnergyLimitBtn" class="boost-arrow-btn">›</button>
+      </div>
+
+      <!-- RECHARGING SPEED -->
+      <div class="boost-item-card">
+        <div class="boost-item-left">
+          <div class="boost-item-icon">⚡</div>
+          <div class="boost-item-text">
+            <div class="boost-item-name">Recharging Speed</div>
+            <div class="boost-item-meta">
+              <span class="boost-currency">🪙</span>
+              <span id="rechargingSpeedCostText">2000</span>
+              <span class="boost-separator">|</span>
+              <span id="rechargingSpeedLevelText">1 level</span>
+            </div>
+          </div>
+        </div>
+        <button id="upgradeRechargingSpeedBtn" class="boost-arrow-btn">›</button>
+      </div>
+
+    </div>
+  </div>
+  </div>
+  
   <!-- ================= BOTTOM NAV ================= -->
   <div class="bottom-nav">
     <div id="navEarn" class="nav-item active">💰 Earn</div>
