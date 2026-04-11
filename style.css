@@ -154,6 +154,192 @@ button:active {
   text-align: center;
 }
 
+.boost-page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 18px;
+  padding: 8px 4px;
+}
+
+.boost-back-btn {
+  border: none;
+  outline: none;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.boost-page-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.boost-block {
+  margin-bottom: 28px;
+}
+
+.boost-block-title {
+  margin: 0 0 14px;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.boost-daily-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.boost-daily-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 108px;
+  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(48,38,83,0.95), rgba(31,24,58,0.98));
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 18px rgba(0,0,0,0.25);
+}
+
+.boost-daily-disabled {
+  opacity: 0.78;
+}
+
+.boost-daily-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  background: rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.boost-daily-info {
+  min-width: 0;
+}
+
+.boost-daily-name {
+  color: #fff;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.boost-daily-count {
+  color: rgba(255,255,255,0.72);
+  font-size: 15px;
+  margin-top: 6px;
+  font-weight: 700;
+}
+
+.boost-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.boost-item-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(48,38,83,0.96), rgba(29,23,54,0.98));
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 0 18px rgba(0,0,0,0.26);
+}
+
+.boost-item-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.boost-item-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  background: rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.boost-item-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.boost-item-name {
+  color: #fff;
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.boost-item-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  color: rgba(255,255,255,0.82);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.boost-currency {
+  color: #ffd86b;
+}
+
+.boost-gem {
+  color: #87f6ff;
+}
+
+.boost-separator {
+  color: rgba(255,255,255,0.4);
+}
+
+.boost-arrow-btn {
+  min-width: 46px;
+  height: 46px;
+  border: none;
+  outline: none;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 28px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.boost-arrow-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ================= TASKS ================= */
 .task-card {
   display: flex;
@@ -664,6 +850,68 @@ button:active {
     grid-template-columns: 1fr 1fr;
   }
 
+  .boost-page-title {
+    font-size: 22px;
+  }
+
+  .boost-block-title {
+    font-size: 18px;
+  }
+
+  .boost-daily-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .boost-daily-card {
+    min-height: 96px;
+    padding: 14px;
+    border-radius: 18px;
+    gap: 12px;
+  }
+
+  .boost-daily-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 26px;
+    border-radius: 14px;
+  }
+
+  .boost-daily-name {
+    font-size: 16px;
+  }
+
+  .boost-daily-count {
+    font-size: 13px;
+  }
+
+  .boost-item-card {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .boost-item-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 28px;
+    border-radius: 16px;
+  }
+
+  .boost-item-name {
+    font-size: 17px;
+  }
+
+  .boost-item-meta {
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .boost-arrow-btn {
+    min-width: 42px;
+    height: 42px;
+    font-size: 24px;
+  }
+  
   .coin-circle {
     width: 220px;
     height: 220px;
