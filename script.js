@@ -308,7 +308,7 @@ complianceLicense: {
   upgrading: false,
   currentBoost: 3,
   nextBoost: 6,
-  nextCost: 2200,
+  nextCost: 2500,
   upgradeTime: 35,
   upgradeEndTime: null
   },
@@ -470,6 +470,59 @@ loadDailyCombo();
     };
   }
 
+  /* ================= UPGRADE BOOST 2X ================= */
+
+  if (upgradeBoostX2Btn) {
+  upgradeBoostX2Btn.addEventListener("click", async () => {
+    try {
+      const res = await fetch("/activate-boost-x2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId, initData })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        coinsEl.innerText = Math.floor(data.coins || 0);
+        appState.boostX2 = data.boostX2 || appState.boostX2;
+        renderBoostSectionUI();
+        startBoostX2Timer();
+        loadUser();
+      } else {
+        alert(data.message || "Boost activation failed");
+      }
+    } catch (e) {
+      console.log("Boost X2 error", e);
+      alert("Server error");
+    }
+  });
+}
+
+if (upgradeMultitapBtn) {
+  upgradeMultitapBtn.addEventListener("click", () => {
+    if (typeof window.upgradeTurboCharger === "function") {
+      window.upgradeTurboCharger();
+    }
+  });
+}
+
+if (upgradeEnergyLimitBtn) {
+  upgradeEnergyLimitBtn.addEventListener("click", () => {
+    if (typeof window.upgradeEnergyCore === "function") {
+      window.upgradeEnergyCore();
+    }
+  });
+}
+
+if (upgradeRechargingSpeedBtn) {
+  upgradeRechargingSpeedBtn.addEventListener("click", () => {
+    if (typeof window.upgradePowerSurge === "function") {
+      window.upgradePowerSurge();
+    }
+  });
+}
+  
   /* ================= LEAGUE PROGRESS ================= */
   function updateLeagueProgress(coins) {
     const LEAGUES = [
@@ -523,19 +576,29 @@ loadDailyCombo();
         const data = await res.json();
 
         if (data.success) {
-          coinsEl.innerText = Math.floor(data.coins || 0);
-          energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || appState.energyCore?.currentMax || 120}`;
-          profitEl.innerText = data.profitPerHour || 0;
+  coinsEl.innerText = Math.floor(data.coins || 0);
+  energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || appState.energyCore?.currentMax || 120}`;
+  profitEl.innerText = data.profitPerHour || 0;
 
-          const leagueText = document.getElementById("currentLeagueText");
-          if (leagueText) leagueText.innerText = data.league || "Wood";
+  const leagueText = document.getElementById("currentLeagueText");
+  if (leagueText) leagueText.innerText = data.league || "Wood";
 
-          if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
+  if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
 
-          showPlusOne(data.tapPower || 1);
-        } else {
-          alert(data.message || "Tap failed");
-        }
+  if (data.boostX2) {
+    appState.boostX2 = data.boostX2;
+  }
+
+  if (appState.energyCore) {
+    appState.energyCore.currentMax =
+      data.maxEnergy || appState.energyCore.currentMax;
+  }
+
+  renderBoostSectionUI();
+  showPlusOne(data.tapPower || 1);
+} else {
+  alert(data.message || "Tap failed");
+}
       } catch (e) {
         console.log("Tap error", e);
       }
@@ -3027,13 +3090,16 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
-      appState.turboCharger = data.turboCharger || null;
-      renderSpecialSection();
-      loadUser();
-    } else {
-      alert(data.message || "Upgrade failed");
-    }
+  coinsEl.innerText = Math.floor(data.coins || 0);
+  appState.turboCharger = data.turboCharger || appState.turboCharger;
+
+  renderSpecialSection();
+  renderBoostSectionUI();
+  startTurboChargerCountdown();
+  loadUser();
+} else {
+  alert(data.message || "Upgrade failed");
+}
   } catch (e) {
     console.log("upgrade turbo charger error", e);
   }
@@ -3052,13 +3118,16 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
-      appState.energyCore = data.energyCore || null;
-      renderSpecialSection();
-      loadUser();
-    } else {
-      alert(data.message || "Upgrade failed");
-    }
+  coinsEl.innerText = Math.floor(data.coins || 0);
+  appState.energyCore = data.energyCore || appState.energyCore;
+
+  renderSpecialSection();
+  renderBoostSectionUI();
+  startEnergyCoreCountdown();
+  loadUser();
+} else {
+  alert(data.message || "Upgrade failed");
+}
   } catch (e) {
     console.log("upgrade energy core error", e);
   }
@@ -3077,17 +3146,40 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
-      appState.powerSurge = data.powerSurge || null;
-      renderSpecialSection();
-      loadUser();
-    } else {
-      alert(data.message || "Upgrade failed");
-    }
+  coinsEl.innerText = Math.floor(data.coins || 0);
+  appState.powerSurge = data.powerSurge || appState.powerSurge;
+
+  renderSpecialSection();
+  renderBoostSectionUI();
+  startPowerSurgeCountdown();
+  loadUser();
+} else {
+  alert(data.message || "Upgrade failed");
+}
   } catch (e) {
     console.log("upgrade power surge error", e);
   }
 };
+
+  /* ================= UPGRADE MULITAP,ENERGY,RECHARG SPEED ================= */
+  
+if (upgradeMultitapBtn) {
+  upgradeMultitapBtn.addEventListener("click", () => {
+    upgradeTurboCharger();
+  });
+}
+
+if (upgradeEnergyLimitBtn) {
+  upgradeEnergyLimitBtn.addEventListener("click", () => {
+    upgradeEnergyCore();
+  });
+}
+
+if (upgradeRechargingSpeedBtn) {
+  upgradeRechargingSpeedBtn.addEventListener("click", () => {
+    upgradePowerSurge();
+  });
+}
   
 /* ================= OVERCLOCK ENGINE UPGRADE ================= */
 
