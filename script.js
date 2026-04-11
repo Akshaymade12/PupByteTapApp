@@ -2828,7 +2828,7 @@ window.activateBoostX2 = async function() {
   
 /* ================= FREE TAP HANDLER ================= */
   
-  if (freeTapDailyCard) {
+if (freeTapDailyCard) {
   freeTapDailyCard.addEventListener("click", async () => {
     try {
       const res = await fetch("/claim-free-tap-daily", {
@@ -2839,10 +2839,22 @@ window.activateBoostX2 = async function() {
 
       const data = await res.json();
 
-      if (data.success) {
-        appState.freeTapDaily = data.freeTapDaily || appState.freeTapDaily;
-        renderFreeTapDailyUI();
-        startFreeTapDailyTimer();
+if (data.success) {
+  appState.freeTapDaily = data.freeTapDaily || appState.freeTapDaily;
+  renderFreeTapDailyUI();
+  startFreeTapDailyTimer();
+
+  if (boostSection) boostSection.style.display = "none";
+  if (earnSection) earnSection.style.display = "block";
+
+  if (mineSection) mineSection.style.display = "none";
+  if (tasksSection) tasksSection.style.display = "none";
+  if (leagueSection) leagueSection.style.display = "none";
+  if (accountSection) accountSection.style.display = "none";
+  if (skillsSection) skillsSection.style.display = "none";
+  if (cashierSection) cashierSection.style.display = "none";
+                          }
+
         alert("Free Tap Daily activated ✅");
       } else {
         alert(data.message || "Failed");
