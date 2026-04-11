@@ -1660,12 +1660,14 @@ function startBoostX2Timer() {
 
   if (freeTap.active && freeTap.endTime) {
     const leftMs = Math.max(0, new Date(freeTap.endTime).getTime() - Date.now());
-    freeTapDailyText.innerText = leftMs > 0 ? ${formatBoostTimeLeft(leftMs)} | x5 active : "Used";
+    freeTapDailyText.innerText = leftMs > 0
+      ? `${formatBoostTimeLeft(leftMs)} | x5 active`
+      : "Used";
     return;
   }
 
   const remaining = Math.max(0, (freeTap.dailyLimit || 3) - (freeTap.usesToday || 0));
-  freeTapDailyText.innerText = ${remaining}/${freeTap.dailyLimit || 3} available;
+  freeTapDailyText.innerText = `${remaining}/${freeTap.dailyLimit || 3} available`;
 }
   
 /* ================= FREE DAILY TAP TIMER  ================= */
