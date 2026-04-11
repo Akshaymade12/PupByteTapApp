@@ -3028,12 +3028,19 @@ normalizeBoostX2(user);
 const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
 const turboBonus = applyNeuralBoost(turboBase, user.neuralSync?.level || 1);
 
-const baseTapPower = user.tapPower + turboBonus;
-
-let finalTapPower = applyNeuralBoost(
-  getOverclockTapPower(baseTapPower, user.overclockEngine?.level || 1),
+let shownTapPower = applyNeuralBoost(
+  getOverclockTapPower(
+    user.tapPower + turboBonus,
+    user.overclockEngine?.level || 1
+  ),
   user.neuralSync?.level || 1
 );
+
+if (isBoostX2Active(user)) {
+  shownTapPower *= (user.boostX2?.multiplier || 2);
+}
+
+shownTapPower = applyQuantum(shownTapPower, user.quantumCore?.level || 1);
 
 if (isBoostX2Active(user)) {
   finalTapPower = finalTapPower * (user.boostX2?.multiplier || 2);
@@ -3857,10 +3864,10 @@ app.post("/upgrade-power-surge", async (req, res) => {
     );
 
     const baseUpgradeTime = getPowerSurgeUpgradeTime(level);
-    const upgradeTime =
-      typeof applyComplianceReduction === "function"
-        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
-        : baseUpgradeTime;
+    const upgradeTime = applyComplianceReduction(
+      baseUpgradeTime,
+      user.complianceLicense?.level || 1
+    );
 
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
@@ -3873,32 +3880,34 @@ app.post("/upgrade-power-surge", async (req, res) => {
 
     await user.save();
 
-    res.json({
+    return res.json({
       success: true,
       coins: user.coins,
       powerSurge: {
         level: user.powerSurge.level,
         upgrading: true,
         currentBoost: getPowerSurgeBoost(user.powerSurge.level),
-        recoveryMultiplier: (() => {
-          const baseRecovery = getPowerSurgeRecoveryMultiplier(user.powerSurge.level);
-          return baseRecovery * (1 + getNeuralSyncBoost(user.neuralSync?.level || 1) / 100);
-        })(),
+        recoveryMultiplier:
+          getPowerSurgeRecoveryMultiplier(user.powerSurge.level) *
+          (1 + getNeuralSyncBoost(user.neuralSync?.level || 1) / 100),
         nextBoost:
           user.powerSurge.level >= 20
             ? getPowerSurgeBoost(user.powerSurge.level)
             : getPowerSurgeBoost(user.powerSurge.level + 1),
-        nextCost: applyLegalAdvisoryDiscount(
-          getPowerSurgeCost(user.powerSurge.level),
-          user.legalAdvisory?.level || 1
-        ),
+        nextCost:
+          user.powerSurge.level >= 20
+            ? 0
+            : applyLegalAdvisoryDiscount(
+                getPowerSurgeCost(user.powerSurge.level),
+                user.legalAdvisory?.level || 1
+              ),
         upgradeTime,
         upgradeEndTime: user.powerSurge.upgradeEndTime
       }
     });
   } catch (e) {
     console.log("/upgrade-power-surge error", e);
-    res.json({ success: false, message: "Server error" });
+    return res.json({ success: false, message: "Server error" });
   }
 });
 
@@ -3994,8 +4003,11 @@ app.post("/upgrade-neural-sync", async (req, res) => {
     const { telegramId, initData } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
+if (!user) {
+  return res.json({ success: false, message: "Invalid user" });
+}
 
-    if (!user.neuralSync) {
+if (!user.neuralSync) {
       user.neuralSync = {
         level: 1,
         upgrading: false
@@ -4008,9 +4020,15 @@ app.post("/upgrade-neural-sync", async (req, res) => {
 
     if (level >= 20) return res.json({ success: false, message: "Max level" });
 
-    const cost = getNeuralSyncCost(level);
-    const time = getNeuralSyncUpgradeTime(level);
+const cost = applyLegalAdvisoryDiscount(
+  getNeuralSyncCost(level),
+  user.legalAdvisory?.level || 1
+);
 
+const time = applyComplianceReduction(
+  getNeuralSyncUpgradeTime(level),
+  user.complianceLicense?.level || 1
+);
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
     }
@@ -4291,9 +4309,8 @@ app.get("/task-status/:telegramId", async (req, res) => {
   league: item.league,
   reward: item.reward,
   claimed: user.leagueRewardsClaimed.includes(item.league),
-  unlocked: LEAGUES.findIndex(x => x.name === user.league) > LEAGUES.findIndex(x => x.name === item.league)
-}));
-
+  unlocked: LEAGUES.findIndex(x => x.name === user.league) >= LEAGUES.findIndex(x => x.name === item.league)
+    }));
     const refRewards = REF_REWARDS.map(item => ({
       refs: item.refs,
       reward: item.reward,
