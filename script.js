@@ -44,6 +44,8 @@ const rewardAdLimitText = document.getElementById("rewardAdLimitText");
 
   const freeTapDailyCard = document.getElementById("freeTapDailyCard");
   const freeTapDailyText = document.getElementById("freeTapDailyText");
+  const freeEnergyDailyCard = document.getElementById("freeEnergyDailyCard");
+  const freeEnergyDailyText = document.getElementById("freeEnergyDailyText");
   
   const tapBtn = document.getElementById("tapBtn");
   const upgradeTapBtn = document.getElementById("upgradeTapBtn");
@@ -103,6 +105,11 @@ let appState = {
     active: false,
     multiplier: 5,
     endTime: null
+  },
+
+  freeEnergyDaily: {
+    usesToday: 0,
+    dailyLimit: 3
   },
   
   futuresTrading: {
@@ -463,6 +470,7 @@ appState.quantumCore = data.quantumCore || null;
 appState.rewardedAds = data.rewardedAds || appState.rewardedAds;
 appState.boostX2 = data.boostX2 || appState.boostX2;
 appState.freeTapDaily = data.freeTapDaily || appState.freeTapDaily;
+appState.freeEnergyDaily = data.freeEnergyDaily || appState.freeEnergyDaily;
       
 renderRewardAdUI();
 startRewardAdCooldownTimer();
@@ -470,6 +478,7 @@ renderBoostSectionUI();
 startBoostX2Timer();
 renderFreeTapDailyUI();
 startFreeTapDailyTimer();
+renderFreeEnergyDailyUI();
       
 loadDailyCombo();
     } catch (e) {
@@ -1670,6 +1679,24 @@ function startBoostX2Timer() {
   freeTapDailyText.innerText = `${remaining}/${freeTap.dailyLimit || 3} available`;
 }
   
+/* ================= FREE DAILY ENERGY  ================= */
+  
+  function renderFreeEnergyDailyUI() {
+  const freeEnergy = appState.freeEnergyDaily || {
+    usesToday: 0,
+    dailyLimit: 3
+  };
+
+  if (!freeEnergyDailyText) return;
+
+  const remaining = Math.max(
+    0,
+    (freeEnergy.dailyLimit || 3) - (freeEnergy.usesToday || 0)
+  );
+
+  freeEnergyDailyText.innerText = `${remaining}/${freeEnergy.dailyLimit || 3} available`;
+  }
+  
 /* ================= FREE DAILY TAP TIMER  ================= */
   
   function startFreeTapDailyTimer() {
@@ -2864,6 +2891,49 @@ if (data.success) {
     }
   });
 }
+
+/* ================= FREE DAILY ENERGY HANDLE  ================= */
+
+  if (freeEnergyDailyCard) {
+  freeEnergyDailyCard.addEventListener("click", async () => {
+    try {
+      const res = await fetch("/claim-free-energy-daily", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId, initData })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        appState.freeEnergyDaily = data.freeEnergyDaily || appState.freeEnergyDaily;
+
+        energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || appState.energyCore?.currentMax || 120}`;
+
+        if (appState.energyCore) {
+          appState.energyCore.currentMax =
+            data.maxEnergy || appState.energyCore.currentMax;
+        }
+
+        renderFreeEnergyDailyUI();
+
+        if (boostSection) boostSection.style.display = "none";
+        if (earnSection) earnSection.style.display = "block";
+        if (mineSection) mineSection.style.display = "none";
+        if (tasksSection) tasksSection.style.display = "none";
+        if (leagueSection) leagueSection.style.display = "none";
+        if (accountSection) accountSection.style.display = "none";
+        if (skillsSection) skillsSection.style.display = "none";
+        if (cashierSection) cashierSection.style.display = "none";
+      } else {
+        alert(data.message || "Failed");
+      }
+    } catch (e) {
+      console.log("free energy daily error", e);
+      alert("Server error");
+    }
+  });
+  }
   
 /* ================= MULTITAP UPGRADE ================= */
 
