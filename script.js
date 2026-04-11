@@ -2853,7 +2853,6 @@ if (data.success) {
   if (accountSection) accountSection.style.display = "none";
   if (skillsSection) skillsSection.style.display = "none";
   if (cashierSection) cashierSection.style.display = "none";
-                          }
 
         alert("Free Tap Daily activated ✅");
       } else {
