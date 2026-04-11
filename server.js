@@ -249,6 +249,11 @@ quantumCore: {
     multiplier: { type: Number, default: 5 },
     endTime: { type: Date, default: null }
   },
+
+  freeEnergyDaily: {
+    usesToday: { type: Number, default: 0 },
+    lastUsedDate: { type: String, default: "" }
+  },
   
   boostX2: {
     active: { type: Boolean, default: false },
@@ -2435,6 +2440,33 @@ function getFreeTapDailyState(user) {
   };
 }
 
+/* ================= FREE ENERGY DAILY ================= */
+
+function normalizeFreeEnergyDaily(user) {
+  const today = getTodayKey();
+
+  if (!user.freeEnergyDaily) {
+    user.freeEnergyDaily = {
+      usesToday: 0,
+      lastUsedDate: ""
+    };
+  }
+
+  if (user.freeEnergyDaily.lastUsedDate !== today) {
+    user.freeEnergyDaily.lastUsedDate = today;
+    user.freeEnergyDaily.usesToday = 0;
+  }
+}
+
+function getFreeEnergyDailyState(user) {
+  normalizeFreeEnergyDaily(user);
+
+  return {
+    usesToday: user.freeEnergyDaily?.usesToday || 0,
+    dailyLimit: 3
+  };
+}
+
 /* ================= OFFLINE ================= */
 async function applyOfflineMining(user) {
   rechargeEnergy(user);
@@ -2495,6 +2527,7 @@ app.post("/load", async (req, res) => {
     await finalizeNeuralSyncUpgrade(user);
     await finalizeQuantumUpgrade(user);
     normalizeBoostX2(user);
+    normalizeFreeEnergyDaily(user);
 
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
@@ -2553,6 +2586,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
 },
       boostX2: getBoostX2State(user),
       freeTapDaily: getFreeTapDailyState(user),
+      freeEnergyDaily: getFreeEnergyDailyState(user),
       offlineCoins,
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
       nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
@@ -3291,6 +3325,41 @@ app.post("/claim-free-tap-daily", async (req, res) => {
     });
   } catch (e) {
     console.log("/claim-free-tap-daily error", e);
+    return res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= FREE ENERGY DAILY ================= */
+
+app.post("/claim-free-energy-daily", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeFreeEnergyDaily(user);
+
+    if ((user.freeEnergyDaily?.usesToday || 0) >= 3) {
+      return res.json({ success: false, message: "Daily limit reached" });
+    }
+
+    user.freeEnergyDaily.usesToday += 1;
+    user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
+    user.energy = user.maxEnergy;
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      energy: user.energy,
+      maxEnergy: user.maxEnergy,
+      freeEnergyDaily: getFreeEnergyDailyState(user)
+    });
+  } catch (e) {
+    console.log("/claim-free-energy-daily error", e);
     return res.json({ success: false, message: "Server error" });
   }
 });
