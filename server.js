@@ -242,6 +242,14 @@ quantumCore: {
     upgradeEndTime: { type: Date, default: null }
   },
 
+  freeTapDaily: {
+    usesToday: { type: Number, default: 0 },
+    lastUsedDate: { type: String, default: "" },
+    active: { type: Boolean, default: false },
+    multiplier: { type: Number, default: 5 },
+    endTime: { type: Date, default: null }
+  },
+  
   boostX2: {
     active: { type: Boolean, default: false },
     multiplier: { type: Number, default: 2 },
@@ -2382,6 +2390,51 @@ const recoveredEnergy = Math.floor(
   }
 }
 
+/* ================= FREE TAP DAILY ================= */
+
+function normalizeFreeTapDaily(user) {
+  const today = getTodayKey();
+
+  if (!user.freeTapDaily) {
+    user.freeTapDaily = {
+      usesToday: 0,
+      lastUsedDate: "",
+      active: false,
+      multiplier: 5,
+      endTime: null
+    };
+  }
+
+  if (user.freeTapDaily.lastUsedDate !== today) {
+    user.freeTapDaily.lastUsedDate = today;
+    user.freeTapDaily.usesToday = 0;
+    user.freeTapDaily.active = false;
+    user.freeTapDaily.endTime = null;
+    user.freeTapDaily.multiplier = 5;
+  }
+
+  if (
+    user.freeTapDaily.active &&
+    user.freeTapDaily.endTime &&
+    new Date(user.freeTapDaily.endTime).getTime() <= Date.now()
+  ) {
+    user.freeTapDaily.active = false;
+    user.freeTapDaily.endTime = null;
+  }
+}
+
+function getFreeTapDailyState(user) {
+  normalizeFreeTapDaily(user);
+
+  return {
+    usesToday: user.freeTapDaily?.usesToday || 0,
+    dailyLimit: 3,
+    active: !!user.freeTapDaily?.active,
+    multiplier: user.freeTapDaily?.multiplier || 5,
+    endTime: user.freeTapDaily?.endTime || null
+  };
+}
+
 /* ================= OFFLINE ================= */
 async function applyOfflineMining(user) {
   rechargeEnergy(user);
@@ -2442,7 +2495,8 @@ app.post("/load", async (req, res) => {
     await finalizeNeuralSyncUpgrade(user);
     await finalizeQuantumUpgrade(user);
     normalizeBoostX2(user);
-
+freeTapDaily: getFreeTapDailyState(user),
+  
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
     
@@ -3006,6 +3060,7 @@ app.post("/activate-boost-x2", async (req, res) => {
   }
 });
 
+
 /* ================= TAP ================= */
 app.post("/tap", async (req, res) => {
   try {
@@ -3018,7 +3073,8 @@ app.post("/tap", async (req, res) => {
 
     await applyOfflineMining(user);
     normalizeBoostX2(user);
-
+normalizeFreeTapDaily(user);
+    
     const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
     const turboBonus = applyNeuralBoost(
       turboBase,
@@ -3038,19 +3094,28 @@ app.post("/tap", async (req, res) => {
     }
 
     finalTapPower = applyQuantum(
-      finalTapPower,
-      user.quantumCore?.level || 1
-    );
+  finalTapPower,
+  user.quantumCore?.level || 1
+);
 
-    if (user.energy < finalTapPower) {
-      return res.json({
-        success: false,
-        message: "Not enough energy"
-      });
-    }
+if (user.freeTapDaily?.active) {
+  finalTapPower *= (user.freeTapDaily?.multiplier || 5);
+}
 
-    user.coins += finalTapPower;
-    user.energy -= finalTapPower;
+    const isFreeTapActive = !!user.freeTapDaily?.active;
+
+if (!isFreeTapActive && user.energy < finalTapPower) {
+  return res.json({
+    success: false,
+    message: "Not enough energy"
+  });
+}
+
+user.coins += finalTapPower;
+
+if (!isFreeTapActive) {
+  user.energy -= finalTapPower;
+}
     user.lastActive = new Date();
     user.league = getLeague(user.coins);
 
@@ -3064,7 +3129,8 @@ app.post("/tap", async (req, res) => {
       tapPower: finalTapPower,
       profitPerHour: user.profitPerHour,
       league: user.league,
-      boostX2: getBoostX2State(user)
+      boostX2: getBoostX2State(user),
+freeTapDaily: getFreeTapDailyState(user)
     });
   } catch (e) {
     console.log("/tap error FULL =>", e);
@@ -3188,6 +3254,44 @@ await finalizeQuantumUpgrade(user);
   } catch (e) {
     console.log("/upgrade-profit error", e);
     res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= CLAIM FREE TAP DAILY ================= */
+
+app.post("/claim-free-tap-daily", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeFreeTapDaily(user);
+
+    if ((user.freeTapDaily?.usesToday || 0) >= 3) {
+      return res.json({ success: false, message: "Daily limit reached" });
+    }
+
+    if (user.freeTapDaily?.active) {
+      return res.json({ success: false, message: "Free Tap already active" });
+    }
+
+    user.freeTapDaily.usesToday += 1;
+    user.freeTapDaily.active = true;
+    user.freeTapDaily.multiplier = 5;
+    user.freeTapDaily.endTime = new Date(Date.now() + 30 * 1000);
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      freeTapDaily: getFreeTapDailyState(user)
+    });
+  } catch (e) {
+    console.log("/claim-free-tap-daily error", e);
+    return res.json({ success: false, message: "Server error" });
   }
 });
 
