@@ -235,11 +235,19 @@ btcPairs: {
   upgradeEndTime: { type: Date, default: null }
   },
 
-  quantumCore: {
-  level: { type: Number, default: 1 },
-  upgrading: { type: Boolean, default: false },
-  upgradeStartTime: { type: Date, default: null },
-  upgradeEndTime: { type: Date, default: null }
+quantumCore: {
+    level: { type: Number, default: 1 },
+    upgrading: { type: Boolean, default: false },
+    upgradeStartTime: { type: Date, default: null },
+    upgradeEndTime: { type: Date, default: null }
+  },
+
+  boostX2: {
+    active: { type: Boolean, default: false },
+    multiplier: { type: Number, default: 2 },
+    priceGems: { type: Number, default: 400 },
+    durationMinutes: { type: Number, default: 30 },
+    endTime: { type: Date, default: null }
   }
 });
 
@@ -2267,6 +2275,57 @@ async function finalizeCourtSettlementUpgrade(user) {
   }
 }
 
+/* ================= BOOST X2 ================= */
+
+const BOOST_X2_MULTIPLIER = 2;
+const BOOST_X2_PRICE_GEMS = 400;
+const BOOST_X2_DURATION_MINUTES = 30;
+
+function normalizeBoostX2(user) {
+  if (!user.boostX2) {
+    user.boostX2 = {
+      active: false,
+      multiplier: BOOST_X2_MULTIPLIER,
+      priceGems: BOOST_X2_PRICE_GEMS,
+      durationMinutes: BOOST_X2_DURATION_MINUTES,
+      endTime: null
+    };
+  }
+
+  if (
+    user.boostX2.active &&
+    user.boostX2.endTime &&
+    new Date(user.boostX2.endTime).getTime() <= Date.now()
+  ) {
+    user.boostX2.active = false;
+    user.boostX2.endTime = null;
+  }
+}
+
+function isBoostX2Active(user) {
+  normalizeBoostX2(user);
+
+  return !!(
+    user.boostX2 &&
+    user.boostX2.active &&
+    user.boostX2.endTime &&
+    new Date(user.boostX2.endTime).getTime() > Date.now()
+  );
+}
+
+function getBoostX2State(user) {
+  normalizeBoostX2(user);
+
+  return {
+    level: user.boostX2?.active ? 1 : 0,
+    active: !!user.boostX2?.active,
+    multiplier: user.boostX2?.multiplier || BOOST_X2_MULTIPLIER,
+    priceGems: user.boostX2?.priceGems || BOOST_X2_PRICE_GEMS,
+    durationMinutes: user.boostX2?.durationMinutes || BOOST_X2_DURATION_MINUTES,
+    endTime: user.boostX2?.endTime || null
+  };
+}
+
 /* ================= REWARDED ADS ================= */
 
 const REWARDED_AD_COINS = 1000;
@@ -2382,6 +2441,7 @@ app.post("/load", async (req, res) => {
     await finalizeOverclockEngineUpgrade(user);
     await finalizeNeuralSyncUpgrade(user);
     await finalizeQuantumUpgrade(user);
+    normalizeBoostX2(user);
 
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
@@ -2438,6 +2498,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   remaining: getRewardAdsRemaining(user),
   cooldownLeftMs: getRewardAdCooldownLeft(user)
 },
+      boostX2: getBoostX2State(user),
       offlineCoins,
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
       nextProfitCost: Math.floor(60 * Math.pow(1.8, user.upgradeLevel)),
@@ -2894,6 +2955,57 @@ user.energy = Math.min(user.maxEnergy, user.energy);
   }
 });
 
+/* ================= ACTIVATE BOOST X2 ================= */
+
+app.post("/activate-boost-x2", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeBoostX2(user);
+
+    if (isBoostX2Active(user)) {
+      return res.json({ success: false, message: "Boost X2 already active" });
+    }
+
+    /* 
+      Abhi gems system real nahi hai.
+      Top bar me gem UI hai lekin backend wallet/gem economy ready nahi hai.
+      Isliye filhaal safe mode me coin cost use kar rahe hain.
+      Later coin launch ke time isko gems/wallet se replace kar dena.
+    */
+    const coinCost = 400;
+
+    if (user.coins < coinCost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= coinCost;
+    user.boostX2.active = true;
+    user.boostX2.multiplier = BOOST_X2_MULTIPLIER;
+    user.boostX2.priceGems = BOOST_X2_PRICE_GEMS;
+    user.boostX2.durationMinutes = BOOST_X2_DURATION_MINUTES;
+    user.boostX2.endTime = new Date(
+      Date.now() + BOOST_X2_DURATION_MINUTES * 60 * 1000
+    );
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      coins: user.coins,
+      boostX2: getBoostX2State(user)
+    });
+  } catch (e) {
+    console.log("/activate-boost-x2 error", e);
+    res.json({ success: false, message: "Server error" });
+  }
+});
+
 /* ================= TAP ================= */
 app.post("/tap", async (req, res) => {
   try {
@@ -2911,11 +3023,21 @@ app.post("/tap", async (req, res) => {
       });
     }
 
-    const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
+normalizeBoostX2(user);
+
+const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
 const turboBonus = applyNeuralBoost(turboBase, user.neuralSync?.level || 1);
+
 const baseTapPower = user.tapPower + turboBonus;
-const baseTap = getOverclockTapPower(baseTapPower, user.overclockEngine?.level || 1);
-const finalTapPower = applyNeuralBoost(baseTap, user.neuralSync?.level || 1);
+
+let finalTapPower = applyNeuralBoost(
+  getOverclockTapPower(baseTapPower, user.overclockEngine?.level || 1),
+  user.neuralSync?.level || 1
+);
+
+if (isBoostX2Active(user)) {
+  finalTapPower = finalTapPower * (user.boostX2?.multiplier || 2);
+}
 
 const quantumTap = applyQuantum(finalTapPower, user.quantumCore?.level || 1);
 user.coins += quantumTap;
@@ -2938,7 +3060,8 @@ tapPower: applyQuantum(
   user.quantumCore?.level || 1
 ),
   profitPerHour: user.profitPerHour,
-  league: user.league
+  league: user.league,
+  boostX2: getBoostX2State(user)
 });
   } catch (e) {
     console.log("/tap error", e);
@@ -3566,8 +3689,16 @@ app.post("/upgrade-turbo-charger", async (req, res) => {
       return res.json({ success: false, message: "Upgrade already in progress" });
     }
 
-    const cost = getTurboChargerCost(level);
-    const upgradeTime = getTurboChargerUpgradeTime(level);
+    const cost = applyLegalAdvisoryDiscount(
+      getTurboChargerCost(level),
+      user.legalAdvisory?.level || 1
+    );
+
+    const baseUpgradeTime = getTurboChargerUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
 
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
@@ -3591,7 +3722,10 @@ app.post("/upgrade-turbo-charger", async (req, res) => {
           user.turboCharger.level >= 20
             ? getTurboTapBonus(user.turboCharger.level)
             : getTurboTapBonus(user.turboCharger.level + 1),
-        nextCost: getTurboChargerCost(user.turboCharger.level),
+        nextCost: applyLegalAdvisoryDiscount(
+          getTurboChargerCost(user.turboCharger.level),
+          user.legalAdvisory?.level || 1
+        ),
         upgradeTime,
         upgradeEndTime: user.turboCharger.upgradeEndTime
       }
@@ -3634,8 +3768,16 @@ app.post("/upgrade-energy-core", async (req, res) => {
       return res.json({ success: false, message: "Upgrade already in progress" });
     }
 
-    const cost = getEnergyCoreCost(level);
-    const upgradeTime = getEnergyCoreUpgradeTime(level);
+    const cost = applyLegalAdvisoryDiscount(
+      getEnergyCoreCost(level),
+      user.legalAdvisory?.level || 1
+    );
+
+    const baseUpgradeTime = getEnergyCoreUpgradeTime(level);
+    const upgradeTime =
+      typeof applyComplianceReduction === "function"
+        ? applyComplianceReduction(baseUpgradeTime, user.complianceLicense?.level || 1)
+        : baseUpgradeTime;
 
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
@@ -3663,7 +3805,10 @@ user.energy = Math.min(user.maxEnergy, user.energy);
           user.energyCore.level >= 20
             ? getEnergyCoreBonus(user.energyCore.level)
             : getEnergyCoreBonus(user.energyCore.level + 1),
-        nextCost: getEnergyCoreCost(user.energyCore.level),
+        nextCost: applyLegalAdvisoryDiscount(
+          getEnergyCoreCost(user.energyCore.level),
+          user.legalAdvisory?.level || 1
+        ),
         upgradeTime,
         upgradeEndTime: user.energyCore.upgradeEndTime
       }
@@ -3696,8 +3841,10 @@ app.post("/upgrade-power-surge", async (req, res) => {
 
     await finalizePowerSurgeUpgrade(user);
 
-    const level = user.powerSurge.level;
-
+    const cost = applyLegalAdvisoryDiscount(
+      getPowerSurgeCost(level),
+      user.legalAdvisory?.level || 1
+    );
     if (level >= 20) {
       return res.json({ success: false, message: "Max level reached" });
     }
@@ -3739,7 +3886,10 @@ app.post("/upgrade-power-surge", async (req, res) => {
           user.powerSurge.level >= 20
             ? getPowerSurgeBoost(user.powerSurge.level)
             : getPowerSurgeBoost(user.powerSurge.level + 1),
-        nextCost: getPowerSurgeCost(user.powerSurge.level),
+        nextCost: applyLegalAdvisoryDiscount(
+          getPowerSurgeCost(user.powerSurge.level),
+          user.legalAdvisory?.level || 1
+        ),
         upgradeTime,
         upgradeEndTime: user.powerSurge.upgradeEndTime
       }
