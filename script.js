@@ -42,6 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const watchAdBtn = document.getElementById("watchAdBtn");
 const rewardAdLimitText = document.getElementById("rewardAdLimitText");
 
+  const freeTapDailyCard = document.getElementById("freeTapDailyCard");
+  const freeTapDailyText = document.getElementById("freeTapDailyText");
+  
   const tapBtn = document.getElementById("tapBtn");
   const upgradeTapBtn = document.getElementById("upgradeTapBtn");
   const upgradeProfitBtn = document.getElementById("upgradeProfitBtn");
@@ -91,6 +94,14 @@ let appState = {
     multiplier: 2,
     priceGems: 400,
     durationMinutes: 30,
+    endTime: null
+  },
+
+  freeTapDaily: {
+    usesToday: 0,
+    dailyLimit: 3,
+    active: false,
+    multiplier: 5,
     endTime: null
   },
   
@@ -333,6 +344,7 @@ let btcPairsTimerInterval = null;
   let arbitrageBotTimerInterval = null;
   let signalNetworkTimerInterval = null;
   let myTeamTimerInterval = null;
+  let freeTapDailyTimerInterval = null;
   let marketingTimerInterval = null;
   let communityManagerTimerInterval = null;
   let partnershipDealsTimerInterval = null;
@@ -450,12 +462,15 @@ appState.quantumCore = data.quantumCore || null;
       
 appState.rewardedAds = data.rewardedAds || appState.rewardedAds;
 appState.boostX2 = data.boostX2 || appState.boostX2;
-
+appState.freeTapDaily = data.freeTapDaily || appState.freeTapDaily;
+      
 renderRewardAdUI();
 startRewardAdCooldownTimer();
 renderBoostSectionUI();
 startBoostX2Timer();
-
+renderFreeTapDailyUI();
+startFreeTapDailyTimer();
+      
 loadDailyCombo();
     } catch (e) {
       console.log("Load user error", e);
@@ -589,6 +604,12 @@ if (upgradeRechargingSpeedBtn) {
     appState.boostX2 = data.boostX2;
   }
 
+          if (data.freeTapDaily) {
+  appState.freeTapDaily = data.freeTapDaily;
+  renderFreeTapDailyUI();
+  startFreeTapDailyTimer();
+}
+          
   if (appState.energyCore) {
     appState.energyCore.currentMax =
       data.maxEnergy || appState.energyCore.currentMax;
@@ -1623,7 +1644,72 @@ function startBoostX2Timer() {
     renderBoostSectionUI();
   }, 1000);
 }
+  
+/* ================= FREE DAILY TAP  ================= */
+  
+ function renderFreeTapDailyUI() {
+  const freeTap = appState.freeTapDaily || {
+    usesToday: 0,
+    dailyLimit: 3,
+    active: false,
+    multiplier: 5,
+    endTime: null
+  };
 
+  if (!freeTapDailyText) return;
+
+  if (freeTap.active && freeTap.endTime) {
+    const leftMs = Math.max(0, new Date(freeTap.endTime).getTime() - Date.now());
+    freeTapDailyText.innerText = leftMs > 0 ? ${formatBoostTimeLeft(leftMs)} | x5 active : "Used";
+    return;
+  }
+
+  const remaining = Math.max(0, (freeTap.dailyLimit || 3) - (freeTap.usesToday || 0));
+  freeTapDailyText.innerText = ${remaining}/${freeTap.dailyLimit || 3} available;
+}
+  
+/* ================= FREE DAILY TAP TIMER  ================= */
+  
+  function startFreeTapDailyTimer() {
+  if (freeTapDailyTimerInterval) {
+    clearInterval(freeTapDailyTimerInterval);
+    freeTapDailyTimerInterval = null;
+  }
+
+  const freeTap = appState.freeTapDaily;
+  if (!freeTap?.active || !freeTap?.endTime) {
+    renderFreeTapDailyUI();
+    return;
+  }
+
+  renderFreeTapDailyUI();
+
+  freeTapDailyTimerInterval = setInterval(() => {
+    const current = appState.freeTapDaily;
+
+    if (!current?.active || !current?.endTime) {
+      clearInterval(freeTapDailyTimerInterval);
+      freeTapDailyTimerInterval = null;
+      renderFreeTapDailyUI();
+      return;
+    }
+
+    const leftMs = Math.max(0, new Date(current.endTime).getTime() - Date.now());
+
+    if (leftMs <= 0) {
+      current.active = false;
+      current.endTime = null;
+      clearInterval(freeTapDailyTimerInterval);
+      freeTapDailyTimerInterval = null;
+      renderFreeTapDailyUI();
+      loadUser();
+      return;
+    }
+
+    renderFreeTapDailyUI();
+  }, 1000);
+}
+  
 /* ================= Watch ADS TIMER  ================= */
   
  function startRewardAdCooldownTimer() {
@@ -2737,7 +2823,35 @@ window.activateBoostX2 = async function() {
     console.log("activate boost x2 error", e);
   }
 };
+  
+/* ================= FREE TAP HANDLER ================= */
+  
+  if (freeTapDailyCard) {
+  freeTapDailyCard.addEventListener("click", async () => {
+    try {
+      const res = await fetch("/claim-free-tap-daily", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId, initData })
+      });
 
+      const data = await res.json();
+
+      if (data.success) {
+        appState.freeTapDaily = data.freeTapDaily || appState.freeTapDaily;
+        renderFreeTapDailyUI();
+        startFreeTapDailyTimer();
+        alert("Free Tap Daily activated ✅");
+      } else {
+        alert(data.message || "Failed");
+      }
+    } catch (e) {
+      console.log("free tap daily error", e);
+      alert("Server error");
+    }
+  });
+}
+  
 /* ================= MULTITAP UPGRADE ================= */
 
 window.upgradeMultitap = async function() {
