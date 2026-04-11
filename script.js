@@ -38,6 +38,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const energyLimitLevelText = document.getElementById("energyLimitLevelText");
   const rechargingSpeedCostText = document.getElementById("rechargingSpeedCostText");
   const rechargingSpeedLevelText = document.getElementById("rechargingSpeedLevelText");
+
+  const upgradeAutoTapBotBtn = document.getElementById("upgradeAutoTapBotBtn");
+const autoTapBotCostText = document.getElementById("autoTapBotCostText");
+const autoTapBotStatusText = document.getElementById("autoTapBotStatusText");
   
   const watchAdBtn = document.getElementById("watchAdBtn");
 const rewardAdLimitText = document.getElementById("rewardAdLimitText");
@@ -110,6 +114,13 @@ let appState = {
   freeEnergyDaily: {
     usesToday: 0,
     dailyLimit: 3
+  },
+
+  autoTapBot: {
+    active: false,
+    priceCoins: 200000,
+    durationHours: 12,
+    endTime: null
   },
   
   futuresTrading: {
@@ -352,6 +363,7 @@ let btcPairsTimerInterval = null;
   let signalNetworkTimerInterval = null;
   let myTeamTimerInterval = null;
   let freeTapDailyTimerInterval = null;
+  let autoTapBotTimerInterval = null;
   let marketingTimerInterval = null;
   let communityManagerTimerInterval = null;
   let partnershipDealsTimerInterval = null;
@@ -471,6 +483,7 @@ appState.rewardedAds = data.rewardedAds || appState.rewardedAds;
 appState.boostX2 = data.boostX2 || appState.boostX2;
 appState.freeTapDaily = data.freeTapDaily || appState.freeTapDaily;
 appState.freeEnergyDaily = data.freeEnergyDaily || appState.freeEnergyDaily;
+appState.autoTapBot = data.autoTapBot || appState.autoTapBot;
       
 renderRewardAdUI();
 startRewardAdCooldownTimer();
@@ -479,6 +492,8 @@ startBoostX2Timer();
 renderFreeTapDailyUI();
 startFreeTapDailyTimer();
 renderFreeEnergyDailyUI();
+renderAutoTapBotUI();
+startAutoTapBotTimer();
       
 loadDailyCombo();
     } catch (e) {
@@ -1695,6 +1710,74 @@ function startBoostX2Timer() {
   );
 
   freeEnergyDailyText.innerText = `${remaining}/${freeEnergy.dailyLimit || 3} available`;
+  }
+
+/* ================= AUTO BOT TAP  ================= */
+
+  function renderAutoTapBotUI() {
+  const bot = appState.autoTapBot || {
+    active: false,
+    priceCoins: 200000,
+    durationHours: 12,
+    endTime: null
+  };
+
+  if (autoTapBotCostText) {
+    autoTapBotCostText.innerText = bot.priceCoins || 200000;
+  }
+
+  if (!autoTapBotStatusText) return;
+
+  if (bot.active && bot.endTime) {
+    const leftMs = Math.max(0, new Date(bot.endTime).getTime() - Date.now());
+    autoTapBotStatusText.innerText =
+      leftMs > 0 ? formatBoostTimeLeft(leftMs) : "Inactive";
+    return;
+  }
+
+  autoTapBotStatusText.innerText = "Inactive";
+  }
+
+  /* ================= AUTO BOT TAP TIMER ================= */
+
+  function startAutoTapBotTimer() {
+  if (autoTapBotTimerInterval) {
+    clearInterval(autoTapBotTimerInterval);
+    autoTapBotTimerInterval = null;
+  }
+
+  const bot = appState.autoTapBot;
+  if (!bot?.active || !bot?.endTime) {
+    renderAutoTapBotUI();
+    return;
+  }
+
+  renderAutoTapBotUI();
+
+  autoTapBotTimerInterval = setInterval(() => {
+    const current = appState.autoTapBot;
+
+    if (!current?.active || !current?.endTime) {
+      clearInterval(autoTapBotTimerInterval);
+      autoTapBotTimerInterval = null;
+      renderAutoTapBotUI();
+      return;
+    }
+
+    const leftMs = Math.max(0, new Date(current.endTime).getTime() - Date.now());
+
+    if (leftMs <= 0) {
+      current.active = false;
+      current.endTime = null;
+      clearInterval(autoTapBotTimerInterval);
+      autoTapBotTimerInterval = null;
+      renderAutoTapBotUI();
+      loadUser();
+      return;
+    }
+
+    renderAutoTapBotUI();
+  }, 1000);
   }
   
 /* ================= FREE DAILY TAP TIMER  ================= */
@@ -2930,6 +3013,35 @@ if (data.success) {
       }
     } catch (e) {
       console.log("free energy daily error", e);
+      alert("Server error");
+    }
+  });
+  }
+
+ /* ================= AUTO BOT TAP HANDLE  ================= */
+
+  if (upgradeAutoTapBotBtn) {
+  upgradeAutoTapBotBtn.addEventListener("click", async () => {
+    try {
+      const res = await fetch("/activate-auto-tap-bot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId, initData })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        coinsEl.innerText = Math.floor(data.coins || 0);
+        appState.autoTapBot = data.autoTapBot || appState.autoTapBot;
+        renderAutoTapBotUI();
+        startAutoTapBotTimer();
+        loadUser();
+      } else {
+        alert(data.message || "Activation failed");
+      }
+    } catch (e) {
+      console.log("auto tap bot error", e);
       alert("Server error");
     }
   });
