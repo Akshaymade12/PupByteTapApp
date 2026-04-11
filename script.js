@@ -25,6 +25,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const energyEl = document.getElementById("energy");
   const profitEl = document.getElementById("profit");
 
+  /* ================= BOOST UI ELEMENTS ================= */
+  const upgradeBoostX2Btn = document.getElementById("upgradeBoostX2Btn");
+  const upgradeMultitapBtn = document.getElementById("upgradeMultitapBtn");
+  const upgradeEnergyLimitBtn = document.getElementById("upgradeEnergyLimitBtn");
+  const upgradeRechargingSpeedBtn = document.getElementById("upgradeRechargingSpeedBtn");
+
+  const boostX2CostText = document.getElementById("boostX2CostText");
+  const multitapCostText = document.getElementById("multitapCostText");
+  const multitapLevelText = document.getElementById("multitapLevelText");
+  const energyLimitCostText = document.getElementById("energyLimitCostText");
+  const energyLimitLevelText = document.getElementById("energyLimitLevelText");
+  const rechargingSpeedCostText = document.getElementById("rechargingSpeedCostText");
+  const rechargingSpeedLevelText = document.getElementById("rechargingSpeedLevelText");
+  
   const watchAdBtn = document.getElementById("watchAdBtn");
 const rewardAdLimitText = document.getElementById("rewardAdLimitText");
 
@@ -70,6 +84,15 @@ let appState = {
   remaining: 5,
   cooldownLeftMs: 0
 },
+  
+  boostX2: {
+    level: 0,
+    active: false,
+    multiplier: 2,
+    priceGems: 400,
+    durationMinutes: 30,
+    endTime: null
+  },
   
   futuresTrading: {
   level: 1,
@@ -426,10 +449,14 @@ appState.neuralSync = data.neuralSync || null;
 appState.quantumCore = data.quantumCore || null;
       
 appState.rewardedAds = data.rewardedAds || appState.rewardedAds;
+appState.boostX2 = data.boostX2 || appState.boostX2;
+
 renderRewardAdUI();
 startRewardAdCooldownTimer();
-      
-      loadDailyCombo();
+renderBoostSectionUI();
+startBoostX2Timer();
+
+loadDailyCombo();
     } catch (e) {
       console.log("Load user error", e);
     }
@@ -1322,6 +1349,194 @@ function renderRewardAdUI() {
     cooldownLeftMs: 0
   };
 
+  /* ================= BOOST SECTION UI ================= */
+
+function formatBoostTimeLeft(ms) {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function renderBoostSectionUI() {
+  /* ---------- Boost X2 ---------- */
+  const x2 = appState.boostX2 || {
+    level: 0,
+    active: false,
+    multiplier: 2,
+    priceGems: 400,
+    durationMinutes: 30,
+    endTime: null
+  };
+
+  let boostX2TimerInterval = null;
+
+function startBoostX2Timer() {
+  if (boostX2TimerInterval) {
+    clearInterval(boostX2TimerInterval);
+    boostX2TimerInterval = null;
+  }
+
+  if (!appState.boostX2?.active || !appState.boostX2?.endTime) {
+    renderBoostSectionUI();
+    return;
+  }
+
+  renderBoostSectionUI();
+
+  boostX2TimerInterval = setInterval(() => {
+    if (!appState.boostX2?.active || !appState.boostX2?.endTime) {
+      clearInterval(boostX2TimerInterval);
+      boostX2TimerInterval = null;
+      renderBoostSectionUI();
+      return;
+    }
+
+    const leftMs = Math.max(0, new Date(appState.boostX2.endTime).getTime() - Date.now());
+
+    if (leftMs <= 0) {
+      appState.boostX2.active = false;
+      appState.boostX2.endTime = null;
+      clearInterval(boostX2TimerInterval);
+      boostX2TimerInterval = null;
+      renderBoostSectionUI();
+      loadUser();
+      return;
+    }
+
+    renderBoostSectionUI();
+  }, 1000);
+}
+  
+  if (boostX2CostText) {
+    boostX2CostText.innerText = x2.priceGems || 400;
+  }
+
+  if (upgradeBoostX2Btn) {
+    if (x2.active && x2.endTime) {
+      const leftMs = Math.max(0, new Date(x2.endTime).getTime() - Date.now());
+      upgradeBoostX2Btn.innerText = leftMs > 0 ? formatBoostTimeLeft(leftMs) : "›";
+      upgradeBoostX2Btn.disabled = leftMs > 0;
+    } else {
+      upgradeBoostX2Btn.innerText = "›";
+      upgradeBoostX2Btn.disabled = false;
+    }
+  }
+
+  /* ---------- Multitap = turboCharger ---------- */
+  const multitap = appState.turboCharger || {
+    level: 1,
+    upgrading: false,
+    currentBonus: 1,
+    nextBonus: 2,
+    nextCost: 600,
+    upgradeTime: 25,
+    upgradeEndTime: null
+  };
+
+  if (multitapCostText) {
+    multitapCostText.innerText = multitap.level >= 20 ? "MAX" : (multitap.nextCost ?? 600);
+  }
+
+  if (multitapLevelText) {
+    if (multitap.upgrading && multitap.upgradeEndTime) {
+      const leftMs = Math.max(0, new Date(multitap.upgradeEndTime).getTime() - Date.now());
+      multitapLevelText.innerText = leftMs > 0 ? formatBoostTimeLeft(leftMs) : `${multitap.level} level`;
+    } else {
+      multitapLevelText.innerText = `${multitap.level} level`;
+    }
+  }
+
+  if (upgradeMultitapBtn) {
+    if (multitap.level >= 20) {
+      upgradeMultitapBtn.innerText = "✓";
+      upgradeMultitapBtn.disabled = true;
+    } else if (multitap.upgrading) {
+      upgradeMultitapBtn.innerText = "…";
+      upgradeMultitapBtn.disabled = true;
+    } else {
+      upgradeMultitapBtn.innerText = "›";
+      upgradeMultitapBtn.disabled = false;
+    }
+  }
+
+  /* ---------- Energy Limit = energyCore ---------- */
+  const energyLimit = appState.energyCore || {
+    level: 1,
+    upgrading: false,
+    currentBonus: 20,
+    currentMax: 120,
+    nextBonus: 40,
+    nextCost: 700,
+    upgradeTime: 25,
+    upgradeEndTime: null
+  };
+
+  if (energyLimitCostText) {
+    energyLimitCostText.innerText = energyLimit.level >= 20 ? "MAX" : (energyLimit.nextCost ?? 700);
+  }
+
+  if (energyLimitLevelText) {
+    if (energyLimit.upgrading && energyLimit.upgradeEndTime) {
+      const leftMs = Math.max(0, new Date(energyLimit.upgradeEndTime).getTime() - Date.now());
+      energyLimitLevelText.innerText = leftMs > 0 ? formatBoostTimeLeft(leftMs) : `${energyLimit.level} level`;
+    } else {
+      energyLimitLevelText.innerText = `${energyLimit.level} level`;
+    }
+  }
+
+  if (upgradeEnergyLimitBtn) {
+    if (energyLimit.level >= 20) {
+      upgradeEnergyLimitBtn.innerText = "✓";
+      upgradeEnergyLimitBtn.disabled = true;
+    } else if (energyLimit.upgrading) {
+      upgradeEnergyLimitBtn.innerText = "…";
+      upgradeEnergyLimitBtn.disabled = true;
+    } else {
+      upgradeEnergyLimitBtn.innerText = "›";
+      upgradeEnergyLimitBtn.disabled = false;
+    }
+  }
+
+  /* ---------- Recharging Speed = powerSurge ---------- */
+  const recharge = appState.powerSurge || {
+    level: 1,
+    upgrading: false,
+    currentBoost: 10,
+    recoveryMultiplier: 1.1,
+    nextBoost: 20,
+    nextCost: 900,
+    upgradeTime: 25,
+    upgradeEndTime: null
+  };
+
+  if (rechargingSpeedCostText) {
+    rechargingSpeedCostText.innerText = recharge.level >= 20 ? "MAX" : (recharge.nextCost ?? 900);
+  }
+
+  if (rechargingSpeedLevelText) {
+    if (recharge.upgrading && recharge.upgradeEndTime) {
+      const leftMs = Math.max(0, new Date(recharge.upgradeEndTime).getTime() - Date.now());
+      rechargingSpeedLevelText.innerText = leftMs > 0 ? formatBoostTimeLeft(leftMs) : `${recharge.level} level`;
+    } else {
+      rechargingSpeedLevelText.innerText = `${recharge.level} level`;
+    }
+  }
+
+  if (upgradeRechargingSpeedBtn) {
+    if (recharge.level >= 20) {
+      upgradeRechargingSpeedBtn.innerText = "✓";
+      upgradeRechargingSpeedBtn.disabled = true;
+    } else if (recharge.upgrading) {
+      upgradeRechargingSpeedBtn.innerText = "…";
+      upgradeRechargingSpeedBtn.disabled = true;
+    } else {
+      upgradeRechargingSpeedBtn.innerText = "›";
+      upgradeRechargingSpeedBtn.disabled = false;
+    }
+  }
+}
+  
   if (rewardAdLimitText) {
     rewardAdLimitText.innerText = `Remaining: ${ads.remaining}/${ads.dailyLimit} today`;
   }
@@ -1716,6 +1931,7 @@ function startMyTeamCountdown() {
     );
 
     countdownEl.innerText = formatCountdown(secondsLeft);
+    renderBoostSectionUI();
 
     if (secondsLeft <= 0) {
       clearInterval(turboChargerTimerInterval);
@@ -1760,6 +1976,7 @@ function startMyTeamCountdown() {
     );
 
     countdownEl.innerText = formatCountdown(secondsLeft);
+    renderBoostSectionUI();
 
     if (secondsLeft <= 0) {
       clearInterval(energyCoreTimerInterval);
@@ -1804,6 +2021,7 @@ function startMyTeamCountdown() {
     );
 
     countdownEl.innerText = formatCountdown(secondsLeft);
+    renderBoostSectionUI();
 
     if (secondsLeft <= 0) {
       clearInterval(powerSurgeTimerInterval);
@@ -2426,6 +2644,110 @@ window.upgradeEthPairs = async function() {
     console.log("upgrade signal network error", e);
   }
 };
+
+  /* ================= BOOST X2 ACTIVATE ================= */
+
+window.activateBoostX2 = async function() {
+  try {
+    const res = await fetch("/activate-boost-x2", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      appState.boostX2 = data.boostX2 || appState.boostX2;
+      renderBoostSectionUI();
+      startBoostX2Timer();
+      loadUser();
+      alert("Boost X2 activated successfully ✅");
+    } else {
+      alert(data.message || "Boost X2 activation failed");
+    }
+  } catch (e) {
+    console.log("activate boost x2 error", e);
+  }
+};
+
+/* ================= MULTITAP UPGRADE ================= */
+
+window.upgradeMultitap = async function() {
+  try {
+    const res = await fetch("/upgrade-turbo-charger", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.turboCharger = data.turboCharger || appState.turboCharger;
+      renderBoostSectionUI();
+      startTurboChargerCountdown();
+      loadUser();
+    } else {
+      alert(data.message || "Multitap upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade multitap error", e);
+  }
+};
+
+/* ================= ENERGY LIMIT UPGRADE ================= */
+
+window.upgradeEnergyLimit = async function() {
+  try {
+    const res = await fetch("/upgrade-energy-core", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.energyCore = data.energyCore || appState.energyCore;
+      renderBoostSectionUI();
+      startEnergyCoreCountdown();
+      loadUser();
+    } else {
+      alert(data.message || "Energy Limit upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade energy limit error", e);
+  }
+};
+
+/* ================= RECHARGING SPEED UPGRADE ================= */
+
+window.upgradeRechargingSpeed = async function() {
+  try {
+    const res = await fetch("/upgrade-power-surge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      coinsEl.innerText = Math.floor(data.coins || 0);
+      appState.powerSurge = data.powerSurge || appState.powerSurge;
+      renderBoostSectionUI();
+      startPowerSurgeCountdown();
+      loadUser();
+    } else {
+      alert(data.message || "Recharging Speed upgrade failed");
+    }
+  } catch (e) {
+    console.log("upgrade recharging speed error", e);
+  }
+};
   
 /* ================= UPGRADE MY TEAM ================= */
   
@@ -2451,28 +2773,6 @@ window.upgradeEthPairs = async function() {
     console.log("upgrade my team error", e);
   }
 };
-
-/* ================= TAP UPGRADE ================= */
-  if (upgradeTapBtn) {
-    upgradeTapBtn.onclick = async () => {
-      try {
-        const res = await fetch("/upgrade-tap", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telegramId, initData })
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          loadUser();
-        } else {
-          alert(data.message || "Not enough coins");
-        }
-      } catch (e) {
-        console.log("Upgrade tap error", e);
-      }
-    };
-  }
   
 /* ================= MARKETING UPGRADE ================= */
   
@@ -3345,7 +3645,36 @@ if (tabName === "team") {
 if (mineTabMarket) mineTabMarket.onclick = () => switchMineTab("market");
 if (mineTabTeam) mineTabTeam.onclick = () => switchMineTab("team");
 if (mineTabLegal) mineTabLegal.onclick = () => switchMineTab("legal");
-if (mineTabSpecial) mineTabSpecial.onclick = () => switchMineTab("special");
+if (tabSpecial) tabSpecial.onclick = () => switchTaskTab("special");
+/* ================= BOOST BUTTON BINDINGS ================= */
+
+if (upgradeBoostX2Btn) {
+  upgradeBoostX2Btn.onclick = () => {
+    if (upgradeBoostX2Btn.disabled) return;
+    activateBoostX2();
+  };
+}
+
+if (upgradeMultitapBtn) {
+  upgradeMultitapBtn.onclick = () => {
+    if (upgradeMultitapBtn.disabled) return;
+    upgradeMultitap();
+  };
+}
+
+if (upgradeEnergyLimitBtn) {
+  upgradeEnergyLimitBtn.onclick = () => {
+    if (upgradeEnergyLimitBtn.disabled) return;
+    upgradeEnergyLimit();
+  };
+}
+
+if (upgradeRechargingSpeedBtn) {
+  upgradeRechargingSpeedBtn.onclick = () => {
+    if (upgradeRechargingSpeedBtn.disabled) return;
+    upgradeRechargingSpeed();
+  };
+}
 
 async function loadDailyCombo() {
   try {
@@ -3363,38 +3692,18 @@ async function loadDailyCombo() {
   }
 }
 
-  /* ================= PROFIT UPGRADE ================= */
-  if (upgradeProfitBtn) {
-    upgradeProfitBtn.onclick = async () => {
-      try {
-        const res = await fetch("/upgrade-profit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telegramId, initData })
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          loadUser();
-        } else {
-          alert(data.message || "Not enough coins");
-        }
-      } catch (e) {
-        console.log("Upgrade profit error", e);
-      }
-    };
-  }
-
   /* ================= BOOST OPEN/CLOSE ================= */
   const openBoostBtn = document.getElementById("openBoost");
   const backBtn = document.getElementById("backBtn");
 
-  if (openBoostBtn) {
-    openBoostBtn.onclick = () => {
-      if (earnSection) earnSection.style.display = "none";
-      if (boostSection) boostSection.style.display = "block";
-    };
-  }
+  if (openBoost) {
+  openBoost.onclick = () => {
+    earnSection.style.display = "none";
+    boostSection.style.display = "block";
+    renderBoostSectionUI();
+    startBoostX2Timer();
+  };
+}
 
   if (backBtn) {
     backBtn.onclick = () => {
