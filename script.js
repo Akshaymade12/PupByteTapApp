@@ -1623,6 +1623,45 @@ function startBoostX2Timer() {
     renderBoostSectionUI();
   }, 1000);
 }
+
+/* ================= Watch ADS TIMER  ================= */
+  
+ function startRewardAdCooldownTimer() {
+  if (rewardedAdInterval) {
+    clearInterval(rewardedAdInterval);
+    rewardedAdInterval = null;
+  }
+
+  if (!appState.rewardedAds) return;
+
+  if ((appState.rewardedAds.cooldownLeftMs || 0) <= 0) {
+    renderRewardAdUI();
+    return;
+  }
+
+  rewardedAdInterval = setInterval(() => {
+    if (!appState.rewardedAds) {
+      clearInterval(rewardedAdInterval);
+      rewardedAdInterval = null;
+      return;
+    }
+
+    appState.rewardedAds.cooldownLeftMs = Math.max(
+      0,
+      (appState.rewardedAds.cooldownLeftMs || 0) - 1000
+    );
+
+    renderRewardAdUI();
+
+    if (appState.rewardedAds.cooldownLeftMs <= 0) {
+      clearInterval(rewardedAdInterval);
+      rewardedAdInterval = null;
+
+      appState.rewardedAds.cooldownLeftMs = 0;
+      renderRewardAdUI();
+    }
+  }, 1000);
+ }
   
 /* ================= START MY TEAM COUNTDOWN ================= */
   
