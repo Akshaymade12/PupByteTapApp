@@ -3841,10 +3841,8 @@ app.post("/upgrade-power-surge", async (req, res) => {
 
     await finalizePowerSurgeUpgrade(user);
 
-    const cost = applyLegalAdvisoryDiscount(
-      getPowerSurgeCost(level),
-      user.legalAdvisory?.level || 1
-    );
+    const level = user.powerSurge.level || 1;
+
     if (level >= 20) {
       return res.json({ success: false, message: "Max level reached" });
     }
@@ -3853,7 +3851,11 @@ app.post("/upgrade-power-surge", async (req, res) => {
       return res.json({ success: false, message: "Upgrade already in progress" });
     }
 
-    const cost = getPowerSurgeCost(level);
+    const cost = applyLegalAdvisoryDiscount(
+      getPowerSurgeCost(level),
+      user.legalAdvisory?.level || 1
+    );
+
     const baseUpgradeTime = getPowerSurgeUpgradeTime(level);
     const upgradeTime =
       typeof applyComplianceReduction === "function"
@@ -3879,9 +3881,9 @@ app.post("/upgrade-power-surge", async (req, res) => {
         upgrading: true,
         currentBoost: getPowerSurgeBoost(user.powerSurge.level),
         recoveryMultiplier: (() => {
-  const baseRecovery = getPowerSurgeRecoveryMultiplier(user.powerSurge.level);
-  return baseRecovery * (1 + getNeuralSyncBoost(user.neuralSync?.level || 1) / 100);
-})(),
+          const baseRecovery = getPowerSurgeRecoveryMultiplier(user.powerSurge.level);
+          return baseRecovery * (1 + getNeuralSyncBoost(user.neuralSync?.level || 1) / 100);
+        })(),
         nextBoost:
           user.powerSurge.level >= 20
             ? getPowerSurgeBoost(user.powerSurge.level)
