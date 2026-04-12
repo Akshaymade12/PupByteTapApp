@@ -372,6 +372,10 @@ button:active {
   display: block;
 }
 
+.skill-mine-card {
+    min-height: 270px;
+}
+
 .skills-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -450,14 +454,20 @@ button:active {
 }
 
 @media (max-width: 420px) {
-  .skills-grid {
-    grid-template-columns: 1fr 1fr;
+  .mine-grid {
     gap: 12px;
   }
 
-  .skill-card {
-    min-height: 235px;
-    padding: 14px 12px;
+.skill-mine-card {
+  min-height: 290px;
+}
+
+.small-value {
+  font-size: 38px;
+  }
+
+  .small-value {
+    font-size: 32px;
   }
 
   .skill-name {
