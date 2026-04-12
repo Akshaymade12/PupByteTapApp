@@ -340,7 +340,91 @@ button:active {
   cursor: not-allowed;
 }
 
-/* ================= TASKS ================= */
+/* ================= SKILLS SECTION ================= */
+#skillsSection {
+  padding-bottom: 110px;
+}
+
+.skills-tabs-wrap {
+  margin: 8px 0 16px;
+}
+
+.skills-tabs {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.skills-tab {
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: 18px;
+  padding: 12px 10px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #32d8ff, #d400ff);
+  box-shadow: 0 0 20px rgba(88, 216, 255, 0.22);
+}
+
+.skills-panel {
+  display: block;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.skill-card {
+  min-height: 250px;
+  border-radius: 24px;
+  padding: 16px 14px;
+  background: linear-gradient(180deg, rgba(48,38,83,0.96), rgba(29,23,54,0.98));
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 0 18px rgba(0,0,0,0.26);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.skill-icon-box {
+  width: 82px;
+  height: 82px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.skill-icon {
+  width: 58px !important;
+  height: 58px !important;
+  object-fit: contain !important;
+  display: block;
+  max-width: 58px !important;
+  max-height: 58px !important;
+}
+
+.skill-info {
+  width: 100%;
+}
+
+.skill-name {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.skill-level,
 .skill-meta {
   margin-top: 6px;
   font-size: 14px;
@@ -357,12 +441,40 @@ button:active {
 
 .skill-upgrade-btn {
   width: 100%;
-  margin-top: 14px;
+  margin-top: auto;
   border: none;
   border-radius: 14px;
   padding: 10px 12px;
   font-size: 15px;
   font-weight: 800;
+}
+
+@media (max-width: 420px) {
+  .skills-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .skill-card {
+    min-height: 235px;
+    padding: 14px 12px;
+  }
+
+  .skill-name {
+    font-size: 16px;
+  }
+
+  .skill-icon-box {
+    width: 74px;
+    height: 74px;
+  }
+
+  .skill-icon {
+    width: 52px !important;
+    height: 52px !important;
+    max-width: 52px !important;
+    max-height: 52px !important;
+  }
 }
 
 /* ================= TASKS ================= */
