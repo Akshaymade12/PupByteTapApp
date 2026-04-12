@@ -2564,7 +2564,7 @@ async function applyOfflineMining(user) {
 if (seconds > 0) {
   normalizeOfflineYield(user);
 
-  let offlineCoins = Math.floor((user.profitPerHour / 3600) * seconds);
+  offlineCoins = Math.floor((user.profitPerHour / 3600) * seconds);
 
   const offlineYieldPercent = getOfflineYieldBoost(user.offlineYield?.level || 0);
   offlineCoins = Math.floor(
@@ -2581,6 +2581,7 @@ if (seconds > 0) {
 }
 
 return offlineCoins;
+}
 
 /* ================= OFFLINE AUTO TAP ================= */
 
