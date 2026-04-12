@@ -48,6 +48,11 @@ const criticalStrikeCostText = document.getElementById("criticalStrikeCostText")
   const upgradeAutoTapBotBtn = document.getElementById("upgradeAutoTapBotBtn");
 const autoTapBotCostText = document.getElementById("autoTapBotCostText");
 const autoTapBotStatusText = document.getElementById("autoTapBotStatusText");
+
+  const upgradeOfflineYieldBtn = document.getElementById("upgradeOfflineYieldBtn");
+const offlineYieldLevelText = document.getElementById("offlineYieldLevelText");
+const offlineYieldValueText = document.getElementById("offlineYieldValueText");
+const offlineYieldCostText = document.getElementById("offlineYieldCostText");
   
   const watchAdBtn = document.getElementById("watchAdBtn");
 const rewardAdLimitText = document.getElementById("rewardAdLimitText");
@@ -135,6 +140,12 @@ let appState = {
     durationHours: 12,
     endTime: null
   },
+
+  offlineYield: {
+  level: 0,
+  boostPercent: 0,
+  nextCost: 1500
+},
   
   futuresTrading: {
   level: 1,
@@ -497,6 +508,7 @@ appState.boostX2 = data.boostX2 || appState.boostX2;
 appState.freeTapDaily = data.freeTapDaily || appState.freeTapDaily;
 appState.freeEnergyDaily = data.freeEnergyDaily || appState.freeEnergyDaily;
 appState.autoTapBot = data.autoTapBot || appState.autoTapBot;
+appState.offlineYield = data.offlineYield || appState.offlineYield;
 
 appState.criticalStrike = data.criticalStrike || appState.criticalStrike;
       
@@ -510,6 +522,7 @@ renderFreeEnergyDailyUI();
 renderAutoTapBotUI();
 startAutoTapBotTimer();
 renderCriticalStrikeUI();
+renderOfflineYieldUI();
       
 loadDailyCombo();
     } catch (e) {
@@ -4176,30 +4189,61 @@ if (skillsTabEconomy) skillsTabEconomy.onclick = () => openSkillsTab("economy");
 if (skillsTabAutomation) skillsTabAutomation.onclick = () => openSkillsTab("automation");
 if (skillsTabRewards) skillsTabRewards.onclick = () => openSkillsTab("rewards");
 
-/* ================= OFFLINE YIELD UI TEST ================= */
-
-const offlineYieldLevelText = document.getElementById("offlineYieldLevelText");
-const offlineYieldValueText = document.getElementById("offlineYieldValueText");
-const offlineYieldCostText = document.getElementById("offlineYieldCostText");
+/* ================= OFFLINE YIELD UI ================= */
 
 function renderOfflineYieldUI() {
-  const level = 0;
+  const skill = appState.offlineYield || {
+    level: 0,
+    boostPercent: 0,
+    nextCost: 1500
+  };
 
   if (offlineYieldLevelText) {
-    offlineYieldLevelText.innerText = `lvl ${level}`;
+    offlineYieldLevelText.innerText = `lvl ${skill.level || 0}`;
   }
 
   if (offlineYieldValueText) {
-    offlineYieldValueText.innerText = `+${level * 10}%`;
+    offlineYieldValueText.innerText = `+${skill.boostPercent || 0}%`;
   }
 
   if (offlineYieldCostText) {
-    offlineYieldCostText.innerText = `${1500}`;
+    offlineYieldCostText.innerText =
+      skill.level >= 20 ? "MAX" : `${skill.nextCost || 0}`;
+  }
+
+  if (upgradeOfflineYieldBtn) {
+    upgradeOfflineYieldBtn.disabled = skill.level >= 20;
   }
 }
 
-renderOfflineYieldUI();
-  
+/* ================= OFFLINE YIELD HANDLE ================= */
+
+  if (upgradeOfflineYieldBtn) {
+  upgradeOfflineYieldBtn.onclick = async () => {
+    try {
+      const res = await fetch("/upgrade-offline-yield", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId, initData })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        coinsEl.innerText = Math.floor(data.coins || 0);
+        appState.offlineYield = data.offlineYield || appState.offlineYield;
+        renderOfflineYieldUI();
+        loadUser();
+      } else {
+        alert(data.message || "Upgrade failed");
+      }
+    } catch (e) {
+      console.log("upgrade offline yield error", e);
+      alert("Server error");
+    }
+  };
+  }
+ 
 /* ================= BOOST BUTTON BINDINGS ================= */
 
 if (upgradeBoostX2Btn) {
