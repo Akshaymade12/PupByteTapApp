@@ -295,154 +295,118 @@
   </div>
 
   <!-- TAP -->
-  <div id="skillsTapPanel" class="skills-panel">
-    <div class="skills-grid">
+<div id="skillsTapPanel" class="skills-panel">
+  <div class="mine-cards-grid">
 
-      <div class="skills-card-pro" id="criticalStrikeCard">
-        <div class="skills-card-left">
-          <div class="skills-icon-wrap">
-            <img src="images/skills/critical-tap.png" class="skill-icon-pro" alt="Critical Strike">
-          </div>
-
-          <div class="skills-content">
-            <div class="skills-title-row">
-              <div class="skills-title-pro">Critical Strike</div>
-              <div class="skill-level-badge" id="criticalStrikeLevelText">lvl 0</div>
-            </div>
-
-            <div class="skills-subtitle-pro">Critical hit chance and tap burst</div>
-
-            <div class="skills-stats-row">
-              <div class="skills-stat-box">
-                <div class="skills-stat-label">Chance</div>
-                <div class="skills-stat-value" id="criticalStrikeChanceText">0%</div>
-              </div>
-
-              <div class="skills-stat-box">
-                <div class="skills-stat-label">Multiplier</div>
-                <div class="skills-stat-value" id="criticalStrikeMultiplierText">x2</div>
-              </div>
-            </div>
+    <div class="mine-card-box" id="criticalStrikeCard">
+      <div class="mine-card-top">
+        <div class="mine-card-left">
+          <img src="images/skills/critical-tap.png" alt="Critical Strike" class="mine-card-icon">
+          <div class="mine-card-title-wrap">
+            <h3 class="mine-card-title">Critical Strike</h3>
+            <div class="mine-card-subtitle">Critical hit chance and tap burst</div>
           </div>
         </div>
-
-        <div class="skills-card-right">
-          <div class="skills-cost-pro" id="criticalStrikeCostText">1000</div>
-          <button class="skills-upgrade-btn-pro" id="upgradeCriticalStrikeBtn">Upgrade</button>
-        </div>
+        <div class="mine-card-level" id="criticalStrikeLevelText">lvl 0</div>
       </div>
 
+      <div class="mine-card-profit-label">Chance</div>
+      <div class="mine-card-profit-value" id="criticalStrikeChanceText">0%</div>
+
+      <div class="mine-card-profit-label">Multiplier</div>
+      <div class="mine-card-profit-value" id="criticalStrikeMultiplierText">x2</div>
+
+      <div class="mine-card-bottom">
+        <div class="mine-card-cost">🪙 <span id="criticalStrikeCostText">1000</span></div>
+        <button class="mine-card-upgrade-btn" id="upgradeCriticalStrikeBtn">Upgrade</button>
+      </div>
     </div>
+
   </div>
+</div>
 
   <!-- ECONOMY -->
-  <div id="skillsEconomyPanel" class="skills-panel" style="display:none;">
-    <div class="skills-grid">
+<div id="skillsEconomyPanel" class="skills-panel" style="display:none;">
+  <div class="mine-cards-grid">
 
-      <div class="skills-card-pro" id="offlineYieldCard">
-        <div class="skills-card-left">
-          <div class="skills-icon-wrap">
-            <img src="images/skills/offline-boost.png" class="skill-icon-pro" alt="Offline Yield">
-          </div>
-
-          <div class="skills-content">
-            <div class="skills-title-row">
-              <div class="skills-title-pro">Offline Yield</div>
-              <div class="skills-level-badge" id="offlineYieldLevelText">lvl 0</div>
-            </div>
-
-            <div class="skills-subtitle-pro">Earn coins while offline</div>
-
-            <div class="skills-stats-row">
-              <div class="skills-stat-box">
-                <div class="skills-stat-label">Offline Boost</div>
-                <div class="skills-stat-value" id="offlineYieldValueText">+0%</div>
-              </div>
-            </div>
+    <div class="mine-card-box" id="offlineYieldCard">
+      <div class="mine-card-top">
+        <div class="mine-card-left">
+          <img src="images/skills/offline-boost.png" alt="Offline Yield" class="mine-card-icon">
+          <div class="mine-card-title-wrap">
+            <h3 class="mine-card-title">Offline Yield</h3>
+            <div class="mine-card-subtitle">Earn coins while offline</div>
           </div>
         </div>
-
-        <div class="skills-card-right">
-          <div class="skills-cost-pro" id="offlineYieldCostText">1500</div>
-          <button class="skills-upgrade-btn-pro" id="upgradeOfflineYieldBtn">Upgrade</button>
-        </div>
+        <div class="mine-card-level" id="offlineYieldLevelText">lvl 0</div>
       </div>
 
-    </div>
-  </div>
+      <div class="mine-card-profit-label">Offline Boost</div>
+      <div class="mine-card-profit-value" id="offlineYieldValueText">+0%</div>
 
+      <div class="mine-card-bottom">
+        <div class="mine-card-cost">🪙 <span id="offlineYieldCostText">1500</span></div>
+        <button class="mine-card-upgrade-btn" id="upgradeOfflineYieldBtn">Upgrade</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+  
   <!-- AUTOMATION -->
-  <div id="skillsAutomationPanel" class="skills-panel" style="display:none;">
-    <div class="skills-grid">
+<div id="skillsAutomationPanel" class="skills-panel" style="display:none;">
+  <div class="mine-cards-grid">
 
-      <div class="skills-card-pro">
-        <div class="skills-card-left">
-          <div class="skills-icon-wrap">
-            <img src="images/skills/bot-efficiency.png" class="skills-icon-pro" alt="Bot Optimization">
-          </div>
-
-          <div class="skills-content">
-            <div class="skills-title-row">
-              <div class="skills-title-pro">Bot Optimization</div>
-              <div class="skills-level-badge">lvl 0</div>
-            </div>
-
-            <div class="skills-subtitle-pro">Improve auto bot output</div>
-
-            <div class="skills-stats-row">
-              <div class="skills-stat-box">
-                <div class="skills-stat-label">Status</div>
-                <div class="skills-stat-value">Soon</div>
-              </div>
-            </div>
+    <div class="mine-card-box">
+      <div class="mine-card-top">
+        <div class="mine-card-left">
+          <img src="images/skills/bot-efficiency.png" alt="Bot Optimization" class="mine-card-icon">
+          <div class="mine-card-title-wrap">
+            <h3 class="mine-card-title">Bot Optimization</h3>
+            <div class="mine-card-subtitle">Improve auto bot output</div>
           </div>
         </div>
-
-        <div class="skills-card-right">
-          <div class="skills-cost-pro">--</div>
-          <button class="skills-upgrade-btn-pro" disabled>Locked</button>
-        </div>
+        <div class="mine-card-level">lvl 0</div>
       </div>
 
+      <div class="mine-card-profit-label">Status</div>
+      <div class="mine-card-profit-value">Soon</div>
+
+      <div class="mine-card-bottom">
+        <div class="mine-card-cost">🪙 <span>--</span></div>
+        <button class="mine-card-upgrade-btn" disabled>Locked</button>
+      </div>
     </div>
+
   </div>
+</div>
 
   <!-- REWARDS -->
   <div id="skillsRewardsPanel" class="skills-panel" style="display:none;">
-    <div class="skills-grid">
+  <div class="mine-cards-grid">
 
-      <div class="skills-card-pro">
-        <div class="skills-card-left">
-          <div class="skills-icon-wrap">
-            <img src="images/skills/daily.png" class="skills-icon-pro" alt="Daily Amplifier">
-          </div>
-
-          <div class="skills-content">
-            <div class="skills-title-row">
-              <div class="skills-title-pro">Daily Amplifier</div>
-              <div class="skills-level-badge">lvl 0</div>
-            </div>
-
-            <div class="skills-subtitle-pro">Boost daily rewards</div>
-
-            <div class="skills-stats-row">
-              <div class="skills-stat-box">
-                <div class="skills-stat-label">Status</div>
-                <div class="skills-stat-value">Soon</div>
-              </div>
-            </div>
+    <div class="mine-card-box">
+      <div class="mine-card-top">
+        <div class="mine-card-left">
+          <img src="images/skills/daily.png" alt="Daily Amplifier" class="mine-card-icon">
+          <div class="mine-card-title-wrap">
+            <h3 class="mine-card-title">Daily Amplifier</h3>
+            <div class="mine-card-subtitle">Boost daily rewards</div>
           </div>
         </div>
-
-        <div class="skills-card-right">
-          <div class="skills-cost-pro">--</div>
-          <button class="skills-upgrade-btn-pro" disabled>Locked</button>
-        </div>
+        <div class="mine-card-level">lvl 0</div>
       </div>
 
-    </div>
-  </div>
+      <div class="mine-card-profit-label">Status</div>
+      <div class="mine-card-profit-value">Soon</div>
 
+      <div class="mine-card-bottom">
+        <div class="mine-card-cost">🪙 <span>--</span></div>
+        <button class="mine-card-upgrade-btn" disabled>Locked</button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
   <!-- ================= CASHIER SECTION ================= -->
