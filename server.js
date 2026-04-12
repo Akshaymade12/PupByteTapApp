@@ -2552,6 +2552,7 @@ function getOfflineYieldState(user) {
 }
 
 /* ================= OFFLINE ================= */
+
 async function applyOfflineMining(user) {
   rechargeEnergy(user);
   user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
@@ -2561,26 +2562,26 @@ async function applyOfflineMining(user) {
 
   let offlineCoins = 0;
 
-if (seconds > 0) {
-  normalizeOfflineYield(user);
+  if (seconds > 0) {
+    normalizeOfflineYield(user);
 
-  offlineCoins = Math.floor((user.profitPerHour / 3600) * seconds);
+    offlineCoins = Math.floor((user.profitPerHour / 3600) * seconds);
 
-  const offlineYieldPercent = getOfflineYieldBoost(user.offlineYield?.level || 0);
-  offlineCoins = Math.floor(
-    offlineCoins + (offlineCoins * offlineYieldPercent / 100)
-  );
+    const offlineYieldPercent = getOfflineYieldBoost(user.offlineYield?.level || 0);
+    offlineCoins = Math.floor(
+      offlineCoins + (offlineCoins * offlineYieldPercent / 100)
+    );
 
-  if (offlineCoins > 0) {
-    user.coins += offlineCoins;
+    if (offlineCoins > 0) {
+      user.coins += offlineCoins;
+    }
+
+    user.lastActive = now;
+    user.league = getLeague(user.coins);
+    await user.save();
   }
 
-  user.lastActive = now;
-  user.league = getLeague(user.coins);
-  await user.save();
-}
-
-return offlineCoins;
+  return offlineCoins;
 }
 
 /* ================= OFFLINE AUTO TAP ================= */
