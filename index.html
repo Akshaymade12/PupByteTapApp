@@ -327,19 +327,34 @@
     </div>
 
     <!-- ECONOMY -->
-    <div id="skillsEconomyPanel" class="skills-panel" style="display:none;">
-      <div class="mine-grid">
-        <div class="mine-card skill-mine-card">
-          <div class="mine-card-top">
-            <img src="images/skills/offline-boost.png" class="mine-card-icon" alt="Offline Yield">
-            <div class="mine-level-badge">lvl 0</div>
-          </div>
-          <div class="mine-card-title">Offline Yield</div>
-          <div class="mine-card-subtitle">Passive rewards while offline</div>
-        </div>
+<div id="skillsEconomyPanel" class="skills-panel" style="display:none;">
+  
+  <div class="mine-grid">
+
+    <div class="mine-card skill-mine-card" id="offlineYieldCard">
+
+      <div class="mine-card-top">
+        <img src="images/skills/offline-boost.png" class="mine-card-icon" alt="Offline Yield">
+        <div class="mine-level-badge" id="offlineYieldLevelText">lvl 0</div>
       </div>
+
+      <div class="mine-card-title">Offline Yield</div>
+      <div class="mine-card-subtitle">Earn coins while offline</div>
+
+      <div class="mine-profit-label">Offline Boost</div>
+      <div class="mine-profit-value" id="offlineYieldValueText">+0%</div>
+
+      <div class="mine-card-bottom">
+        <div class="mine-cost" id="offlineYieldCostText">1500</div>
+        <button class="mine-upgrade-btn" id="upgradeOfflineYieldBtn">Upgrade</button>
+      </div>
+
     </div>
 
+  </div>
+
+</div>
+    
     <!-- AUTOMATION -->
     <div id="skillsAutomationPanel" class="skills-panel" style="display:none;">
       <div class="mine-grid">
