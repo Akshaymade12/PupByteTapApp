@@ -340,7 +340,7 @@ button:active {
   cursor: not-allowed;
 }
 
-/* ================= SKILLS PAGE ================= */
+/* ================= SKILLS PAGE MINE STYLE ================= */
 
 .skills-page-header {
   display: flex;
@@ -377,7 +377,7 @@ button:active {
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   padding: 10px;
-  border-radius: 26px;
+  border-radius: 24px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.08);
   box-shadow: 0 0 18px rgba(0, 180, 255, 0.08);
@@ -386,10 +386,10 @@ button:active {
 .skills-tab {
   border: none;
   outline: none;
+  padding: 14px 8px;
+  border-radius: 18px;
   background: transparent;
   color: #fff;
-  padding: 16px 10px;
-  border-radius: 18px;
   font-size: 16px;
   font-weight: 800;
   box-shadow: none;
@@ -404,145 +404,19 @@ button:active {
   margin-top: 16px;
 }
 
-.skills-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+@media (max-width: 640px) {
+  .skills-page-title {
+    font-size: 22px;
+  }
 
-.skill-card-pro {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 18px;
-  border-radius: 24px;
-  background: linear-gradient(180deg, rgba(28,24,58,0.98), rgba(9,8,35,0.98));
-  border: 1px solid rgba(255,255,255,0.07);
-  box-shadow: 0 0 18px rgba(0,0,0,0.24);
-}
+  .skills-tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-.skill-card-left {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  flex: 1;
-  min-width: 0;
-}
-
-.skill-icon-wrap {
-  width: 72px;
-  height: 72px;
-  min-width: 72px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.skill-icon-pro {
-  width: 52px;
-  height: 52px;
-  object-fit: contain;
-  display: block;
-}
-
-.skill-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.skill-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.skill-title-pro {
-  color: #fff;
-  font-size: 22px;
-  font-weight: 900;
-  line-height: 1.2;
-}
-
-.skill-level-badge {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.skill-subtitle-pro {
-  margin-top: 6px;
-  color: rgba(255,255,255,0.68);
-  font-size: 14px;
-  line-height: 1.35;
-}
-
-.skill-stats-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
-
-.skill-stat-box {
-  min-width: 110px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.04);
-}
-
-.skill-stat-label {
-  color: rgba(255,255,255,0.58);
-  font-size: 12px;
-  margin-bottom: 4px;
-}
-
-.skill-stat-value {
-  color: #fff;
-  font-size: 24px;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.skill-card-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
-  min-width: 120px;
-}
-
-.skill-cost-pro {
-  color: #ffd86b;
-  font-size: 24px;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.skill-upgrade-btn-pro {
-  border: none;
-  outline: none;
-  min-width: 120px;
-  padding: 12px 18px;
-  border-radius: 18px;
-  background: linear-gradient(90deg, #37d7ff, #d000ff);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 800;
-  box-shadow: 0 0 18px rgba(55,215,255,0.24);
-}
-
-.skill-upgrade-btn-pro:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+  .skills-tab {
+    font-size: 15px;
+    padding: 14px 8px;
+  }
 }
 
 /* ================= MOBILE ================= */
