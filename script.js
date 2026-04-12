@@ -1839,9 +1839,9 @@ function startBoostX2Timer() {
   }, 1000);
 }
 
-/* ================= CRITICAL STRIKE  ================= */
+/* ================= CRITICAL STRIKE UI ================= */
 
-  function renderCriticalStrikeUI() {
+function renderCriticalStrikeUI() {
   const skill = appState.criticalStrike || {
     level: 0,
     chance: 0,
@@ -1850,26 +1850,26 @@ function startBoostX2Timer() {
   };
 
   if (criticalStrikeLevelText) {
-    criticalStrikeLevelText.innerText = `Level ${skill.level || 0}`;
+    criticalStrikeLevelText.innerText = `lvl ${skill.level || 0}`;
   }
 
   if (criticalStrikeChanceText) {
-    criticalStrikeChanceText.innerText = `Chance: ${skill.chance || 0}%`;
+    criticalStrikeChanceText.innerText = `${skill.chance || 0}%`;
   }
 
   if (criticalStrikeMultiplierText) {
-    criticalStrikeMultiplierText.innerText = `Multiplier: x${skill.multiplier || 2}`;
+    criticalStrikeMultiplierText.innerText = `x${skill.multiplier || 2}`;
   }
 
   if (criticalStrikeCostText) {
     criticalStrikeCostText.innerText =
-      skill.level >= 20 ? "Max Level" : `Cost: ${skill.nextCost || 0}`;
+      skill.level >= 20 ? "MAX" : `${skill.nextCost || 0}`;
   }
 
   if (upgradeCriticalStrikeBtn) {
     upgradeCriticalStrikeBtn.disabled = skill.level >= 20;
   }
-  }
+}
   
 /* ================= Watch ADS TIMER  ================= */
   
@@ -4128,6 +4128,54 @@ if (mineTabMarket) mineTabMarket.onclick = () => switchMineTab("market");
 if (mineTabTeam) mineTabTeam.onclick = () => switchMineTab("team");
 if (mineTabLegal) mineTabLegal.onclick = () => switchMineTab("legal");
 if (mineTabSpecial) mineTabSpecial.onclick = () => switchMineTab("special");
+
+/* ================= SKILLS TAB SWITCHING ================= */
+
+const skillsTabTap = document.getElementById("skillsTabTap");
+const skillsTabEconomy = document.getElementById("skillsTabEconomy");
+const skillsTabAutomation = document.getElementById("skillsTabAutomation");
+const skillsTabRewards = document.getElementById("skillsTabRewards");
+
+const skillsTapPanel = document.getElementById("skillsTapPanel");
+const skillsEconomyPanel = document.getElementById("skillsEconomyPanel");
+const skillsAutomationPanel = document.getElementById("skillsAutomationPanel");
+const skillsRewardsPanel = document.getElementById("skillsRewardsPanel");
+
+function openSkillsTab(tabName) {
+  [skillsTabTap, skillsTabEconomy, skillsTabAutomation, skillsTabRewards].forEach(btn => {
+    if (btn) btn.classList.remove("active");
+  });
+
+  [skillsTapPanel, skillsEconomyPanel, skillsAutomationPanel, skillsRewardsPanel].forEach(panel => {
+    if (panel) panel.style.display = "none";
+  });
+
+  if (tabName === "tap") {
+    skillsTabTap?.classList.add("active");
+    if (skillsTapPanel) skillsTapPanel.style.display = "block";
+  }
+
+  if (tabName === "economy") {
+    skillsTabEconomy?.classList.add("active");
+    if (skillsEconomyPanel) skillsEconomyPanel.style.display = "block";
+  }
+
+  if (tabName === "automation") {
+    skillsTabAutomation?.classList.add("active");
+    if (skillsAutomationPanel) skillsAutomationPanel.style.display = "block";
+  }
+
+  if (tabName === "rewards") {
+    skillsTabRewards?.classList.add("active");
+    if (skillsRewardsPanel) skillsRewardsPanel.style.display = "block";
+  }
+}
+
+if (skillsTabTap) skillsTabTap.onclick = () => openSkillsTab("tap");
+if (skillsTabEconomy) skillsTabEconomy.onclick = () => openSkillsTab("economy");
+if (skillsTabAutomation) skillsTabAutomation.onclick = () => openSkillsTab("automation");
+if (skillsTabRewards) skillsTabRewards.onclick = () => openSkillsTab("rewards");
+  
 /* ================= BOOST BUTTON BINDINGS ================= */
 
 if (upgradeBoostX2Btn) {
