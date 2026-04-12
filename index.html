@@ -26,169 +26,162 @@
     <div class="glass-card">👛 Connect Wallet</div>
   </div>
 
-<!-- ================= EARN SECTION ================= -->
-<div id="earnSection">
-  <div class="coin-wrapper">
-    <div class="coin-circle">
-      <button id="tapBtn" class="tap-button">
-        <img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/taplogo.png" class="main-coin">
-      </button>
-    </div>
-  </div>
-
-  <div class="energy-row">
-    <div>⚡ <span id="energy">100/120</span></div>
-    <button id="openBoost" class="boost-btn">🔥 Boost</button>
-  </div>
-
-  <!-- ✅ YAHAN PASTE KARNA HAI -->
-  <div class="reward-ad-card">
-    <div class="reward-ad-left">
-      <div class="reward-ad-icon">🎥</div>
-      <div>
-        <div class="reward-ad-title">Watch Ad</div>
-        <div class="reward-ad-subtitle">Earn 1000 coins instantly</div>
+  <!-- ================= EARN SECTION ================= -->
+  <div id="earnSection">
+    <div class="coin-wrapper">
+      <div class="coin-circle">
+        <button id="tapBtn" class="tap-button">
+          <img src="https://raw.githubusercontent.com/Akshaymade12/PupByteTapApp/main/taplogo.png" class="main-coin">
+        </button>
       </div>
     </div>
-    <button class="reward-ad-btn" id="watchAdBtn">Watch</button>
+
+    <div class="energy-row">
+      <div>⚡ <span id="energy">100/120</span></div>
+      <button id="openBoost" class="boost-btn">🔥 Boost</button>
+    </div>
+
+    <div class="reward-ad-card">
+      <div class="reward-ad-left">
+        <div class="reward-ad-icon">🎥</div>
+        <div>
+          <div class="reward-ad-title">Watch Ad</div>
+          <div class="reward-ad-subtitle">Earn 1000 coins instantly</div>
+        </div>
+      </div>
+      <button class="reward-ad-btn" id="watchAdBtn">Watch</button>
+    </div>
+
+    <div class="reward-ad-limit" id="rewardAdLimitText">
+      Remaining: 5/5 today
+    </div>
   </div>
 
-  <div class="reward-ad-limit" id="rewardAdLimitText">
-    Remaining: 5/5 today
-  </div>
-
-</div>
-  
   <!-- ================= MINE SECTION ================= -->
-<div id="mineSection" style="display:none;">
+  <div id="mineSection" style="display:none;">
 
-  <!-- DAILY COMBO BRACKET -->
-  <div class="daily-combo-wrap">
-    <div class="daily-combo-top">
-      <h3>Daily Combo</h3>
-      <button id="claimBtn" class="combo-claim-btn">+5,000,000</button>
+    <div class="daily-combo-wrap">
+      <div class="daily-combo-top">
+        <h3>Daily Combo</h3>
+        <button id="claimBtn" class="combo-claim-btn">+5,000,000</button>
+      </div>
+
+      <div id="combo" class="combo-box"></div>
     </div>
 
-    <div id="combo" class="combo-box"></div>
-  </div>
-
-  <!-- SECTION TABS -->
-  <div class="mine-tabs-wrap">
-    <div class="mine-tabs">
-      <button id="mineTabMarket" class="mine-tab active">Market</button>
-      <button id="mineTabTeam" class="mine-tab">Team</button>
-      <button id="mineTabLegal" class="mine-tab">Legal</button>
-      <button id="mineTabSpecial" class="mine-tab">Special</button>
-    </div>
-  </div>
-
-  <!-- TAB CONTENT PLACEHOLDER -->
-  <div id="mineTabContent" class="mine-tab-content">
-    <div class="mine-placeholder-card">Market section</div>
-    <div class="mine-placeholder-card">Team section</div>
-    <div class="mine-placeholder-card">Legal section</div>
-    <div class="mine-placeholder-card">Special section</div>
-  </div>
-
-</div>
-
-<!-- ================= TASKS SECTION ================= -->
-  
-<div id="tasksSection" style="display:none;">
-
-  <div class="task-tabs-wrap">
-    <div class="task-tabs">
-      <button id="tabSpecial" class="task-tab active">Special</button>
-      <button id="tabLeague" class="task-tab">League</button>
-      <button id="tabRef" class="task-tab">Ref</button>
-    </div>
-  </div>
-
-  <!-- SPECIAL TAB -->
-  <div id="specialTabContent" class="task-tab-content">
-
-  <div class="task-card2">
-    <div class="task-left">
-      <div class="task-emoji">📋</div>
-      <div>
-        <h3>Join Our Socials</h3>
-        <p>Reward 5000 Coins</p>
+    <div class="mine-tabs-wrap">
+      <div class="mine-tabs">
+        <button id="mineTabMarket" class="mine-tab active">Market</button>
+        <button id="mineTabTeam" class="mine-tab">Team</button>
+        <button id="mineTabLegal" class="mine-tab">Legal</button>
+        <button id="mineTabSpecial" class="mine-tab">Special</button>
       </div>
     </div>
-    <button id="taskTelegramChannel" class="task-go-btn" onclick="markSpecialTask('telegram_channel', 'https://t.me/PupByteOfficial')">Go</button>
+
+    <div id="mineTabContent" class="mine-tab-content">
+      <div class="mine-placeholder-card">Market section</div>
+      <div class="mine-placeholder-card">Team section</div>
+      <div class="mine-placeholder-card">Legal section</div>
+      <div class="mine-placeholder-card">Special section</div>
+    </div>
+
   </div>
 
-  <div class="task-card2">
-    <div class="task-left">
-      <div class="task-emoji">📋</div>
-      <div>
-        <h3>Follow Instagram</h3>
-        <p>Reward 1000 Coins</p>
+  <!-- ================= TASKS SECTION ================= -->
+  <div id="tasksSection" style="display:none;">
+
+    <div class="task-tabs-wrap">
+      <div class="task-tabs">
+        <button id="tabSpecial" class="task-tab active">Special</button>
+        <button id="tabLeague" class="task-tab">League</button>
+        <button id="tabRef" class="task-tab">Ref</button>
       </div>
     </div>
-    <button id="taskInstagram" class="task-go-btn" onclick="markSpecialTask('instagram', 'https://www.instagram.com/pupbyte_official')">Go</button>
-  </div>
 
-  <div class="task-card2">
-    <div class="task-left">
-      <div class="task-emoji">📋</div>
-      <div>
-        <h3>Follow X</h3>
-        <p>Reward 1000 Coins</p>
+    <!-- SPECIAL TAB -->
+    <div id="specialTabContent" class="task-tab-content">
+
+      <div class="task-card2">
+        <div class="task-left">
+          <div class="task-emoji">📋</div>
+          <div>
+            <h3>Join Our Socials</h3>
+            <p>Reward 5000 Coins</p>
+          </div>
+        </div>
+        <button id="taskTelegramChannel" class="task-go-btn" onclick="markSpecialTask('telegram_channel', 'https://t.me/PupByteOfficial')">Go</button>
       </div>
-    </div>
-    <button id="taskX" class="task-go-btn" onclick="markSpecialTask('x', 'https://x.com/PupByteCoin')">Go</button>
-  </div>
 
-  <div class="task-card2">
-    <div class="task-left">
-      <div class="task-emoji">📋</div>
-      <div>
-        <h3>Join Discord</h3>
-        <p>Reward 1000 Coins</p>
+      <div class="task-card2">
+        <div class="task-left">
+          <div class="task-emoji">📋</div>
+          <div>
+            <h3>Follow Instagram</h3>
+            <p>Reward 1000 Coins</p>
+          </div>
+        </div>
+        <button id="taskInstagram" class="task-go-btn" onclick="markSpecialTask('instagram', 'https://www.instagram.com/pupbyte_official')">Go</button>
       </div>
-    </div>
-    <button id="taskDiscord" class="task-go-btn" onclick="markSpecialTask('discord', 'https://discord.gg/BU8EazB2Q')">Go</button>
-  </div>
 
-  <div class="task-card2">
-    <div class="task-left">
-      <div class="task-emoji">📋</div>
-      <div>
-        <h3>Join Telegram Group</h3>
-        <p>Reward 1000 Coins</p>
+      <div class="task-card2">
+        <div class="task-left">
+          <div class="task-emoji">📋</div>
+          <div>
+            <h3>Follow X</h3>
+            <p>Reward 1000 Coins</p>
+          </div>
+        </div>
+        <button id="taskX" class="task-go-btn" onclick="markSpecialTask('x', 'https://x.com/PupByteCoin')">Go</button>
       </div>
-    </div>
-    <button id="taskTelegramGroup" class="task-go-btn" onclick="markSpecialTask('telegram_group', 'https://t.me/+D_WSaoaTr2hmYTY1')">Go</button>
-  </div>
 
-  <div class="task-card2">
-    <div class="task-left">
-      <div class="task-emoji">✅</div>
-      <div>
-        <h3>Verify Special Tasks</h3>
-        <p>Claim after all tasks show tick</p>
+      <div class="task-card2">
+        <div class="task-left">
+          <div class="task-emoji">📋</div>
+          <div>
+            <h3>Join Discord</h3>
+            <p>Reward 1000 Coins</p>
+          </div>
+        </div>
+        <button id="taskDiscord" class="task-go-btn" onclick="markSpecialTask('discord', 'https://discord.gg/BU8EazB2Q')">Go</button>
       </div>
+
+      <div class="task-card2">
+        <div class="task-left">
+          <div class="task-emoji">📋</div>
+          <div>
+            <h3>Join Telegram Group</h3>
+            <p>Reward 1000 Coins</p>
+          </div>
+        </div>
+        <button id="taskTelegramGroup" class="task-go-btn" onclick="markSpecialTask('telegram_group', 'https://t.me/+D_WSaoaTr2hmYTY1')">Go</button>
+      </div>
+
+      <div class="task-card2">
+        <div class="task-left">
+          <div class="task-emoji">✅</div>
+          <div>
+            <h3>Verify Special Tasks</h3>
+            <p>Claim after all tasks show tick</p>
+          </div>
+        </div>
+        <button id="specialClaimBtn" class="task-claim-btn" onclick="claimSpecialTask()" disabled>Claim</button>
+      </div>
+
     </div>
-    <button id="specialClaimBtn" class="task-claim-btn" onclick="claimSpecialTask()" disabled>Claim</button>
+
+    <!-- LEAGUE TAB -->
+    <div id="leagueTabContent" class="task-tab-content" style="display:none;">
+      <div id="leagueRewardsList"></div>
+    </div>
+
+    <!-- REF TAB -->
+    <div id="refTabContent" class="task-tab-content" style="display:none;">
+      <div id="refRewardsList"></div>
+    </div>
+
   </div>
 
-</div>
-
-  <!-- LEAGUE TAB -->
-  <div id="leagueTabContent" class="task-tab-content" style="display:none;">
-    <div id="leagueRewardsList"></div>
-  </div>
-
-  <!-- REF TAB -->
-  <div id="refTabContent" class="task-tab-content" style="display:none;">
-    <div id="refRewardsList"></div>
-  </div>
-
-</div>
-  
   <!-- ================= LEAGUE SECTION ================= -->
-  
   <div id="leagueSection" style="display:none;">
     <div class="section-header">
       <button class="back-nav-btn" id="closeLeagueBtn">← Back</button>
@@ -238,19 +231,19 @@
         <span id="accountReferrals">0</span>
       </div>
       <div class="account-item" style="display:block;">
-  <span style="display:block; margin-bottom:8px;">Referral Link:</span>
-  <div style="display:flex; gap:8px; align-items:center;">
-    <input
-      type="text"
-      id="accountRefLink"
-      readonly
-      style="flex:1; padding:10px; border-radius:10px; border:none; outline:none;"
-      value=""
-    />
-    <button id="copyRefBtn" class="upgrade-btn" style="padding:10px 14px;">
-      Copy
-    </button>
-  </div>
+        <span style="display:block; margin-bottom:8px;">Referral Link:</span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input
+            type="text"
+            id="accountRefLink"
+            readonly
+            style="flex:1; padding:10px; border-radius:10px; border:none; outline:none;"
+            value=""
+          />
+          <button id="copyRefBtn" class="upgrade-btn" style="padding:10px 14px;">
+            Copy
+          </button>
+        </div>
       </div>
       <div class="account-item">
         <span>Wallet:</span>
@@ -276,138 +269,139 @@
     </div>
   </div>
 
-<!-- ================= SKILLS SECTION ================= -->
-<div id="skillsSection" style="display:none;">
+  <!-- ================= SKILLS SECTION ================= -->
+  <div id="skillsSection" style="display:none;">
 
-  <div class="skills-page-header">
-    <button id="skillsBackBtn" class="skills-back-btn">← Back</button>
-    <h2 class="skills-page-title">Skills</h2>
-  </div>
-
-  <!-- SKILLS TABS -->
-  <div class="skills-tabs-wrap">
-    <div class="skills-tabs">
-      <button id="skillsTabTap" class="skills-tab active">Tap Mastery</button>
-      <button id="skillsTabEconomy" class="skills-tab">Economy</button>
-      <button id="skillsTabAutomation" class="skills-tab">Automation</button>
-      <button id="skillsTabRewards" class="skills-tab">Rewards</button>
+    <div class="skills-page-header">
+      <button id="skillsBackBtn" class="skills-back-btn">← Back</button>
+      <h2 class="skills-page-title">Skills</h2>
     </div>
-  </div>
 
-  <!-- TAP -->
-<div id="skillsTapPanel" class="skills-panel">
-  <div class="mine-cards-grid">
+    <div class="skills-tabs-wrap">
+      <div class="skills-tabs">
+        <button id="skillTabTap" class="skills-tab active">Tap Mastery</button>
+        <button id="skillTabEconomy" class="skills-tab">Economy</button>
+        <button id="skillTabAutomation" class="skills-tab">Automation</button>
+        <button id="skillTabRewards" class="skills-tab">Rewards</button>
+      </div>
+    </div>
 
-    <div class="mine-card-box" id="criticalStrikeCard">
-      <div class="mine-card-top">
-        <div class="mine-card-left">
-          <img src="images/skills/critical-tap.png" alt="Critical Strike" class="mine-card-icon">
-          <div class="mine-card-title-wrap">
-            <h3 class="mine-card-title">Critical Strike</h3>
-            <div class="mine-card-subtitle">Critical hit chance and tap burst</div>
+    <!-- TAP -->
+    <div id="skillsTapPanel" class="skills-panel">
+      <div class="mine-cards-grid">
+
+        <div class="mine-card-box" id="criticalStrikeCard">
+          <div class="mine-card-top">
+            <div class="mine-card-left">
+              <img src="images/skills/critical-tap.png" alt="Critical Strike" class="mine-card-icon">
+              <div class="mine-card-title-wrap">
+                <h3 class="mine-card-title">Critical Strike</h3>
+                <div class="mine-card-subtitle">Critical hit chance and tap burst</div>
+              </div>
+            </div>
+            <div class="mine-card-level" id="criticalStrikeLevelText">lvl 0</div>
+          </div>
+
+          <div class="mine-card-profit-label">Chance</div>
+          <div class="mine-card-profit-value" id="criticalStrikeChanceText">0%</div>
+
+          <div class="mine-card-profit-label">Multiplier</div>
+          <div class="mine-card-profit-value" id="criticalStrikeMultiplierText">x2</div>
+
+          <div class="mine-card-bottom">
+            <div class="mine-card-cost">🪙 <span id="criticalStrikeCostText">1000</span></div>
+            <button class="mine-card-upgrade-btn" id="upgradeCriticalStrikeBtn">Upgrade</button>
           </div>
         </div>
-        <div class="mine-card-level" id="criticalStrikeLevelText">lvl 0</div>
-      </div>
 
-      <div class="mine-card-profit-label">Chance</div>
-      <div class="mine-card-profit-value" id="criticalStrikeChanceText">0%</div>
-
-      <div class="mine-card-profit-label">Multiplier</div>
-      <div class="mine-card-profit-value" id="criticalStrikeMultiplierText">x2</div>
-
-      <div class="mine-card-bottom">
-        <div class="mine-card-cost">🪙 <span id="criticalStrikeCostText">1000</span></div>
-        <button class="mine-card-upgrade-btn" id="upgradeCriticalStrikeBtn">Upgrade</button>
       </div>
     </div>
 
-  </div>
-</div>
+    <!-- ECONOMY -->
+    <div id="skillsEconomyPanel" class="skills-panel" style="display:none;">
+      <div class="mine-cards-grid">
 
-  <!-- ECONOMY -->
-<div id="skillsEconomyPanel" class="skills-panel" style="display:none;">
-  <div class="mine-cards-grid">
+        <div class="mine-card-box" id="offlineYieldCard">
+          <div class="mine-card-top">
+            <div class="mine-card-left">
+              <img src="images/skills/offline-boost.png" alt="Offline Yield" class="mine-card-icon">
+              <div class="mine-card-title-wrap">
+                <h3 class="mine-card-title">Offline Yield</h3>
+                <div class="mine-card-subtitle">Earn coins while offline</div>
+              </div>
+            </div>
+            <div class="mine-card-level" id="offlineYieldLevelText">lvl 0</div>
+          </div>
 
-    <div class="mine-card-box" id="offlineYieldCard">
-      <div class="mine-card-top">
-        <div class="mine-card-left">
-          <img src="images/skills/offline-boost.png" alt="Offline Yield" class="mine-card-icon">
-          <div class="mine-card-title-wrap">
-            <h3 class="mine-card-title">Offline Yield</h3>
-            <div class="mine-card-subtitle">Earn coins while offline</div>
+          <div class="mine-card-profit-label">Offline Boost</div>
+          <div class="mine-card-profit-value" id="offlineYieldValueText">+0%</div>
+
+          <div class="mine-card-bottom">
+            <div class="mine-card-cost">🪙 <span id="offlineYieldCostText">1500</span></div>
+            <button class="mine-card-upgrade-btn" id="upgradeOfflineYieldBtn">Upgrade</button>
           </div>
         </div>
-        <div class="mine-card-level" id="offlineYieldLevelText">lvl 0</div>
-      </div>
 
-      <div class="mine-card-profit-label">Offline Boost</div>
-      <div class="mine-card-profit-value" id="offlineYieldValueText">+0%</div>
-
-      <div class="mine-card-bottom">
-        <div class="mine-card-cost">🪙 <span id="offlineYieldCostText">1500</span></div>
-        <button class="mine-card-upgrade-btn" id="upgradeOfflineYieldBtn">Upgrade</button>
       </div>
     </div>
 
-  </div>
-</div>
-  
-  <!-- AUTOMATION -->
-<div id="skillsAutomationPanel" class="skills-panel" style="display:none;">
-  <div class="mine-cards-grid">
+    <!-- AUTOMATION -->
+    <div id="skillsAutomationPanel" class="skills-panel" style="display:none;">
+      <div class="mine-cards-grid">
 
-    <div class="mine-card-box">
-      <div class="mine-card-top">
-        <div class="mine-card-left">
-          <img src="images/skills/bot-efficiency.png" alt="Bot Optimization" class="mine-card-icon">
-          <div class="mine-card-title-wrap">
-            <h3 class="mine-card-title">Bot Optimization</h3>
-            <div class="mine-card-subtitle">Improve auto bot output</div>
+        <div class="mine-card-box">
+          <div class="mine-card-top">
+            <div class="mine-card-left">
+              <img src="images/skills/bot-efficiency.png" alt="Bot Optimization" class="mine-card-icon">
+              <div class="mine-card-title-wrap">
+                <h3 class="mine-card-title">Bot Optimization</h3>
+                <div class="mine-card-subtitle">Improve auto bot output</div>
+              </div>
+            </div>
+            <div class="mine-card-level">lvl 0</div>
+          </div>
+
+          <div class="mine-card-profit-label">Status</div>
+          <div class="mine-card-profit-value">Soon</div>
+
+          <div class="mine-card-bottom">
+            <div class="mine-card-cost">🪙 <span>--</span></div>
+            <button class="mine-card-upgrade-btn" disabled>Locked</button>
           </div>
         </div>
-        <div class="mine-card-level">lvl 0</div>
-      </div>
 
-      <div class="mine-card-profit-label">Status</div>
-      <div class="mine-card-profit-value">Soon</div>
-
-      <div class="mine-card-bottom">
-        <div class="mine-card-cost">🪙 <span>--</span></div>
-        <button class="mine-card-upgrade-btn" disabled>Locked</button>
       </div>
     </div>
 
-  </div>
-</div>
+    <!-- REWARDS -->
+    <div id="skillsRewardsPanel" class="skills-panel" style="display:none;">
+      <div class="mine-cards-grid">
 
-  <!-- REWARDS -->
-  <div id="skillsRewardsPanel" class="skills-panel" style="display:none;">
-  <div class="mine-cards-grid">
+        <div class="mine-card-box">
+          <div class="mine-card-top">
+            <div class="mine-card-left">
+              <img src="images/skills/daily.png" alt="Daily Amplifier" class="mine-card-icon">
+              <div class="mine-card-title-wrap">
+                <h3 class="mine-card-title">Daily Amplifier</h3>
+                <div class="mine-card-subtitle">Boost daily rewards</div>
+              </div>
+            </div>
+            <div class="mine-card-level">lvl 0</div>
+          </div>
 
-    <div class="mine-card-box">
-      <div class="mine-card-top">
-        <div class="mine-card-left">
-          <img src="images/skills/daily.png" alt="Daily Amplifier" class="mine-card-icon">
-          <div class="mine-card-title-wrap">
-            <h3 class="mine-card-title">Daily Amplifier</h3>
-            <div class="mine-card-subtitle">Boost daily rewards</div>
+          <div class="mine-card-profit-label">Status</div>
+          <div class="mine-card-profit-value">Soon</div>
+
+          <div class="mine-card-bottom">
+            <div class="mine-card-cost">🪙 <span>--</span></div>
+            <button class="mine-card-upgrade-btn" disabled>Locked</button>
           </div>
         </div>
-        <div class="mine-card-level">lvl 0</div>
-      </div>
 
-      <div class="mine-card-profit-label">Status</div>
-      <div class="mine-card-profit-value">Soon</div>
-
-      <div class="mine-card-bottom">
-        <div class="mine-card-cost">🪙 <span>--</span></div>
-        <button class="mine-card-upgrade-btn" disabled>Locked</button>
       </div>
     </div>
 
   </div>
-</div>
 
   <!-- ================= CASHIER SECTION ================= -->
   <div id="cashierSection" style="display:none;">
@@ -419,128 +413,123 @@
   </div>
 
   <!-- ================= BOOST SECTION ================= -->
-<div id="boostSection" style="display:none;">
-  <div class="boost-page-header">
-    <button id="backBtn" class="boost-back-btn">← Back</button>
-    <h2 class="boost-page-title">Boosts</h2>
-  </div>
+  <div id="boostSection" style="display:none;">
+    <div class="boost-page-header">
+      <button id="backBtn" class="boost-back-btn">← Back</button>
+      <h2 class="boost-page-title">Boosts</h2>
+    </div>
 
-  <!-- DAILY BOOSTERS -->
-  <div class="boost-block">
-    <h3 class="boost-block-title">Your daily boosters:</h3>
+    <!-- DAILY BOOSTERS -->
+    <div class="boost-block">
+      <h3 class="boost-block-title">Your daily boosters:</h3>
 
-    <div class="boost-daily-grid">
-      <div class="boost-daily-card" id="freeTapDailyCard">
-        <div class="boost-daily-icon">🔥</div>
-        <div class="boost-daily-info">
-          <div class="boost-daily-name">Free Tap Daily</div>
-          <div class="boost-daily-count" id="freeTapDailyText">3/3 available</div>
+      <div class="boost-daily-grid">
+        <div class="boost-daily-card" id="freeTapDailyCard">
+          <div class="boost-daily-icon">🔥</div>
+          <div class="boost-daily-info">
+            <div class="boost-daily-name">Free Tap Daily</div>
+            <div class="boost-daily-count" id="freeTapDailyText">3/3 available</div>
+          </div>
+        </div>
+
+        <div class="boost-daily-card" id="freeEnergyDailyCard">
+          <div class="boost-daily-icon">⚡</div>
+          <div class="boost-daily-info">
+            <div class="boost-daily-name">Free Energy Daily</div>
+            <div class="boost-daily-count" id="freeEnergyDailyText">3/3 available</div>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div class="boost-daily-card" id="freeEnergyDailyCard">
-        <div class="boost-daily-icon">⚡</div>
-        <div class="boost-daily-info">
-          <div class="boost-daily-name">Free Energy Daily</div>
-          <div class="boost-daily-count" id="freeEnergyDailyText">3/3 available</div>
+    <!-- MAIN BOOSTERS -->
+    <div class="boost-block">
+      <h3 class="boost-block-title">Boosters:</h3>
+
+      <div class="boost-list">
+
+        <div class="boost-item-card">
+          <div class="boost-item-left">
+            <div class="boost-item-icon">🚀</div>
+            <div class="boost-item-text">
+              <div class="boost-item-name">Boost X2</div>
+              <div class="boost-item-meta">
+                <span class="boost-currency">🪙</span>
+                <span id="boostX2CostText">400</span>
+              </div>
+            </div>
+          </div>
+          <button id="upgradeBoostX2Btn" class="boost-arrow-btn">›</button>
         </div>
+
+        <div class="boost-item-card">
+          <div class="boost-item-left">
+            <div class="boost-item-icon">✋</div>
+            <div class="boost-item-text">
+              <div class="boost-item-name">Multitap</div>
+              <div class="boost-item-meta">
+                <span class="boost-currency">🪙</span>
+                <span id="multitapCostText">200</span>
+                <span class="boost-separator">|</span>
+                <span id="multitapLevelText">1 level</span>
+              </div>
+            </div>
+          </div>
+          <button id="upgradeMultitapBtn" class="boost-arrow-btn">›</button>
+        </div>
+
+        <div class="boost-item-card">
+          <div class="boost-item-left">
+            <div class="boost-item-icon">🔋</div>
+            <div class="boost-item-text">
+              <div class="boost-item-name">Energy Limit</div>
+              <div class="boost-item-meta">
+                <span class="boost-currency">🪙</span>
+                <span id="energyLimitCostText">200</span>
+                <span class="boost-separator">|</span>
+                <span id="energyLimitLevelText">1 level</span>
+              </div>
+            </div>
+          </div>
+          <button id="upgradeEnergyLimitBtn" class="boost-arrow-btn">›</button>
+        </div>
+
+        <div class="boost-item-card">
+          <div class="boost-item-left">
+            <div class="boost-item-icon">⚡</div>
+            <div class="boost-item-text">
+              <div class="boost-item-name">Recharging Speed</div>
+              <div class="boost-item-meta">
+                <span class="boost-currency">🪙</span>
+                <span id="rechargingSpeedCostText">2000</span>
+                <span class="boost-separator">|</span>
+                <span id="rechargingSpeedLevelText">1 level</span>
+              </div>
+            </div>
+          </div>
+          <button id="upgradeRechargingSpeedBtn" class="boost-arrow-btn">›</button>
+        </div>
+
+        <div class="boost-item-card" id="upgradeAutoTapBotBtn">
+          <div class="boost-item-left">
+            <div class="boost-item-icon">🤖</div>
+            <div class="boost-item-info">
+              <div class="boost-item-name">Auto Tap Bot</div>
+              <div class="boost-item-sub">
+                <span class="boost-currency">🪙</span>
+                <span id="autoTapBotCostText">200000</span>
+                <span class="boost-divider">|</span>
+                <span id="autoTapBotStatusText">Inactive</span>
+              </div>
+            </div>
+          </div>
+          <button class="boost-arrow-btn">›</button>
+        </div>
+
       </div>
     </div>
   </div>
 
-  <!-- MAIN BOOSTERS -->
-  <div class="boost-block">
-    <h3 class="boost-block-title">Boosters:</h3>
-
-    <div class="boost-list">
-
-      <!-- BOOST X2 -->
-      <div class="boost-item-card">
-        <div class="boost-item-left">
-          <div class="boost-item-icon">🚀</div>
-          <div class="boost-item-text">
-            <div class="boost-item-name">Boost X2</div>
-            <div class="boost-item-meta">
-              <span class="boost-currency">🪙</span>
-              <span id="boostX2CostText">400</span>
-            </div>
-          </div>
-        </div>
-        <button id="upgradeBoostX2Btn" class="boost-arrow-btn">›</button>
-      </div>
-
-      <!-- MULTITAP -->
-      <div class="boost-item-card">
-        <div class="boost-item-left">
-          <div class="boost-item-icon">✋</div>
-          <div class="boost-item-text">
-            <div class="boost-item-name">Multitap</div>
-            <div class="boost-item-meta">
-              <span class="boost-currency">🪙</span>
-              <span id="multitapCostText">200</span>
-              <span class="boost-separator">|</span>
-              <span id="multitapLevelText">1 level</span>
-            </div>
-          </div>
-        </div>
-        <button id="upgradeMultitapBtn" class="boost-arrow-btn">›</button>
-      </div>
-
-      <!-- ENERGY LIMIT -->
-      <div class="boost-item-card">
-        <div class="boost-item-left">
-          <div class="boost-item-icon">🔋</div>
-          <div class="boost-item-text">
-            <div class="boost-item-name">Energy Limit</div>
-            <div class="boost-item-meta">
-              <span class="boost-currency">🪙</span>
-              <span id="energyLimitCostText">200</span>
-              <span class="boost-separator">|</span>
-              <span id="energyLimitLevelText">1 level</span>
-            </div>
-          </div>
-        </div>
-        <button id="upgradeEnergyLimitBtn" class="boost-arrow-btn">›</button>
-      </div>
-
-      <!-- RECHARGING SPEED -->
-      <div class="boost-item-card">
-        <div class="boost-item-left">
-          <div class="boost-item-icon">⚡</div>
-          <div class="boost-item-text">
-            <div class="boost-item-name">Recharging Speed</div>
-            <div class="boost-item-meta">
-              <span class="boost-currency">🪙</span>
-              <span id="rechargingSpeedCostText">2000</span>
-              <span class="boost-separator">|</span>
-              <span id="rechargingSpeedLevelText">1 level</span>
-            </div>
-          </div>
-        </div>
-        <button id="upgradeRechargingSpeedBtn" class="boost-arrow-btn">›</button>
-      </div>
-
-      <!-- AUTO TAP BOT -->
-      <div class="boost-item-card" id="upgradeAutoTapBotBtn">
-        <div class="boost-item-left">
-          <div class="boost-item-icon">🤖</div>
-          <div class="boost-item-info">
-            <div class="boost-item-name">Auto Tap Bot</div>
-            <div class="boost-item-sub">
-              <span class="boost-currency">🪙</span>
-              <span id="autoTapBotCostText">200000</span>
-              <span class="boost-divider">|</span>
-              <span id="autoTapBotStatusText">Inactive</span>
-            </div>
-          </div>
-        </div>
-        <button class="boost-arrow-btn">›</button>
-      </div>
-
-    </div>
-  </div>
-</div>
-  
   <!-- ================= BOTTOM NAV ================= -->
   <div class="bottom-nav">
     <div id="navEarn" class="nav-item active">💰 Earn</div>
@@ -552,31 +541,29 @@
   </div>
 
   <!-- ================= DAILY POPUP ================= -->
-  
-<div id="dailyRewardPopup" class="daily-popup" style="display:none;">
-  <div class="daily-popup-card">
-    <div class="daily-popup-title">Daily Reward</div>
-    <div class="daily-popup-subtitle">Come back every day and claim coins</div>
-    <div id="dailyGrid" class="daily-grid"></div>
-    <button id="claimDailyBtn" class="daily-claim-btn">Claim</button>
+  <div id="dailyRewardPopup" class="daily-popup" style="display:none;">
+    <div class="daily-popup-card">
+      <div class="daily-popup-title">Daily Reward</div>
+      <div class="daily-popup-subtitle">Come back every day and claim coins</div>
+      <div id="dailyGrid" class="daily-grid"></div>
+      <button id="claimDailyBtn" class="daily-claim-btn">Claim</button>
+    </div>
   </div>
-</div>
-  
-<!-- ================= OFFLINE POPUP ================= -->
-  
+
+  <!-- ================= OFFLINE POPUP ================= -->
   <div id="offlinePopup" class="offline-popup" style="display:none;">
-  <div class="offline-popup-card">
-    <div class="offline-popup-title">Offline Earnings</div>
-    <div class="offline-popup-subtitle">You earned while away</div>
-    <div class="offline-popup-amount" id="offlineCoinsText">+0 coins</div>
-    <button id="closeOfflinePopup" class="offline-popup-btn">Awesome</button>
+    <div class="offline-popup-card">
+      <div class="offline-popup-title">Offline Earnings</div>
+      <div class="offline-popup-subtitle">You earned while away</div>
+      <div class="offline-popup-amount" id="offlineCoinsText">+0 coins</div>
+      <button id="closeOfflinePopup" class="offline-popup-btn">Awesome</button>
+    </div>
   </div>
-  </div>
-  
+
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="script.js?v=65"></script>
 
 </body>
-</html>
+        </html>
