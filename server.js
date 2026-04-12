@@ -268,6 +268,11 @@ quantumCore: {
   chance: { type: Number, default: 0 },
   multiplier: { type: Number, default: 2 }
 },
+
+  offlineYield: {
+  level: { type: Number, default: 0 },
+  boostPercent: { type: Number, default: 0 }
+},
   
   autoTapBot: {
     active: { type: Boolean, default: false },
@@ -2515,6 +2520,37 @@ function getAutoTapBotState(user) {
   };
 }
 
+/* ================= OFFLINE YIELD  ================= */
+
+function normalizeOfflineYield(user) {
+  if (!user.offlineYield) {
+    user.offlineYield = {
+      level: 0,
+      boostPercent: 0
+    };
+  }
+}
+
+function getOfflineYieldBoost(level) {
+  return level * 10; // lvl 1 = 10%, lvl 2 = 20%, ...
+}
+
+function getOfflineYieldCost(level) {
+  return 1500 * Math.pow(2, level);
+}
+
+function getOfflineYieldState(user) {
+  normalizeOfflineYield(user);
+
+  const level = user.offlineYield.level || 0;
+
+  return {
+    level,
+    boostPercent: getOfflineYieldBoost(level),
+    nextCost: level >= 20 ? 0 : getOfflineYieldCost(level)
+  };
+}
+
 /* ================= OFFLINE ================= */
 async function applyOfflineMining(user) {
   rechargeEnergy(user);
@@ -2525,21 +2561,26 @@ async function applyOfflineMining(user) {
 
   let offlineCoins = 0;
 
-  if (seconds > 0) {
-    const earned = (user.profitPerHour / 3600) * seconds;
-    offlineCoins = Math.floor(earned);
+if (seconds > 0) {
+  normalizeOfflineYield(user);
 
-    if (offlineCoins > 0) {
-      user.coins += offlineCoins;
-    }
+  let offlineCoins = Math.floor((user.profitPerHour / 3600) * seconds);
 
-    user.lastActive = now;
-    user.league = getLeague(user.coins);
-    await user.save();
+  const offlineYieldPercent = getOfflineYieldBoost(user.offlineYield?.level || 0);
+  offlineCoins = Math.floor(
+    offlineCoins + (offlineCoins * offlineYieldPercent / 100)
+  );
+
+  if (offlineCoins > 0) {
+    user.coins += offlineCoins;
   }
 
-  return offlineCoins;
+  user.lastActive = now;
+  user.league = getLeague(user.coins);
+  await user.save();
 }
+
+return offlineCoins;
 
 /* ================= OFFLINE AUTO TAP ================= */
 
@@ -2651,6 +2692,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       energy: user.energy,
       maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
       criticalStrike: getCriticalStrikeState(user),
+      offlineYield: getOfflineYieldState(user),
       profitPerHour: Math.floor((
   user.profitPerHour +
   getMarketingExtraProfit(user.profitPerHour, user.marketing?.level || 1) +
@@ -4781,6 +4823,49 @@ app.get("/special-task-status/:telegramId", async (req, res) => {
   } catch (e) {
     console.log("special-task-status error", e);
     res.json({ success: false, claimed: false });
+  }
+});
+
+/* ================= OFFLINE YIELD UPGRADE  ================= */
+
+app.post("/upgrade-offline-yield", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeOfflineYield(user);
+
+    const level = user.offlineYield.level || 0;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    const cost = getOfflineYieldCost(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.offlineYield.level += 1;
+    user.offlineYield.boostPercent = getOfflineYieldBoost(user.offlineYield.level);
+    user.league = getLeague(user.coins);
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      coins: user.coins,
+      offlineYield: getOfflineYieldState(user)
+    });
+  } catch (e) {
+    console.log("/upgrade-offline-yield error", e);
+    return res.json({ success: false, message: "Server error" });
   }
 });
 
