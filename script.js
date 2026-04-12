@@ -4175,6 +4175,30 @@ if (skillsTabTap) skillsTabTap.onclick = () => openSkillsTab("tap");
 if (skillsTabEconomy) skillsTabEconomy.onclick = () => openSkillsTab("economy");
 if (skillsTabAutomation) skillsTabAutomation.onclick = () => openSkillsTab("automation");
 if (skillsTabRewards) skillsTabRewards.onclick = () => openSkillsTab("rewards");
+
+/* ================= OFFLINE YIELD UI TEST ================= */
+
+const offlineYieldLevelText = document.getElementById("offlineYieldLevelText");
+const offlineYieldValueText = document.getElementById("offlineYieldValueText");
+const offlineYieldCostText = document.getElementById("offlineYieldCostText");
+
+function renderOfflineYieldUI() {
+  const level = 0;
+
+  if (offlineYieldLevelText) {
+    offlineYieldLevelText.innerText = `lvl ${level}`;
+  }
+
+  if (offlineYieldValueText) {
+    offlineYieldValueText.innerText = `+${level * 10}%`;
+  }
+
+  if (offlineYieldCostText) {
+    offlineYieldCostText.innerText = `${1500}`;
+  }
+}
+
+renderOfflineYieldUI();
   
 /* ================= BOOST BUTTON BINDINGS ================= */
 
