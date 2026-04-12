@@ -31,6 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const upgradeEnergyLimitBtn = document.getElementById("upgradeEnergyLimitBtn");
   const upgradeRechargingSpeedBtn = document.getElementById("upgradeRechargingSpeedBtn");
 
+  const upgradeCriticalStrikeBtn = document.getElementById("upgradeCriticalStrikeBtn");
+const criticalStrikeLevelText = document.getElementById("criticalStrikeLevelText");
+const criticalStrikeChanceText = document.getElementById("criticalStrikeChanceText");
+const criticalStrikeMultiplierText = document.getElementById("criticalStrikeMultiplierText");
+const criticalStrikeCostText = document.getElementById("criticalStrikeCostText");
+
   const boostX2CostText = document.getElementById("boostX2CostText");
   const multitapCostText = document.getElementById("multitapCostText");
   const multitapLevelText = document.getElementById("multitapLevelText");
@@ -116,6 +122,13 @@ let appState = {
     dailyLimit: 3
   },
 
+  criticalStrike: {
+  level: 0,
+  chance: 0,
+  multiplier: 2,
+  nextCost: 1000
+},
+  
   autoTapBot: {
     active: false,
     priceCoins: 200000,
@@ -484,6 +497,8 @@ appState.boostX2 = data.boostX2 || appState.boostX2;
 appState.freeTapDaily = data.freeTapDaily || appState.freeTapDaily;
 appState.freeEnergyDaily = data.freeEnergyDaily || appState.freeEnergyDaily;
 appState.autoTapBot = data.autoTapBot || appState.autoTapBot;
+
+appState.criticalStrike = data.criticalStrike || appState.criticalStrike;
       
 renderRewardAdUI();
 startRewardAdCooldownTimer();
@@ -494,6 +509,7 @@ startFreeTapDailyTimer();
 renderFreeEnergyDailyUI();
 renderAutoTapBotUI();
 startAutoTapBotTimer();
+renderCriticalStrikeUI();
       
 loadDailyCombo();
     } catch (e) {
@@ -1589,6 +1605,7 @@ function renderBoostSectionUI() {
     }
   }
 
+  
   /* ---------- Recharging Speed = powerSurge ---------- */
   const recharge = appState.powerSurge || {
     level: 1,
@@ -1821,6 +1838,38 @@ function startBoostX2Timer() {
     renderFreeTapDailyUI();
   }, 1000);
 }
+
+/* ================= CRITICAL STRIKE  ================= */
+
+  function renderCriticalStrikeUI() {
+  const skill = appState.criticalStrike || {
+    level: 0,
+    chance: 0,
+    multiplier: 2,
+    nextCost: 1000
+  };
+
+  if (criticalStrikeLevelText) {
+    criticalStrikeLevelText.innerText = `Level ${skill.level || 0}`;
+  }
+
+  if (criticalStrikeChanceText) {
+    criticalStrikeChanceText.innerText = `Chance: ${skill.chance || 0}%`;
+  }
+
+  if (criticalStrikeMultiplierText) {
+    criticalStrikeMultiplierText.innerText = `Multiplier: x${skill.multiplier || 2}`;
+  }
+
+  if (criticalStrikeCostText) {
+    criticalStrikeCostText.innerText =
+      skill.level >= 20 ? "Max Level" : `Cost: ${skill.nextCost || 0}`;
+  }
+
+  if (upgradeCriticalStrikeBtn) {
+    upgradeCriticalStrikeBtn.disabled = skill.level >= 20;
+  }
+  }
   
 /* ================= Watch ADS TIMER  ================= */
   
@@ -3045,6 +3094,34 @@ if (data.success) {
       alert("Server error");
     }
   });
+  }
+
+/* ================= CRITICAL STRIKE HANDLE  ================= */
+
+  if (upgradeCriticalStrikeBtn) {
+  upgradeCriticalStrikeBtn.onclick = async () => {
+    try {
+      const res = await fetch("/upgrade-critical-strike", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId, initData })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        coinsEl.innerText = Math.floor(data.coins || 0);
+        appState.criticalStrike = data.criticalStrike || appState.criticalStrike;
+        renderCriticalStrikeUI();
+        loadUser();
+      } else {
+        alert(data.message || "Upgrade failed");
+      }
+    } catch (e) {
+      console.log("upgrade critical strike error", e);
+      alert("Server error");
+    }
+  };
   }
   
 /* ================= MULTITAP UPGRADE ================= */
