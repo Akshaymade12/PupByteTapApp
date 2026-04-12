@@ -263,6 +263,12 @@ quantumCore: {
     endTime: { type: Date, default: null }
   },
 
+  criticalStrike: {
+  level: { type: Number, default: 0 },
+  chance: { type: Number, default: 0 },
+  multiplier: { type: Number, default: 2 }
+},
+  
   autoTapBot: {
     active: { type: Boolean, default: false },
     priceCoins: { type: Number, default: 200000 },
@@ -2634,6 +2640,7 @@ app.post("/load", async (req, res) => {
     normalizeBoostX2(user);
     normalizeFreeEnergyDaily(user);
     normalizeAutoTapBot(user);
+    normalizeCriticalStrike(user);
 
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
@@ -2643,6 +2650,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       coins: user.coins,
       energy: user.energy,
       maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
+      criticalStrike: getCriticalStrikeState(user),
       profitPerHour: Math.floor((
   user.profitPerHour +
   getMarketingExtraProfit(user.profitPerHour, user.marketing?.level || 1) +
@@ -3217,6 +3225,7 @@ app.post("/tap", async (req, res) => {
     normalizeBoostX2(user);
     normalizeAutoTapBot(user);
 normalizeFreeTapDaily(user);
+    normalizeCriticalStrike(user);
     
     const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
     const turboBonus = applyNeuralBoost(
@@ -3245,6 +3254,18 @@ if (user.freeTapDaily?.active) {
   finalTapPower *= (user.freeTapDaily?.multiplier || 5);
 }
 
+    let isCritical = false;
+const critChance = getCriticalStrikeChance(user.criticalStrike?.level || 0);
+const critMultiplier = getCriticalStrikeMultiplier(user.criticalStrike?.level || 0);
+
+if (critChance > 0) {
+  const roll = Math.random() * 100;
+  if (roll < critChance) {
+    finalTapPower *= critMultiplier;
+    isCritical = true;
+  }
+}
+    
     const isFreeTapActive = !!user.freeTapDaily?.active;
 
 if (!isFreeTapActive && user.energy < finalTapPower) {
@@ -3273,7 +3294,9 @@ if (!isFreeTapActive) {
       profitPerHour: user.profitPerHour,
       league: user.league,
       boostX2: getBoostX2State(user),
-freeTapDaily: getFreeTapDailyState(user)
+freeTapDaily: getFreeTapDailyState(user),
+      isCritical,
+criticalStrike: getCriticalStrikeState(user)
     });
   } catch (e) {
     console.log("/tap error FULL =>", e);
@@ -3778,6 +3801,91 @@ app.post("/upgrade-liquidity-pool", async (req, res) => {
   } catch (e) {
     console.log("/upgrade-liquidity-pool error", e);
     res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= CRITICAL STRIKE  ================= */
+
+function normalizeCriticalStrike(user) {
+  if (!user.criticalStrike) {
+    user.criticalStrike = {
+      level: 0,
+      chance: 0,
+      multiplier: 2
+    };
+  }
+}
+
+function getCriticalStrikeChance(level) {
+  const chances = [0, 5, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 50, 50, 50, 50, 50, 50, 50, 50];
+  return chances[level] || 50;
+}
+
+function getCriticalStrikeMultiplier(level) {
+  if (level >= 15) return 5;
+  if (level >= 8) return 3;
+  if (level >= 1) return 2;
+  return 2;
+}
+
+function getCriticalStrikeCost(level) {
+  return 1000 * Math.pow(2, level);
+}
+
+function getCriticalStrikeState(user) {
+  normalizeCriticalStrike(user);
+
+  const level = user.criticalStrike.level || 0;
+
+  return {
+    level,
+    chance: getCriticalStrikeChance(level),
+    multiplier: getCriticalStrikeMultiplier(level),
+    nextCost: level >= 20 ? 0 : getCriticalStrikeCost(level)
+  };
+}
+
+/* ================= CRITICAL STRIKE UPGRADE ================= */
+
+app.post("/upgrade-critical-strike", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeCriticalStrike(user);
+
+    const level = user.criticalStrike.level || 0;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    const cost = getCriticalStrikeCost(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.criticalStrike.level += 1;
+    user.criticalStrike.chance = getCriticalStrikeChance(user.criticalStrike.level);
+    user.criticalStrike.multiplier = getCriticalStrikeMultiplier(user.criticalStrike.level);
+    user.league = getLeague(user.coins);
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      coins: user.coins,
+      criticalStrike: getCriticalStrikeState(user)
+    });
+  } catch (e) {
+    console.log("/upgrade-critical-strike error", e);
+    return res.json({ success: false, message: "Server error" });
   }
 });
 
