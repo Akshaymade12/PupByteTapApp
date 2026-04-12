@@ -373,175 +373,140 @@ button:active {
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
 }
 
-.skills-tab-content,
+.skills-panel,
 #mineTabContent {
   margin-top: 16px;
   width: 100%;
 }
 
-/* ================= SKILLS CARDS ================= */
-.skills-cards-grid {
+/* ================= SKILLS PAGE SAME AS MINE ================= */
+
+.skills-page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 18px;
+  padding: 8px 4px;
+}
+
+.skills-back-btn {
+  border: none;
+  outline: none;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.skills-page-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.skills-tabs-wrap {
+  margin-top: 18px;
+}
+
+.skills-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 10px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 0 18px rgba(0, 180, 255, 0.08);
+}
+
+.skills-tab {
+  border: none;
+  outline: none;
+  padding: 14px 8px;
+  border-radius: 18px;
+  background: transparent;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.skills-tab.active {
+  background: rgba(255,255,255,0.10);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.skills-panel {
+  margin-top: 16px;
+  width: 100%;
+}
+
+/* Skills me Mine jaisa hi grid */
+#skillsTapPanel .mine-cards-grid,
+#skillsEconomyPanel .mine-cards-grid,
+#skillsAutomationPanel .mine-cards-grid,
+#skillsRewardsPanel .mine-cards-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   width: 100%;
 }
 
-.skills-card-box {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  min-width: 0;
-  padding: 12px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(27,36,62,0.98), rgba(12,18,39,0.99));
-  border: 1px solid rgba(255,255,255,0.07);
-  box-shadow:
-    0 0 18px rgba(0, 160, 255, 0.07),
-    inset 0 1px 0 rgba(255,255,255,0.04);
-}
-
-.skills-card-box::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at top right, rgba(63,208,255,0.10), transparent 35%);
-}
-
-.skills-card-top {
+/* Tap aur Economy card ko same height */
+#skillsTapPanel .mine-card-box,
+#skillsEconomyPanel .mine-card-box {
+  min-height: 248px;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+}
+
+#skillsTapPanel .mine-card-top,
+#skillsEconomyPanel .mine-card-top {
   margin-bottom: 10px;
 }
 
-.skills-card-left {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  min-width: 0;
-  flex: 1;
-}
-
-.skills-card-icon {
-  width: 46px !important;
-  height: 46px !important;
-  min-width: 46px !important;
-  max-width: 46px !important;
-  min-height: 46px !important;
-  max-height: 46px !important;
-  border-radius: 14px;
-  object-fit: cover;
-  display: block;
-  flex-shrink: 0;
-  background: rgba(255,255,255,0.06);
-  box-shadow: 0 0 14px rgba(255, 200, 0, 0.10);
-  margin-top: 2px;
-}
-
-.skills-card-title-wrap {
-  min-width: 0;
-  flex: 1;
-  padding-right: 2px;
-}
-
-.skills-card-title {
-  margin: 0;
-  color: #fff;
+#skillsTapPanel .mine-card-title,
+#skillsEconomyPanel .mine-card-title {
   font-size: 13px;
-  font-weight: 800;
   line-height: 1.08;
+  min-height: 28px;
 }
 
-.skills-card-subtitle {
+#skillsTapPanel .mine-card-subtitle,
+#skillsEconomyPanel .mine-card-subtitle {
   margin-top: 4px;
   color: rgba(255,255,255,0.62);
   font-size: 10px;
   line-height: 1.15;
-  min-height: 22px;
+  min-height: 34px;
 }
 
-.skills-card-level {
-  padding: 5px 9px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 800;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.skills-card-profit-label {
-  color: rgba(255,255,255,0.56);
-  font-size: 10px;
-  margin-bottom: 2px;
-}
-
-.skills-card-profit-value {
-  color: #fff;
+#skillsTapPanel .mine-card-profit-value,
+#skillsEconomyPanel .mine-card-profit-value {
   font-size: 18px;
-  font-weight: 900;
   margin-bottom: 8px;
-  line-height: 1;
 }
 
-.skills-card-members {
-  margin: 4px 0 10px 0;
-  color: #d7d7d7;
-  font-size: 12px;
-  line-height: 1.2;
-  min-height: 28px;
+#skillsTapPanel .mine-card-bottom,
+#skillsEconomyPanel .mine-card-bottom {
+  margin-top: auto;
 }
 
-.skills-card-bottom {
+/* Automation / Rewards bhi same feel */
+#skillsAutomationPanel .mine-card-box,
+#skillsRewardsPanel .mine-card-box {
+  min-height: 248px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 6px;
+  flex-direction: column;
 }
 
-.skills-card-cost {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.skills-card-cost span {
-  color: #ffd75e;
-}
-
-.skills-card-upgrade-btn {
-  border: none;
-  outline: none;
-  padding: 10px 16px;
-  border-radius: 14px;
-  background: linear-gradient(90deg, #31d7ff, #cf00ff);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 900;
-  box-shadow: 0 0 14px rgba(83, 174, 255, 0.16);
-}
-
-.skills-card-upgrade-btn:active {
-  transform: scale(0.98);
-}
-
-.skills-placeholder-card {
-  padding: 18px;
-  border-radius: 18px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.06);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
+#skillsAutomationPanel .mine-card-bottom,
+#skillsRewardsPanel .mine-card-bottom {
+  margin-top: auto;
 }
 
 /* ================= TASKS ================= */
@@ -1060,6 +1025,28 @@ button:active {
 
   .boost-block-title {
     font-size: 18px;
+  }
+
+  @media (max-width: 640px) {
+  .skills-page-title {
+    font-size: 22px;
+  }
+
+  .skills-tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .skills-tab {
+    font-size: 15px;
+    padding: 14px 8px;
+  }
+
+  #skillsTapPanel .mine-cards-grid,
+  #skillsEconomyPanel .mine-cards-grid,
+  #skillsAutomationPanel .mine-cards-grid,
+  #skillsRewardsPanel .mine-cards-grid {
+    grid-template-columns: 1fr 1fr;
+  }
   }
 
   .boost-daily-grid {
