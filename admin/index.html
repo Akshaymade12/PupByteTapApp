@@ -1,93 +1,145 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PupByte Admin</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Admin Login - PupByte</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b, #111827);
+      color: white;
+      min-height: 100vh;
+    }
+
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 30px 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .login-logo {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: #38bdf8;
+      margin-bottom: 12px;
+    }
+
+    .login-box h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-group label {
+      font-size: 14px;
+      color: #e2e8f0;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      outline: none;
+      background: #0f172a;
+      color: white;
+      font-size: 15px;
+    }
+
+    .login-btn {
+      margin-top: 10px;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
-<!-- ================= LOGIN PAGE ================= -->
-<div id="loginPage" class="login-page">
+  <div class="login-page">
+    <div class="login-box">
+      <div class="login-logo">PupByte</div>
+      <h1>Admin Login</h1>
+      <p class="login-subtitle">Sign in to access admin panel</p>
 
-  <div class="login-card">
-    <h2>PupByte Admin</h2>
+      <div class="login-form">
+        <div class="input-group">
+          <label for="adminEmail">Email</label>
+          <input type="email" id="adminEmail" placeholder="Enter admin email">
+        </div>
 
-    <input type="text" id="adminUser" placeholder="Username">
-    <input type="password" id="adminPass" placeholder="Password">
+        <div class="input-group">
+          <label for="adminPassword">Password</label>
+          <input type="password" id="adminPassword" placeholder="Enter password">
+        </div>
 
-    <button id="loginBtn">Login</button>
-
-    <p id="loginError" class="error-text"></p>
-  </div>
-
-</div>
-
-<!-- ================= ADMIN PANEL ================= -->
-<div id="adminPanel" class="admin-panel" style="display:none;">
-
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <h3>PupByte</h3>
-
-    <div class="menu-item active">Dashboard</div>
-    <div class="menu-item">Users</div>
-    <div class="menu-item">Tasks</div>
-    <div class="menu-item">Rewards</div>
-    <div class="menu-item">Skills</div>
-    <div class="menu-item">Boosts</div>
-    <div class="menu-item">Airdrop</div>
-    <div class="menu-item">Logs</div>
-
-    <div class="menu-item logout" id="logoutBtn">Logout</div>
-  </div>
-
-  <!-- MAIN -->
-  <div class="main">
-
-    <!-- TOP BAR -->
-    <div class="topbar">
-      <h2>Dashboard</h2>
-    </div>
-
-    <!-- DASHBOARD CARDS -->
-    <div class="cards">
-
-      <div class="card">
-        <p>Total Users</p>
-        <h3 id="totalUsers">0</h3>
-      </div>
-
-      <div class="card">
-        <p>Active Today</p>
-        <h3 id="activeUsers">0</h3>
-      </div>
-
-      <div class="card">
-        <p>Total Coins</p>
-        <h3 id="totalCoins">0</h3>
-      </div>
-
-      <div class="card">
-        <p>Referrals</p>
-        <h3 id="totalRefs">0</h3>
-      </div>
-
-    </div>
-
-    <!-- RECENT ACTIVITY -->
-    <div class="table-box">
-      <h3>Recent Activity</h3>
-      <div id="activityList">
-        <p>No data yet</p>
+        <button type="button" class="login-btn" onclick="loginAdmin()">Login</button>
       </div>
     </div>
-
   </div>
 
-</div>
+  <script>
+    function loginAdmin() {
+      const email = document.getElementById("adminEmail").value.trim();
+      const password = document.getElementById("adminPassword").value.trim();
 
-<script src="script.js"></script>
+      if (email === "admin@pupbyte.com" && password === "12345") {
+        alert("Login Successful");
+        document.body.innerHTML = `
+          <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;color:white;font-family:Arial,sans-serif;">
+            <h1>Welcome Admin Dashboard 🚀</h1>
+          </div>
+        `;
+      } else {
+        alert("Invalid Credentials");
+      }
+    }
+  </script>
+
 </body>
 </html>
