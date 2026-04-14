@@ -41,6 +41,11 @@ const upgradeBotOptimizationBtn = document.getElementById("upgradeBotOptimizatio
 const botOptimizationLevelText = document.getElementById("botOptimizationLevelText");
 const botOptimizationValueText = document.getElementById("botOptimizationValueText");
 const botOptimizationCostText = document.getElementById("botOptimizationCostText");
+
+const upgradeDailyAmplifierBtn = document.getElementById("upgradeDailyAmplifierBtn");
+const dailyAmplifierLevelText = document.getElementById("dailyAmplifierLevelText");
+const dailyAmplifierValueText = document.getElementById("dailyAmplifierValueText");
+const dailyAmplifierCostText = document.getElementById("dailyAmplifierCostText");
   
   const boostX2CostText = document.getElementById("boostX2CostText");
   const multitapCostText = document.getElementById("multitapCostText");
@@ -151,6 +156,12 @@ let appState = {
   boostPercent: 0,
   nextCost: 1500
   },
+
+  dailyAmplifier: {
+  level: 0,
+  boostPercent: 0,
+  nextCost: 2000
+},
 
   botOptimization: {
   level: 0,
@@ -521,6 +532,7 @@ appState.freeEnergyDaily = data.freeEnergyDaily || appState.freeEnergyDaily;
 appState.autoTapBot = data.autoTapBot || appState.autoTapBot;
 appState.offlineYield = data.offlineYield || appState.offlineYield;
 appState.botOptimization = data.botOptimization || appState.botOptimization;
+appState.dailyAmplifier = data.dailyAmplifier || appState.dailyAmplifier;
 
 appState.criticalStrike = data.criticalStrike || appState.criticalStrike;
       
@@ -536,6 +548,7 @@ startAutoTapBotTimer();
 renderCriticalStrikeUI();
 renderOfflineYieldUI();
 renderBotOptimizationUI();
+renderDailyAmplifierUI();
       
 loadDailyCombo();
     } catch (e) {
@@ -1896,6 +1909,33 @@ function renderCriticalStrikeUI() {
     upgradeCriticalStrikeBtn.disabled = skill.level >= 20;
   }
 }
+
+/* ================= DAILY AMPLIFIER UI  ================= */
+
+  function renderDailyAmplifierUI() {
+  const skill = appState.dailyAmplifier || {
+    level: 0,
+    boostPercent: 0,
+    nextCost: 2000
+  };
+
+  if (dailyAmplifierLevelText) {
+    dailyAmplifierLevelText.innerText = `lvl ${skill.level || 0}`;
+  }
+
+  if (dailyAmplifierValueText) {
+    dailyAmplifierValueText.innerText = `+${skill.boostPercent || 0}%`;
+  }
+
+  if (dailyAmplifierCostText) {
+    dailyAmplifierCostText.innerText =
+      skill.level >= 20 ? "MAX" : `${skill.nextCost || 0}`;
+  }
+
+  if (upgradeDailyAmplifierBtn) {
+    upgradeDailyAmplifierBtn.disabled = skill.level >= 20;
+  }
+  }
   
 /* ================= Watch ADS TIMER  ================= */
   
@@ -3122,6 +3162,34 @@ if (data.success) {
   });
   }
 
+  /* ================= DAILY AMPLIFIER UPGRADE  ================= */
+
+  if (upgradeDailyAmplifierBtn) {
+  upgradeDailyAmplifierBtn.onclick = async () => {
+    try {
+      const res = await fetch("/upgrade-daily-amplifier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId, initData })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        coinsEl.innerText = Math.floor(data.coins || 0);
+        appState.dailyAmplifier = data.dailyAmplifier || appState.dailyAmplifier;
+        renderDailyAmplifierUI();
+        loadUser();
+      } else {
+        alert(data.message || "Upgrade failed");
+      }
+    } catch (e) {
+      console.log("upgrade daily amplifier error", e);
+      alert("Server error");
+    }
+  };
+  }
+  
 /* ================= CRITICAL STRIKE HANDLE  ================= */
 
   if (upgradeCriticalStrikeBtn) {
