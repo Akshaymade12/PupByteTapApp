@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PupByte Tap Bot</title>
-  <link rel="stylesheet" href="style.css?v=66">
+  <link rel="stylesheet" href="style.css?v=67">
 </head>
 <body>
 
@@ -375,26 +375,25 @@
     <div id="skillsRewardsPanel" class="skills-panel" style="display:none;">
       <div class="mine-cards-grid">
 
-        <div class="mine-card-box">
-          <div class="mine-card-top">
-            <div class="mine-card-left">
-              <img src="images/skills/daily.png" alt="Daily Amplifier" class="mine-card-icon">
-              <div class="mine-card-title-wrap">
-                <h3 class="mine-card-title">Daily Amplifier</h3>
-                <div class="mine-card-subtitle">Boost daily rewards</div>
-              </div>
-            </div>
-            <div class="mine-card-level">lvl 0</div>
-          </div>
+        <div class="mine-card skill-mine-card" id="dailyAmplifierCard">
 
-          <div class="mine-card-profit-label">Status</div>
-          <div class="mine-card-profit-value">Soon</div>
+  <div class="mine-card-top">
+    <img src="images/skills/daily.png" class="mine-card-icon" alt="Daily Amplifier">
+    <div class="mine-level-badge" id="dailyAmplifierLevelText">lvl 0</div>
+  </div>
 
-          <div class="mine-card-bottom">
-            <div class="mine-card-cost">🪙 <span>--</span></div>
-            <button class="mine-card-upgrade-btn" disabled>Locked</button>
-          </div>
-        </div>
+  <div class="mine-card-title">Daily Amplifier</div>
+  <div class="mine-card-subtitle">Boost daily reward amount</div>
+
+  <div class="mine-profit-label">Reward Boost</div>
+  <div class="mine-profit-value" id="dailyAmplifierValueText">+0%</div>
+
+  <div class="mine-card-bottom">
+    <div class="mine-cost" id="dailyAmplifierCostText">2000</div>
+    <button class="mine-upgrade-btn" id="upgradeDailyAmplifierBtn">Upgrade</button>
+  </div>
+
+</div>
 
       </div>
     </div>
@@ -561,7 +560,7 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="script.js?v=66"></script>
+<script src="script.js?v=67"></script>
 
 </body>
         </html>
