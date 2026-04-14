@@ -37,6 +37,11 @@ const criticalStrikeChanceText = document.getElementById("criticalStrikeChanceTe
 const criticalStrikeMultiplierText = document.getElementById("criticalStrikeMultiplierText");
 const criticalStrikeCostText = document.getElementById("criticalStrikeCostText");
 
+const upgradeBotOptimizationBtn = document.getElementById("upgradeBotOptimizationBtn");
+const botOptimizationLevelText = document.getElementById("botOptimizationLevelText");
+const botOptimizationValueText = document.getElementById("botOptimizationValueText");
+const botOptimizationCostText = document.getElementById("botOptimizationCostText");
+  
   const boostX2CostText = document.getElementById("boostX2CostText");
   const multitapCostText = document.getElementById("multitapCostText");
   const multitapLevelText = document.getElementById("multitapLevelText");
@@ -145,6 +150,12 @@ let appState = {
   level: 0,
   boostPercent: 0,
   nextCost: 1500
+  },
+
+  botOptimization: {
+  level: 0,
+  boostPercent: 0,
+  nextCost: 1800
 },
   
   futuresTrading: {
@@ -509,6 +520,7 @@ appState.freeTapDaily = data.freeTapDaily || appState.freeTapDaily;
 appState.freeEnergyDaily = data.freeEnergyDaily || appState.freeEnergyDaily;
 appState.autoTapBot = data.autoTapBot || appState.autoTapBot;
 appState.offlineYield = data.offlineYield || appState.offlineYield;
+appState.botOptimization = data.botOptimization || appState.botOptimization;
 
 appState.criticalStrike = data.criticalStrike || appState.criticalStrike;
       
@@ -523,6 +535,7 @@ renderAutoTapBotUI();
 startAutoTapBotTimer();
 renderCriticalStrikeUI();
 renderOfflineYieldUI();
+renderBotOptimizationUI();
       
 loadDailyCombo();
     } catch (e) {
@@ -4216,6 +4229,61 @@ function renderOfflineYieldUI() {
   }
 }
 
+ /* ================= BOT OPTIMIZATION UI ================= */
+
+  function renderBotOptimizationUI() {
+  const skill = appState.botOptimization || {
+    level: 0,
+    boostPercent: 0,
+    nextCost: 1800
+  };
+
+  if (botOptimizationLevelText) {
+    botOptimizationLevelText.innerText = `lvl ${skill.level || 0}`;
+  }
+
+  if (botOptimizationValueText) {
+    botOptimizationValueText.innerText = `+${skill.boostPercent || 0}%`;
+  }
+
+  if (botOptimizationCostText) {
+    botOptimizationCostText.innerText =
+      skill.level >= 20 ? "MAX" : `${skill.nextCost || 0}`;
+  }
+
+  if (upgradeBotOptimizationBtn) {
+    upgradeBotOptimizationBtn.disabled = skill.level >= 20;
+  }
+  }
+
+  /* ================= BOT OTIMIZATION HANDLE ================= */
+
+  if (upgradeBotOptimizationBtn) {
+  upgradeBotOptimizationBtn.onclick = async () => {
+    try {
+      const res = await fetch("/upgrade-bot-optimization", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId, initData })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        coinsEl.innerText = Math.floor(data.coins || 0);
+        appState.botOptimization = data.botOptimization || appState.botOptimization;
+        renderBotOptimizationUI();
+        loadUser();
+      } else {
+        alert(data.message || "Upgrade failed");
+      }
+    } catch (e) {
+      console.log("upgrade bot optimization error", e);
+      alert("Server error");
+    }
+  };
+  }
+  
 /* ================= OFFLINE YIELD HANDLE ================= */
 
   if (upgradeOfflineYieldBtn) {
