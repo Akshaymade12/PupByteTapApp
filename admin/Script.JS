@@ -1,1 +1,1 @@
-console.log("Admin Panel Loaded");
+console.log("Admin Login Page Loaded");
