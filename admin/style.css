@@ -116,3 +116,150 @@ body {
   padding: 20px;
   border-radius: 15px;
 }
+
+/* ================= PAGE HEADER ================= */
+.page-header {
+  margin-bottom: 16px;
+}
+
+/* ================= USERS TOOLBAR ================= */
+.users-toolbar {
+  margin-bottom: 16px;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 380px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+/* ================= TABLE ================= */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 14px;
+}
+
+.admin-table th {
+  color: #8fdcff;
+  font-weight: 800;
+}
+
+.admin-table td {
+  color: #fff;
+}
+
+.view-btn {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: linear-gradient(90deg,#2edcff,#d000ff);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ================= MODAL ================= */
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.admin-modal-card {
+  width: 100%;
+  max-width: 620px;
+  background: #141336;
+  border-radius: 18px;
+  padding: 22px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.admin-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.close-modal-btn {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.user-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-action-box {
+  margin-top: 10px;
+}
+
+.admin-number-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  margin-bottom: 14px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.admin-action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.admin-action-buttons button {
+  flex: 1;
+}
+
+.danger-btn {
+  background: linear-gradient(90deg,#ff4d6d,#ff1744) !important;
+}
+
+@media (max-width: 768px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .user-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-action-buttons {
+    flex-direction: column;
+  }
+}
