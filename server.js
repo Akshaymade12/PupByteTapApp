@@ -285,6 +285,11 @@ quantumCore: {
   botOptimization: {
   level: { type: Number, default: 0 },
   boostPercent: { type: Number, default: 0 }
+  },
+
+  dailyAmplifier: {
+  level: { type: Number, default: 0 },
+  boostPercent: { type: Number, default: 0 }
   }
 });
 
@@ -2733,6 +2738,80 @@ app.post("/upgrade-bot-optimization", async (req, res) => {
   }
 });
 
+/* ================= DAILY AMPLIFIER HANDLE  ================= */
+
+function normalizeDailyAmplifier(user) {
+  if (!user.dailyAmplifier) {
+    user.dailyAmplifier = {
+      level: 0,
+      boostPercent: 0
+    };
+  }
+}
+
+function getDailyAmplifierBoost(level) {
+  return level * 15;
+}
+
+function getDailyAmplifierCost(level) {
+  return 2000 * Math.pow(2, level);
+}
+
+function getDailyAmplifierState(user) {
+  normalizeDailyAmplifier(user);
+
+  const level = user.dailyAmplifier.level || 0;
+
+  return {
+    level,
+    boostPercent: getDailyAmplifierBoost(level),
+    nextCost: level >= 20 ? 0 : getDailyAmplifierCost(level)
+  };
+}
+
+/* ================= DAILY AMPLIFIER UPGRADE  ================= */
+
+app.post("/upgrade-daily-amplifier", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeDailyAmplifier(user);
+
+    const level = user.dailyAmplifier.level || 0;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    const cost = getDailyAmplifierCost(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.dailyAmplifier.level += 1;
+    user.dailyAmplifier.boostPercent = getDailyAmplifierBoost(user.dailyAmplifier.level);
+    user.league = getLeague(user.coins);
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      coins: user.coins,
+      dailyAmplifier: getDailyAmplifierState(user)
+    });
+  } catch (e) {
+    console.log("/upgrade-daily-amplifier error", e);
+    return res.json({ success: false, message: "Server error" });
+  }
+});
+
 /* ================= LOAD ================= */
 app.post("/load", async (req, res) => {
   try {
@@ -2834,6 +2913,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       freeEnergyDaily: getFreeEnergyDailyState(user),
       autoTapBot: getAutoTapBotState(user),
       botOptimization: getBotOptimizationState(user),
+      dailyAmplifier: getDailyAmplifierState(user),
       autoTapBotCoins,
       offlineCoins,
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
@@ -4768,7 +4848,15 @@ app.post("/daily-reward", async (req, res) => {
     user.streakDay += 1;
     if (user.streakDay > 10) user.streakDay = 1;
 
-    const reward = rewards[user.streakDay - 1];
+normalizeDailyAmplifier(user);
+
+let reward = rewards[user.streakDay - 1];
+
+const dailyBoost = getDailyAmplifierBoost(user.dailyAmplifier?.level || 0);
+
+reward = Math.floor(
+  reward + (reward * dailyBoost / 100)
+);
 
     user.coins += reward;
     user.totalClaims += 1;
