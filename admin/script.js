@@ -1,23 +1,33 @@
-console.log("Admin Login Page Loaded");
+const loginPage = document.getElementById("loginPage");
+const adminPanel = document.getElementById("adminPanel");
 
-const loginBtn = document.querySelector(".login-btn");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
 
-if (loginBtn) {
-  loginBtn.addEventListener("click", () => {
-    const email = document.getElementById("adminEmail").value.trim();
-    const password = document.getElementById("adminPassword").value.trim();
+loginBtn.onclick = () => {
+  const user = document.getElementById("adminUser").value;
+  const pass = document.getElementById("adminPass").value;
 
-    if (email === "admin@pupbyte.com" && password === "12345") {
-      alert("Login Successful");
-      document.body.innerHTML = `
-        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;color:white;font-family:Arial,sans-serif;">
-          <h1>Welcome Admin Dashboard 🚀</h1>
-        </div>
-      `;
-    } else {
-      alert("Invalid Credentials");
-    }
-  });
-} else {
-  console.log("Login button not found");
+  // SIMPLE LOGIN (later backend se connect karenge)
+  if (user === "admin" && pass === "1234") {
+    loginPage.style.display = "none";
+    adminPanel.style.display = "flex";
+
+    loadDashboard();
+  } else {
+    document.getElementById("loginError").innerText = "Invalid login";
+  }
+};
+
+logoutBtn.onclick = () => {
+  adminPanel.style.display = "none";
+  loginPage.style.display = "flex";
+};
+
+function loadDashboard() {
+  // demo values (later API se aayega)
+  document.getElementById("totalUsers").innerText = "1250";
+  document.getElementById("activeUsers").innerText = "320";
+  document.getElementById("totalCoins").innerText = "9500000";
+  document.getElementById("totalRefs").innerText = "420";
 }
