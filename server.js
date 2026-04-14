@@ -280,6 +280,11 @@ quantumCore: {
     durationHours: { type: Number, default: 12 },
     endTime: { type: Date, default: null },
     lastClaimAt: { type: Date, default: null }
+  },
+
+  botOptimization: {
+  level: { type: Number, default: 0 },
+  boostPercent: { type: Number, default: 0 }
   }
 });
 
@@ -2584,6 +2589,7 @@ async function applyOfflineMining(user) {
   return offlineCoins;
 }
 
+
 /* ================= OFFLINE AUTO TAP ================= */
 
 async function applyAutoTapBotIncome(user) {
@@ -2627,7 +2633,14 @@ async function applyAutoTapBotIncome(user) {
     user.quantumCore?.level || 1
   );
 
-  const coinsEarned = secondsPassed * autoTapPower;
+  normalizeBotOptimization(user);
+
+let coinsEarned = secondsPassed * autoTapPower;
+
+const botOptimizationPercent = getBotOptimizationBoost(user.botOptimization?.level || 0);
+coinsEarned = Math.floor(
+  coinsEarned + (coinsEarned * botOptimizationPercent / 100)
+);
 
   if (coinsEarned > 0) {
     user.coins += coinsEarned;
@@ -2645,6 +2658,80 @@ async function applyAutoTapBotIncome(user) {
 
   return coinsEarned;
 }
+
+/* ================= BOT OPTIMIZATION HANDLE ================= */
+
+  function normalizeBotOptimization(user) {
+  if (!user.botOptimization) {
+    user.botOptimization = {
+      level: 0,
+      boostPercent: 0
+    };
+  }
+}
+
+function getBotOptimizationBoost(level) {
+  return level * 10;
+}
+
+function getBotOptimizationCost(level) {
+  return 1800 * Math.pow(2, level);
+}
+
+function getBotOptimizationState(user) {
+  normalizeBotOptimization(user);
+
+  const level = user.botOptimization.level || 0;
+
+  return {
+    level,
+    boostPercent: getBotOptimizationBoost(level),
+    nextCost: level >= 20 ? 0 : getBotOptimizationCost(level)
+  };
+}
+
+/* ================= BOT OPTIMIZATION UPGRADE ================= */
+
+app.post("/upgrade-bot-optimization", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeBotOptimization(user);
+
+    const level = user.botOptimization.level || 0;
+
+    if (level >= 20) {
+      return res.json({ success: false, message: "Max level reached" });
+    }
+
+    const cost = getBotOptimizationCost(level);
+
+    if (user.coins < cost) {
+      return res.json({ success: false, message: "Not enough coins" });
+    }
+
+    user.coins -= cost;
+    user.botOptimization.level += 1;
+    user.botOptimization.boostPercent = getBotOptimizationBoost(user.botOptimization.level);
+    user.league = getLeague(user.coins);
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      coins: user.coins,
+      botOptimization: getBotOptimizationState(user)
+    });
+  } catch (e) {
+    console.log("/upgrade-bot-optimization error", e);
+    return res.json({ success: false, message: "Server error" });
+  }
+});
 
 /* ================= LOAD ================= */
 app.post("/load", async (req, res) => {
@@ -2746,6 +2833,7 @@ user.energy = Math.min(user.maxEnergy, user.energy);
       freeTapDaily: getFreeTapDailyState(user),
       freeEnergyDaily: getFreeEnergyDailyState(user),
       autoTapBot: getAutoTapBotState(user),
+      botOptimization: getBotOptimizationState(user),
       autoTapBotCoins,
       offlineCoins,
       nextTapCost: Math.floor(40 * Math.pow(1.7, user.tapLevel)),
