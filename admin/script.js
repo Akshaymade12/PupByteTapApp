@@ -4,24 +4,48 @@ const adminPanel = document.getElementById("adminPanel");
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 
-loginBtn.onclick = () => {
-  const user = document.getElementById("adminUser").value;
-  const pass = document.getElementById("adminPass").value;
+const ADMIN_API_BASE = "https://pupbytetapapp.onrender.com";
 
-  // SIMPLE LOGIN (later backend se connect karenge)
-  if (user === "admin" && pass === "1234") {
+loginBtn.onclick = async () => {
+  const user = document.getElementById("adminUser").value.trim();
+  const pass = document.getElementById("adminPass").value.trim();
+
+  try {
+    const res = await fetch(`${ADMIN_API_BASE}/admin/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: user,
+        password: pass
+      })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      document.getElementById("loginError").innerText = data.message || "Invalid login";
+      return;
+    }
+
+    localStorage.setItem("adminToken", data.token);
+    document.getElementById("loginError").innerText = "";
+
     loginPage.style.display = "none";
     adminPanel.style.display = "flex";
 
     loadDashboard();
-  } else {
-    document.getElementById("loginError").innerText = "Invalid login";
+  } catch (e) {
+    document.getElementById("loginError").innerText = "Server error";
   }
 };
 
 logoutBtn.onclick = () => {
+  localStorage.removeItem("adminToken");
   adminPanel.style.display = "none";
   loginPage.style.display = "flex";
+  showDashboardPage();
 };
 
 function loadDashboard() {
@@ -111,7 +135,7 @@ function showUsersPage() {
   document.querySelector(".table-box").style.display = "none";
   usersPage.style.display = "block";
 
-  renderUsersTable(adminUsers);
+  loadUsersFromBackend();
 }
 
 if (menuDashboard) menuDashboard.onclick = showDashboardPage;
@@ -189,27 +213,131 @@ if (closeUserModal) {
 
 /* ================= COINS ACTION ================= */
 if (addCoinsBtn) {
-  addCoinsBtn.onclick = () => {
+  addCoinsBtn.onclick = async () => {
     if (!selectedUser) return;
 
     const amount = Number(adminCoinsInput.value);
     if (!amount || amount <= 0) return;
 
-    selectedUser.coins += amount;
-    modalUserCoins.innerText = selectedUser.coins;
-    renderUsersTable(adminUsers);
+    const token = localStorage.getItem("adminToken");
+
+    try {
+      const res = await fetch(`${ADMIN_API_BASE}/admin/users/add-coins`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userId: selectedUser.dbId || selectedUser.userId,
+          amount
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        alert(data.message || "Failed to add coins");
+        return;
+      }
+
+      selectedUser.coins = data.coins;
+      selectedUser.league = data.league;
+
+      modalUserCoins.innerText = selectedUser.coins;
+      modalUserLeague.innerText = selectedUser.league;
+
+      renderUsersTable(adminUsers);
+      adminCoinsInput.value = "";
+    } catch (e) {
+      alert("Server error");
+    }
   };
 }
+
+/* ================= DEDUCT COIN ================= */
 
 if (deductCoinsBtn) {
-  deductCoinsBtn.onclick = () => {
+  deductCoinsBtn.onclick = async () => {
     if (!selectedUser) return;
 
     const amount = Number(adminCoinsInput.value);
     if (!amount || amount <= 0) return;
 
-    selectedUser.coins = Math.max(0, selectedUser.coins - amount);
-    modalUserCoins.innerText = selectedUser.coins;
-    renderUsersTable(adminUsers);
+    const token = localStorage.getItem("adminToken");
+
+    try {
+      const res = await fetch(`${ADMIN_API_BASE}/admin/users/deduct-coins`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userId: selectedUser.dbId || selectedUser.userId,
+          amount
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        alert(data.message || "Failed to deduct coins");
+        return;
+      }
+
+      selectedUser.coins = data.coins;
+      selectedUser.league = data.league;
+
+      modalUserCoins.innerText = selectedUser.coins;
+      modalUserLeague.innerText = selectedUser.league;
+
+      renderUsersTable(adminUsers);
+      adminCoinsInput.value = "";
+    } catch (e) {
+      alert("Server error");
+    }
   };
 }
+
+/* ================= load function ================= */
+
+async function loadUsersFromBackend() {
+  const token = localStorage.getItem("adminToken");
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${ADMIN_API_BASE}/admin/users`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      alert(data.message || "Failed to load users");
+      return;
+    }
+
+    adminUsers = data.users || [];
+    renderUsersTable(adminUsers);
+  } catch (e) {
+    console.log("loadUsersFromBackend error", e);
+  }
+}
+
+/* ================= Load ================= */
+
+window.onload = () => {
+  const token = localStorage.getItem("adminToken");
+
+  if (token) {
+    loginPage.style.display = "none";
+    adminPanel.style.display = "flex";
+    loadDashboard();
+  } else {
+    loginPage.style.display = "flex";
+    adminPanel.style.display = "none";
+  }
+};
