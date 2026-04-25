@@ -186,8 +186,10 @@ let appState = {
   offlineYield: {
   level: 0,
   boostPercent: 0,
-  nextCost: 1500
-  },
+  nextCost: 1500,
+  upgrading: false,
+  upgradeEndTime: null
+},
 
   dailyAmplifier: {
   level: 0,
@@ -458,6 +460,7 @@ let btcPairsTimerInterval = null;
   let powerSurgeTimerInterval = null;
   let overclockEngineTimerInterval = null;
   let criticalStrikeTimerInterval = null;
+  let offlineYieldTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -604,6 +607,7 @@ renderAutoTapBotUI();
 startAutoTapBotTimer();
 renderCriticalStrikeUI();
 startCriticalStrikeTimer();
+startOfflineYieldTimer();
 renderOfflineYieldUI();
 renderBotOptimizationUI();
 renderDailyAmplifierUI();
@@ -4574,7 +4578,9 @@ function renderOfflineYieldUI() {
   const skill = appState.offlineYield || {
     level: 0,
     boostPercent: 0,
-    nextCost: 1500
+    nextCost: 1500,
+    upgrading: false,
+    upgradeEndTime: null
   };
 
   if (offlineYieldLevelText) {
@@ -4585,16 +4591,73 @@ function renderOfflineYieldUI() {
     offlineYieldValueText.innerText = `+${skill.boostPercent || 0}%`;
   }
 
+  if (skill.upgrading && skill.upgradeEndTime) {
+    const leftMs = Math.max(0, new Date(skill.upgradeEndTime).getTime() - Date.now());
+    const totalSec = Math.max(0, Math.floor(leftMs / 1000));
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    const timerText = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+
+    if (offlineYieldCostText) offlineYieldCostText.innerText = timerText;
+
+    if (upgradeOfflineYieldBtn) {
+      upgradeOfflineYieldBtn.innerText = "Upgrading...";
+      upgradeOfflineYieldBtn.disabled = true;
+    }
+
+    return;
+  }
+
   if (offlineYieldCostText) {
     offlineYieldCostText.innerText =
       skill.level >= 20 ? "MAX" : `${skill.nextCost || 0}`;
   }
 
   if (upgradeOfflineYieldBtn) {
+    upgradeOfflineYieldBtn.innerText = skill.level >= 20 ? "MAX" : "Upgrade";
     upgradeOfflineYieldBtn.disabled = skill.level >= 20;
   }
 }
 
+ /* ================= OFFLINE YIELD TIMER ================= */
+
+  function startOfflineYieldTimer() {
+  if (offlineYieldTimerInterval) {
+    clearInterval(offlineYieldTimerInterval);
+    offlineYieldTimerInterval = null;
+  }
+
+  if (!appState.offlineYield?.upgrading || !appState.offlineYield?.upgradeEndTime) {
+    renderOfflineYieldUI();
+    return;
+  }
+
+  renderOfflineYieldUI();
+
+  offlineYieldTimerInterval = setInterval(() => {
+    if (!appState.offlineYield?.upgrading || !appState.offlineYield?.upgradeEndTime) {
+      clearInterval(offlineYieldTimerInterval);
+      offlineYieldTimerInterval = null;
+      renderOfflineYieldUI();
+      return;
+    }
+
+    const leftMs = Math.max(
+      0,
+      new Date(appState.offlineYield.upgradeEndTime).getTime() - Date.now()
+    );
+
+    if (leftMs <= 0) {
+      clearInterval(offlineYieldTimerInterval);
+      offlineYieldTimerInterval = null;
+      loadUser();
+      return;
+    }
+
+    renderOfflineYieldUI();
+  }, 1000);
+  }
+  
  /* ================= BOT OPTIMIZATION UI ================= */
 
   function renderBotOptimizationUI() {
@@ -4650,9 +4713,9 @@ function renderOfflineYieldUI() {
   };
   }
   
-/* ================= OFFLINE YIELD HANDLE ================= */
+/* ================= OFFLINE YIELD UPGRADE HANDLE ================= */
 
-  if (upgradeOfflineYieldBtn) {
+if (upgradeOfflineYieldBtn) {
   upgradeOfflineYieldBtn.onclick = async () => {
     try {
       const res = await fetch("/upgrade-offline-yield", {
@@ -4664,9 +4727,10 @@ function renderOfflineYieldUI() {
       const data = await res.json();
 
       if (data.success) {
-        coinsEl.innerText = Math.floor(data.coins || 0);
+        coinsEl.innerText = formatNumber(data.coins || 0);
         appState.offlineYield = data.offlineYield || appState.offlineYield;
         renderOfflineYieldUI();
+        startOfflineYieldTimer();
         loadUser();
       } else {
         alert(data.message || "Upgrade failed");
@@ -4676,7 +4740,7 @@ function renderOfflineYieldUI() {
       alert("Server error");
     }
   };
-  }
+}
  
 /* ================= BOOST BUTTON BINDINGS ================= */
 
