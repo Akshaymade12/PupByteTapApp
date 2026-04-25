@@ -73,6 +73,8 @@ totalClaims: { type: Number, default: 0 },
 rewardAdsWatched: { type: Number, default: 0 },
 lastRewardAdAt: { type: Date, default: null },
 rewardAdDate: { type: String, default: "" },
+  lastDailySpin: { type: String, default: "" },
+dailySpinCount: { type: Number, default: 0 },
   airdropScore: { type: Number, default: 0 },
 airdropTier: { type: String, default: "Not Eligible" },
   
@@ -2666,6 +2668,45 @@ coinsEarned = Math.floor(
   return coinsEarned;
 }
 
+/* ================= DAILY SPIN ================= */
+
+const DAILY_SPIN_LIMIT = 1;
+
+const SPIN_REWARDS = [
+  { label: "500 Coins", type: "coins", amount: 500 },
+  { label: "1,000 Coins", type: "coins", amount: 1000 },
+  { label: "2,500 Coins", type: "coins", amount: 2500 },
+  { label: "5,000 Coins", type: "coins", amount: 5000 },
+  { label: "10,000 Coins", type: "coins", amount: 10000 },
+  { label: "25,000 Coins", type: "coins", amount: 25000 },
+  { label: "50,000 Jackpot", type: "coins", amount: 50000 },
+  { label: "Try Again", type: "none", amount: 0 }
+];
+
+function normalizeDailySpin(user) {
+  const today = getTodayKey();
+
+  if (user.lastDailySpin !== today) {
+    user.lastDailySpin = today;
+    user.dailySpinCount = 0;
+  }
+}
+
+function getDailySpinState(user) {
+  normalizeDailySpin(user);
+
+  return {
+    dailyLimit: DAILY_SPIN_LIMIT,
+    usedToday: user.dailySpinCount || 0,
+    remaining: Math.max(0, DAILY_SPIN_LIMIT - (user.dailySpinCount || 0))
+  };
+}
+
+function pickSpinReward() {
+  const index = Math.floor(Math.random() * SPIN_REWARDS.length);
+  return SPIN_REWARDS[index];
+   }
+
 /* ================= BOT OPTIMIZATION HANDLE ================= */
 
   function normalizeBotOptimization(user) {
@@ -2915,6 +2956,7 @@ await user.save();
       referrals: user.referrals,
       streak: user.streakDay,
       totalClaims: user.totalClaims,
+      dailySpin: getDailySpinState(user),
       rewardedAds: {
   reward: REWARDED_AD_COINS,
   watchedToday: user.rewardAdsWatched || 0,
@@ -5302,6 +5344,51 @@ app.get("/top-league/:league", async (req, res) => {
   } catch (e) {
     console.log("/top-league error", e);
     res.json([]);
+  }
+});
+
+/* ================= DAILY SPIN API ================= */
+
+app.post("/daily-spin", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeDailySpin(user);
+
+    if ((user.dailySpinCount || 0) >= DAILY_SPIN_LIMIT) {
+      return res.json({
+        success: false,
+        message: "Daily spin already used",
+        dailySpin: getDailySpinState(user)
+      });
+    }
+
+    const reward = pickSpinReward();
+
+    user.dailySpinCount += 1;
+
+    if (reward.type === "coins") {
+      user.coins += reward.amount;
+      user.league = getLeague(user.coins);
+    }
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      reward,
+      coins: user.coins,
+      dailySpin: getDailySpinState(user)
+    });
+
+  } catch (e) {
+    console.log("/daily-spin error", e);
+    return res.json({ success: false, message: "Server error" });
   }
 });
 
