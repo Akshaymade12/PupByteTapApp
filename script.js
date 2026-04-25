@@ -171,7 +171,9 @@ let appState = {
   level: 0,
   chance: 0,
   multiplier: 2,
-  nextCost: 1000
+  nextCost: 1000,
+  upgrading: false,
+  upgradeEndTime: null
 },
   
   autoTapBot: {
@@ -455,6 +457,7 @@ let btcPairsTimerInterval = null;
   let energyCoreTimerInterval = null;
   let powerSurgeTimerInterval = null;
   let overclockEngineTimerInterval = null;
+  let criticalStrikeTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -600,6 +603,7 @@ renderFreeEnergyDailyUI();
 renderAutoTapBotUI();
 startAutoTapBotTimer();
 renderCriticalStrikeUI();
+startCriticalStrikeTimer();
 renderOfflineYieldUI();
 renderBotOptimizationUI();
 renderDailyAmplifierUI();
@@ -1952,7 +1956,9 @@ function renderCriticalStrikeUI() {
     level: 0,
     chance: 0,
     multiplier: 2,
-    nextCost: 1000
+    nextCost: 1000,
+    upgrading: false,
+    upgradeEndTime: null
   };
 
   if (criticalStrikeLevelText) {
@@ -1967,16 +1973,73 @@ function renderCriticalStrikeUI() {
     criticalStrikeMultiplierText.innerText = `x${skill.multiplier || 2}`;
   }
 
+  if (skill.upgrading && skill.upgradeEndTime) {
+    const leftMs = Math.max(0, new Date(skill.upgradeEndTime).getTime() - Date.now());
+    const totalSec = Math.max(0, Math.floor(leftMs / 1000));
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    const timerText = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+
+    if (criticalStrikeCostText) criticalStrikeCostText.innerText = timerText;
+
+    if (upgradeCriticalStrikeBtn) {
+      upgradeCriticalStrikeBtn.innerText = "Upgrading...";
+      upgradeCriticalStrikeBtn.disabled = true;
+    }
+
+    return;
+  }
+
   if (criticalStrikeCostText) {
     criticalStrikeCostText.innerText =
       skill.level >= 20 ? "MAX" : `${skill.nextCost || 0}`;
   }
 
   if (upgradeCriticalStrikeBtn) {
+    upgradeCriticalStrikeBtn.innerText = skill.level >= 20 ? "MAX" : "Upgrade";
     upgradeCriticalStrikeBtn.disabled = skill.level >= 20;
   }
 }
 
+/* ================= CRITICAL STRIKE TIMER ================= */
+
+  function startCriticalStrikeTimer() {
+  if (criticalStrikeTimerInterval) {
+    clearInterval(criticalStrikeTimerInterval);
+    criticalStrikeTimerInterval = null;
+  }
+
+  if (!appState.criticalStrike?.upgrading || !appState.criticalStrike?.upgradeEndTime) {
+    renderCriticalStrikeUI();
+    return;
+  }
+
+  renderCriticalStrikeUI();
+
+  criticalStrikeTimerInterval = setInterval(() => {
+    if (!appState.criticalStrike?.upgrading || !appState.criticalStrike?.upgradeEndTime) {
+      clearInterval(criticalStrikeTimerInterval);
+      criticalStrikeTimerInterval = null;
+      renderCriticalStrikeUI();
+      return;
+    }
+
+    const leftMs = Math.max(
+      0,
+      new Date(appState.criticalStrike.upgradeEndTime).getTime() - Date.now()
+    );
+
+    if (leftMs <= 0) {
+      clearInterval(criticalStrikeTimerInterval);
+      criticalStrikeTimerInterval = null;
+      loadUser();
+      return;
+    }
+
+    renderCriticalStrikeUI();
+  }, 1000);
+  }
+  
 /* ================= DAILY AMPLIFIER UI  ================= */
 
   function renderDailyAmplifierUI() {
@@ -3426,7 +3489,7 @@ if (data.success) {
   
 /* ================= CRITICAL STRIKE HANDLE  ================= */
 
-  if (upgradeCriticalStrikeBtn) {
+if (upgradeCriticalStrikeBtn) {
   upgradeCriticalStrikeBtn.onclick = async () => {
     try {
       const res = await fetch("/upgrade-critical-strike", {
@@ -3441,6 +3504,7 @@ if (data.success) {
         coinsEl.innerText = formatNumber(data.coins || 0);
         appState.criticalStrike = data.criticalStrike || appState.criticalStrike;
         renderCriticalStrikeUI();
+        startCriticalStrikeTimer();
         loadUser();
       } else {
         alert(data.message || "Upgrade failed");
@@ -3450,7 +3514,7 @@ if (data.success) {
       alert("Server error");
     }
   };
-  }
+}
   
 /* ================= MULTITAP UPGRADE ================= */
 
