@@ -5177,65 +5177,37 @@ if (navTasks) {
     };
   }
 
-  /* ================= LEAGUE OPEN ================= */
-  const openLeagueBtn = document.getElementById("openLeague");
+/* ================= LEAGUE OPEN ================= */
 
-  if (openLeagueBtn) {
+const openLeagueBtn = document.getElementById("openLeague");
+
+if (openLeagueBtn) {
   openLeagueBtn.onclick = async () => {
     hideAllSections();
-    if (leagueSection) leagueSection.style.display = "block";
+
+    if (leagueSection) {
+      leagueSection.style.display = "block";
+    }
+
     await loadGlobalLeaderboard();
   };
 }
 
-      try {
-        const res = await fetch("/league/" + telegramId);
-        const data = await res.json();
+const closeLeagueBtn = document.getElementById("closeLeagueBtn");
 
-        const leagueNameEl = document.getElementById("leagueName");
-        if (leagueNameEl) leagueNameEl.innerText = (data.league || "Wood") + " League";
+if (closeLeagueBtn) {
+  closeLeagueBtn.onclick = () => {
+    hideAllSections();
 
-        const topRes = await fetch("/top-league/" + (data.league || "Wood"));
-        const players = await topRes.json();
+    if (earnSection) {
+      earnSection.style.display = "block";
+    }
 
-        const box = document.getElementById("leagueTop");
-        if (box) {
-          box.innerHTML = "";
-
-          players.forEach((p, i) => {
-            box.innerHTML += `
-              <div class="leaderboard-item">
-                <span class="rank">#${i + 1}</span>
-                <span class="name">Player ${p.telegramId}</span>
-                <span class="coins">${Math.floor(p.coins || 0)}</span>
-              </div>
-            `;
-          });
-        }
-
-        const rankRes = await fetch("/rank/" + telegramId);
-        const rankData = await rankRes.json();
-
-        const myRankDisplay = document.getElementById("myRankDisplay");
-        const myCoinsDisplay = document.getElementById("myCoinsDisplay");
-
-        if (myRankDisplay) myRankDisplay.innerText = "#" + (rankData.rank || "--");
-        if (myCoinsDisplay) myCoinsDisplay.innerText = Math.floor(rankData.coins || 0);
-      } catch (e) {
-        console.log("League error", e);
-      }
-    };
-  }
-
-  const closeLeagueBtn = document.getElementById("closeLeagueBtn");
-  if (closeLeagueBtn) {
-    closeLeagueBtn.onclick = () => {
-      hideAllSections();
-      if (earnSection) earnSection.style.display = "block";
-      if (navEarn) navEarn.classList.add("active");
-    };
-  }
-
+    if (navEarn) {
+      navEarn.classList.add("active");
+    }
+  };
+}
   /* ================= ACCOUNT ================= */
   async function loadAccount() {
     try {
