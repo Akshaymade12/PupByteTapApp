@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PupByte Tap Bot</title>
-  <link rel="stylesheet" href="style.css?v=82">
+  <link rel="stylesheet" href="style.css?v=83">
 </head>
 <body>
 
@@ -181,29 +181,50 @@
 
   </div>
 
-  <!-- ================= LEAGUE SECTION ================= -->
-  <div id="leagueSection" style="display:none;">
+<!-- ================= LEADERBOARD SECTION ================= -->
+<div id="leagueSection" style="display:none;">
+  <div class="leaderboard-page">
+
     <div class="section-header">
       <button class="back-nav-btn" id="closeLeagueBtn">← Back</button>
-      <h2 id="leagueName">Wood League</h2>
+      <h2 id="leagueName">🏆 Leaderboard</h2>
     </div>
 
-    <div class="league-info-card">
-      <div class="league-rank-box">
-        <p>Your Rank</p>
-        <h3 id="myRankDisplay">#--</h3>
+    <div class="leaderboard-hero">
+      <div>
+        <div class="leaderboard-hero-label">Your Global Rank</div>
+        <div class="leaderboard-hero-rank" id="myRankDisplay">#--</div>
       </div>
-      <div class="league-coins-box">
-        <p>Your Coins</p>
-        <h3 id="myCoinsDisplay">0</h3>
+      <div class="leaderboard-hero-side">
+        <div class="leaderboard-hero-label">Coins</div>
+        <div class="leaderboard-hero-coins" id="myCoinsDisplay">0</div>
+      </div>
+    </div>
+
+    <div class="leaderboard-tabs">
+      <button id="leaderboardTabGlobal" class="leaderboard-tab active">🌍 Global</button>
+      <button id="leaderboardTabLeague" class="leaderboard-tab">🏆 League</button>
+    </div>
+
+    <div class="leaderboard-reward-card">
+      <div class="leaderboard-reward-icon">🎁</div>
+      <div>
+        <h3>Weekly Rank Rewards</h3>
+        <p>Top players will receive bonus rewards after weekly reset.</p>
       </div>
     </div>
 
     <div class="leaderboard-container">
-      <h3>Top Players</h3>
+      <div class="leaderboard-title-row">
+        <h3 id="leaderboardListTitle">Top Global Players</h3>
+        <span id="leaderboardCountText">Top 50</span>
+      </div>
+
       <div id="leagueTop" class="leaderboard-list"></div>
     </div>
+
   </div>
+</div>
 
   <!-- ================= ACCOUNT SECTION ================= -->
   <div id="accountSection" style="display:none;">
@@ -643,7 +664,7 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="script.js?v=81"></script>
+<script src="script.js?v=82"></script>
 
 </body>
         </html>
