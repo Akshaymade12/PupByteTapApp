@@ -194,7 +194,9 @@ let appState = {
   dailyAmplifier: {
   level: 0,
   boostPercent: 0,
-  nextCost: 2000
+  nextCost: 2000,
+  upgrading: false,
+  upgradeEndTime: null
 },
 
   botOptimization: {
@@ -464,6 +466,7 @@ let btcPairsTimerInterval = null;
   let criticalStrikeTimerInterval = null;
   let offlineYieldTimerInterval = null;
   let botOptimizationTimerInterval = null;
+  let dailyAmplifierTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -611,6 +614,7 @@ startAutoTapBotTimer();
 renderCriticalStrikeUI();
 startCriticalStrikeTimer();
 startOfflineYieldTimer();
+startDailyAmplifierTimer();
 renderOfflineYieldUI();
 renderBotOptimizationUI();
 startBotOptimizationTimer();
@@ -2054,7 +2058,9 @@ function renderCriticalStrikeUI() {
   const skill = appState.dailyAmplifier || {
     level: 0,
     boostPercent: 0,
-    nextCost: 2000
+    nextCost: 2000,
+    upgrading: false,
+    upgradeEndTime: null
   };
 
   if (dailyAmplifierLevelText) {
@@ -2065,16 +2071,72 @@ function renderCriticalStrikeUI() {
     dailyAmplifierValueText.innerText = `+${skill.boostPercent || 0}%`;
   }
 
+  if (skill.upgrading && skill.upgradeEndTime) {
+    const leftMs = Math.max(0, new Date(skill.upgradeEndTime).getTime() - Date.now());
+    const totalSec = Math.max(0, Math.floor(leftMs / 1000));
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    const timerText = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+
+    if (dailyAmplifierCostText) dailyAmplifierCostText.innerText = timerText;
+
+    if (upgradeDailyAmplifierBtn) {
+      upgradeDailyAmplifierBtn.innerText = "Upgrading...";
+      upgradeDailyAmplifierBtn.disabled = true;
+    }
+
+    return;
+  }
+
   if (dailyAmplifierCostText) {
     dailyAmplifierCostText.innerText =
       skill.level >= 20 ? "MAX" : `${skill.nextCost || 0}`;
   }
 
   if (upgradeDailyAmplifierBtn) {
+    upgradeDailyAmplifierBtn.innerText = skill.level >= 20 ? "MAX" : "Upgrade";
     upgradeDailyAmplifierBtn.disabled = skill.level >= 20;
   }
+}
+  
+/* ================= DAILY AMPLIFIER TIMER  ================= */
+  
+function startDailyAmplifierTimer() {
+  if (dailyAmplifierTimerInterval) {
+    clearInterval(dailyAmplifierTimerInterval);
+    dailyAmplifierTimerInterval = null;
   }
 
+  if (!appState.dailyAmplifier?.upgrading || !appState.dailyAmplifier?.upgradeEndTime) {
+    renderDailyAmplifierUI();
+    return;
+  }
+
+  renderDailyAmplifierUI();
+
+  dailyAmplifierTimerInterval = setInterval(() => {
+    if (!appState.dailyAmplifier?.upgrading || !appState.dailyAmplifier?.upgradeEndTime) {
+      clearInterval(dailyAmplifierTimerInterval);
+      dailyAmplifierTimerInterval = null;
+      renderDailyAmplifierUI();
+      return;
+    }
+
+    const leftMs = Math.max(
+      0,
+      new Date(appState.dailyAmplifier.upgradeEndTime).getTime() - Date.now()
+    );
+
+    if (leftMs <= 0) {
+      clearInterval(dailyAmplifierTimerInterval);
+      dailyAmplifierTimerInterval = null;
+      loadUser();
+      return;
+    }
+
+    renderDailyAmplifierUI();
+  }, 1000);
+}
   /* ================= MISSIONS TABS ================= */
 
 function switchMissionTab(tabName) {
@@ -3467,9 +3529,9 @@ if (data.success) {
   });
   }
 
-  /* ================= DAILY AMPLIFIER UPGRADE  ================= */
+/* ================= DAILY AMPLIFIER HANDLE ================= */
 
-  if (upgradeDailyAmplifierBtn) {
+if (upgradeDailyAmplifierBtn) {
   upgradeDailyAmplifierBtn.onclick = async () => {
     try {
       const res = await fetch("/upgrade-daily-amplifier", {
@@ -3484,6 +3546,7 @@ if (data.success) {
         coinsEl.innerText = formatNumber(data.coins || 0);
         appState.dailyAmplifier = data.dailyAmplifier || appState.dailyAmplifier;
         renderDailyAmplifierUI();
+        startDailyAmplifierTimer();
         loadUser();
       } else {
         alert(data.message || "Upgrade failed");
@@ -3493,7 +3556,7 @@ if (data.success) {
       alert("Server error");
     }
   };
-  }
+}
   
 /* ================= CRITICAL STRIKE HANDLE  ================= */
 
