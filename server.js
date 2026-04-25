@@ -272,7 +272,10 @@ quantumCore: {
   criticalStrike: {
   level: { type: Number, default: 0 },
   chance: { type: Number, default: 0 },
-  multiplier: { type: Number, default: 2 }
+  multiplier: { type: Number, default: 2 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
 },
 
   offlineYield: {
@@ -2951,6 +2954,7 @@ app.post("/load", async (req, res) => {
     await finalizeOverclockEngineUpgrade(user);
     await finalizeNeuralSyncUpgrade(user);
     await finalizeQuantumUpgrade(user);
+    await finalizeCriticalStrikeUpgrade(user);
     normalizeBoostX2(user);
     normalizeFreeEnergyDaily(user);
     normalizeAutoTapBot(user);
@@ -4142,9 +4146,16 @@ function normalizeCriticalStrike(user) {
     user.criticalStrike = {
       level: 0,
       chance: 0,
-      multiplier: 2
+      multiplier: 2,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
     };
   }
+
+  if (user.criticalStrike.upgrading === undefined) user.criticalStrike.upgrading = false;
+  if (user.criticalStrike.upgradeStartTime === undefined) user.criticalStrike.upgradeStartTime = null;
+  if (user.criticalStrike.upgradeEndTime === undefined) user.criticalStrike.upgradeEndTime = null;
 }
 
 function getCriticalStrikeChance(level) {
@@ -4163,6 +4174,32 @@ function getCriticalStrikeCost(level) {
   return 1000 * Math.pow(2, level);
 }
 
+function getCriticalStrikeUpgradeTime(level) {
+  return 30 * (level + 1);
+}
+
+async function finalizeCriticalStrikeUpgrade(user) {
+  normalizeCriticalStrike(user);
+
+  if (
+    user.criticalStrike.upgrading &&
+    user.criticalStrike.upgradeEndTime &&
+    new Date(user.criticalStrike.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.criticalStrike.level < 20) {
+      user.criticalStrike.level += 1;
+      user.criticalStrike.chance = getCriticalStrikeChance(user.criticalStrike.level);
+      user.criticalStrike.multiplier = getCriticalStrikeMultiplier(user.criticalStrike.level);
+    }
+
+    user.criticalStrike.upgrading = false;
+    user.criticalStrike.upgradeStartTime = null;
+    user.criticalStrike.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 function getCriticalStrikeState(user) {
   normalizeCriticalStrike(user);
 
@@ -4172,6 +4209,9 @@ function getCriticalStrikeState(user) {
     level,
     chance: getCriticalStrikeChance(level),
     multiplier: getCriticalStrikeMultiplier(level),
+    upgrading: !!user.criticalStrike.upgrading,
+    upgradeEndTime: user.criticalStrike.upgradeEndTime || null,
+    upgradeTime: level >= 20 ? 0 : getCriticalStrikeUpgradeTime(level),
     nextCost: level >= 20 ? 0 : getCriticalStrikeCost(level)
   };
 }
@@ -4188,6 +4228,7 @@ app.post("/upgrade-critical-strike", async (req, res) => {
     }
 
     normalizeCriticalStrike(user);
+    await finalizeCriticalStrikeUpgrade(user);
 
     const level = user.criticalStrike.level || 0;
 
@@ -4195,16 +4236,21 @@ app.post("/upgrade-critical-strike", async (req, res) => {
       return res.json({ success: false, message: "Max level reached" });
     }
 
+    if (user.criticalStrike.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
     const cost = getCriticalStrikeCost(level);
+    const upgradeTime = getCriticalStrikeUpgradeTime(level);
 
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
     }
 
     user.coins -= cost;
-    user.criticalStrike.level += 1;
-    user.criticalStrike.chance = getCriticalStrikeChance(user.criticalStrike.level);
-    user.criticalStrike.multiplier = getCriticalStrikeMultiplier(user.criticalStrike.level);
+    user.criticalStrike.upgrading = true;
+    user.criticalStrike.upgradeStartTime = new Date();
+    user.criticalStrike.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
     user.league = getLeague(user.coins);
 
     await user.save();
