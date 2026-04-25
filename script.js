@@ -177,12 +177,14 @@ let appState = {
 },
   
   autoTapBot: {
-    active: false,
-    priceCoins: 200000,
-    durationHours: 12,
-    endTime: null
-  },
-
+  active: false,
+  priceCoins: 200000,
+  durationHours: 12,
+  endTime: null,
+  coinsPerSecond: 0,
+  coinsPerHour: 0
+},
+  
   offlineYield: {
   level: 0,
   boostPercent: 0,
@@ -1859,25 +1861,35 @@ function startBoostX2Timer() {
     active: false,
     priceCoins: 200000,
     durationHours: 12,
-    endTime: null
+    endTime: null,
+    coinsPerSecond: 0,
+    coinsPerHour: 0
   };
 
   if (autoTapBotCostText) {
-    autoTapBotCostText.innerText = bot.priceCoins || 200000;
+    autoTapBotCostText.innerText = bot.active
+      ? `${formatNumber(bot.coinsPerHour || 0)}/H`
+      : formatNumber(bot.priceCoins || 200000);
   }
 
-  if (!autoTapBotStatusText) return;
-
-  if (bot.active && bot.endTime) {
-    const leftMs = Math.max(0, new Date(bot.endTime).getTime() - Date.now());
-    autoTapBotStatusText.innerText =
-      leftMs > 0 ? formatBoostTimeLeft(leftMs) : "Inactive";
-    return;
+  if (autoTapBotStatusText) {
+    if (bot.active && bot.endTime) {
+      const leftMs = Math.max(0, new Date(bot.endTime).getTime() - Date.now());
+      autoTapBotStatusText.innerText =
+        leftMs > 0 ? `Active ${formatBoostTimeLeft(leftMs)}` : "Inactive";
+    } else {
+      autoTapBotStatusText.innerText = "Inactive";
+    }
   }
 
-  autoTapBotStatusText.innerText = "Inactive";
+  if (upgradeAutoTapBotBtn) {
+    if (bot.active && bot.endTime) {
+      upgradeAutoTapBotBtn.style.opacity = "0.85";
+    } else {
+      upgradeAutoTapBotBtn.style.opacity = "1";
+    }
   }
-
+}
   /* ================= AUTO BOT TAP TIMER ================= */
 
   function startAutoTapBotTimer() {
@@ -1886,8 +1898,7 @@ function startBoostX2Timer() {
     autoTapBotTimerInterval = null;
   }
 
-  const bot = appState.autoTapBot;
-  if (!bot?.active || !bot?.endTime) {
+  if (!appState.autoTapBot?.active || !appState.autoTapBot?.endTime) {
     renderAutoTapBotUI();
     return;
   }
@@ -1918,7 +1929,7 @@ function startBoostX2Timer() {
 
     renderAutoTapBotUI();
   }, 1000);
-  }
+}
   
 /* ================= FREE DAILY TAP TIMER  ================= */
   
@@ -3501,9 +3512,9 @@ if (data.success) {
   });
   }
 
- /* ================= AUTO BOT TAP HANDLE  ================= */
+/* ================= AUTO BOT TAP HANDLE  ================= */
 
-  if (upgradeAutoTapBotBtn) {
+if (upgradeAutoTapBotBtn) {
   upgradeAutoTapBotBtn.addEventListener("click", async () => {
     try {
       const res = await fetch("/activate-auto-tap-bot", {
@@ -3520,7 +3531,13 @@ if (data.success) {
         renderAutoTapBotUI();
         startAutoTapBotTimer();
         loadUser();
+        alert("🤖 Auto Tap Bot activated for 12 hours");
       } else {
+        if (data.autoTapBot) {
+          appState.autoTapBot = data.autoTapBot;
+          renderAutoTapBotUI();
+          startAutoTapBotTimer();
+        }
         alert(data.message || "Activation failed");
       }
     } catch (e) {
@@ -3528,7 +3545,7 @@ if (data.success) {
       alert("Server error");
     }
   });
-  }
+}
 
 /* ================= DAILY AMPLIFIER HANDLE ================= */
 
