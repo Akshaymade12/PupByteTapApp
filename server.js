@@ -308,7 +308,6 @@ quantumCore: {
   upgrading: { type: Boolean, default: false },
   upgradeStartTime: { type: Date, default: null },
   upgradeEndTime: { type: Date, default: null }
-}
   }
 });
 
