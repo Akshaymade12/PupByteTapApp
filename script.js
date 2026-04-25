@@ -467,6 +467,7 @@ let btcPairsTimerInterval = null;
   let offlineYieldTimerInterval = null;
   let botOptimizationTimerInterval = null;
   let dailyAmplifierTimerInterval = null;
+  
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
