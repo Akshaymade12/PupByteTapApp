@@ -1126,6 +1126,10 @@ button:active {
   padding: 0 16px 95px;
 }
 
+.missions-page h2 {
+  margin-top: 0;
+}
+
 .missions-tabs-wrap {
   margin-top: 6px;
   padding-bottom: 6px;
