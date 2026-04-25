@@ -1115,33 +1115,33 @@ button:active {
 /* ================= MISSIONS HUB ================= */
 
 .missions-page {
-  padding: 16px;
+  padding: 8px 16px 95px;
   padding-bottom: 95px;
 }
 
 .missions-tabs-wrap {
   margin-top: 14px;
-  overflow-x: auto;
   padding-bottom: 6px;
+  overflow: visible;
 }
 
 .missions-tabs {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
-  flex-wrap: nowrap;
 }
 
 .mission-tab {
-  flex: 0 0 auto;
-  min-width: 145px;
-  padding: 12px 14px;
+  width: 100%;
+  padding: 12px 8px;
   border: none;
   border-radius: 18px;
   color: #fff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   white-space: nowrap;
   background: rgba(255,255,255,0.10);
+  text-align: center;
 }
 
 .mission-tab.active {
@@ -1262,6 +1262,10 @@ button:active {
 .event-icon {
   font-size: 48px;
   margin-bottom: 10px;
+}
+
+#missionTabEvents {
+  grid-column: 1 / -1;
 }
 
 /* ================= RESPONSIVE ================= */
