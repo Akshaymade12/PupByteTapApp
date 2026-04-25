@@ -5578,6 +5578,49 @@ app.get("/daily-combo", async (req, res) => {
   res.json({ combo: ["A", "B", "C"] });
 });
 
+/* ================= GLOBAL LEADERBOARD API ================= */
+
+app.get("/leaderboard/global/:telegramId", async (req, res) => {
+  try {
+    const telegramId = String(req.params.telegramId);
+
+    const topUsers = await User.find({})
+      .sort({ coins: -1 })
+      .limit(50)
+      .select("telegramId coins league referrals profitPerHour");
+
+    const me = await User.findOne({ telegramId });
+
+    let myRank = 0;
+    let myCoins = 0;
+    let myLeague = "Wood";
+
+    if (me) {
+      myRank = await User.countDocuments({ coins: { $gt: me.coins } }) + 1;
+      myCoins = me.coins || 0;
+      myLeague = me.league || getLeague(me.coins || 0);
+    }
+
+    return res.json({
+      success: true,
+      myRank,
+      myCoins,
+      myLeague,
+      players: topUsers.map((u, index) => ({
+        rank: index + 1,
+        telegramId: u.telegramId,
+        coins: u.coins || 0,
+        league: u.league || getLeague(u.coins || 0),
+        referrals: u.referrals || 0,
+        profitPerHour: u.profitPerHour || 0
+      }))
+    });
+  } catch (e) {
+    console.log("/leaderboard/global error", e);
+    return res.json({ success: false, players: [] });
+  }
+});
+
 /* ================= LEAGUE API ================= */
 app.get("/league/:telegramId", async (req, res) => {
   try {
