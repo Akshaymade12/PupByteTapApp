@@ -304,7 +304,11 @@ quantumCore: {
 
   dailyAmplifier: {
   level: { type: Number, default: 0 },
-  boostPercent: { type: Number, default: 0 }
+  boostPercent: { type: Number, default: 0 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+}
   }
 });
 
@@ -2915,15 +2919,22 @@ app.post("/upgrade-bot-optimization", async (req, res) => {
   }
 });
 
-/* ================= DAILY AMPLIFIER HANDLE  ================= */
+/* ================= DAILY AMPLIFIER HANDLE ================= */
 
 function normalizeDailyAmplifier(user) {
   if (!user.dailyAmplifier) {
     user.dailyAmplifier = {
       level: 0,
-      boostPercent: 0
+      boostPercent: 0,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
     };
   }
+
+  if (user.dailyAmplifier.upgrading === undefined) user.dailyAmplifier.upgrading = false;
+  if (user.dailyAmplifier.upgradeStartTime === undefined) user.dailyAmplifier.upgradeStartTime = null;
+  if (user.dailyAmplifier.upgradeEndTime === undefined) user.dailyAmplifier.upgradeEndTime = null;
 }
 
 function getDailyAmplifierBoost(level) {
@@ -2934,6 +2945,31 @@ function getDailyAmplifierCost(level) {
   return 2000 * Math.pow(2, level);
 }
 
+function getDailyAmplifierUpgradeTime(level) {
+  return 75 * (level + 1);
+}
+
+async function finalizeDailyAmplifierUpgrade(user) {
+  normalizeDailyAmplifier(user);
+
+  if (
+    user.dailyAmplifier.upgrading &&
+    user.dailyAmplifier.upgradeEndTime &&
+    new Date(user.dailyAmplifier.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.dailyAmplifier.level < 20) {
+      user.dailyAmplifier.level += 1;
+      user.dailyAmplifier.boostPercent = getDailyAmplifierBoost(user.dailyAmplifier.level);
+    }
+
+    user.dailyAmplifier.upgrading = false;
+    user.dailyAmplifier.upgradeStartTime = null;
+    user.dailyAmplifier.upgradeEndTime = null;
+
+    await user.save();
+  }
+}
+
 function getDailyAmplifierState(user) {
   normalizeDailyAmplifier(user);
 
@@ -2942,11 +2978,14 @@ function getDailyAmplifierState(user) {
   return {
     level,
     boostPercent: getDailyAmplifierBoost(level),
+    upgrading: !!user.dailyAmplifier.upgrading,
+    upgradeEndTime: user.dailyAmplifier.upgradeEndTime || null,
+    upgradeTime: level >= 20 ? 0 : getDailyAmplifierUpgradeTime(level),
     nextCost: level >= 20 ? 0 : getDailyAmplifierCost(level)
   };
 }
 
-/* ================= DAILY AMPLIFIER UPGRADE  ================= */
+/* ================= DAILY AMPLIFIER UPGRADE ================= */
 
 app.post("/upgrade-daily-amplifier", async (req, res) => {
   try {
@@ -2958,6 +2997,7 @@ app.post("/upgrade-daily-amplifier", async (req, res) => {
     }
 
     normalizeDailyAmplifier(user);
+    await finalizeDailyAmplifierUpgrade(user);
 
     const level = user.dailyAmplifier.level || 0;
 
@@ -2965,15 +3005,21 @@ app.post("/upgrade-daily-amplifier", async (req, res) => {
       return res.json({ success: false, message: "Max level reached" });
     }
 
+    if (user.dailyAmplifier.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
     const cost = getDailyAmplifierCost(level);
+    const upgradeTime = getDailyAmplifierUpgradeTime(level);
 
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
     }
 
     user.coins -= cost;
-    user.dailyAmplifier.level += 1;
-    user.dailyAmplifier.boostPercent = getDailyAmplifierBoost(user.dailyAmplifier.level);
+    user.dailyAmplifier.upgrading = true;
+    user.dailyAmplifier.upgradeStartTime = new Date();
+    user.dailyAmplifier.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
     user.league = getLeague(user.coins);
 
     await user.save();
@@ -3026,6 +3072,7 @@ app.post("/load", async (req, res) => {
     await finalizeCriticalStrikeUpgrade(user);
     await finalizeOfflineYieldUpgrade(user);
     await finalizeBotOptimizationUpgrade(user);
+    await finalizeDailyAmplifierUpgrade(user);
     normalizeBoostX2(user);
     normalizeFreeEnergyDaily(user);
     normalizeAutoTapBot(user);
