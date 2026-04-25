@@ -2018,6 +2018,7 @@ function switchMissionTab(tabName) {
   if (tabName === "spin") {
     if (missionSpinPanel) missionSpinPanel.style.display = "block";
     if (missionTabSpin) missionTabSpin.classList.add("active");
+    renderDailySpinUI();
   }
 
   if (tabName === "daily") {
@@ -2032,9 +2033,23 @@ function switchMissionTab(tabName) {
   }
 }
 
-if (missionTabSpin) missionTabSpin.onclick = () => switchMissionTab("spin");
-if (missionTabDaily) missionTabDaily.onclick = () => switchMissionTab("daily");
-if (missionTabEvents) missionTabEvents.onclick = () => switchMissionTab("events");
+if (missionTabSpin) {
+  missionTabSpin.addEventListener("click", () => {
+    switchMissionTab("spin");
+  });
+}
+
+if (missionTabDaily) {
+  missionTabDaily.addEventListener("click", () => {
+    switchMissionTab("daily");
+  });
+}
+
+if (missionTabEvents) {
+  missionTabEvents.addEventListener("click", () => {
+    switchMissionTab("events");
+  });
+}
   
   /* ================= DAILY SPIN UI ================= */
 
