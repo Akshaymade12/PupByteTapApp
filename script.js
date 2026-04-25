@@ -106,6 +106,16 @@ const refScoreText = document.getElementById("refScoreText");
 const taskScoreText = document.getElementById("taskScoreText");
 const activityScoreText = document.getElementById("activityScoreText");
 const upgradeScoreText = document.getElementById("upgradeScoreText");
+
+  const missionTabSpin = document.getElementById("missionTabSpin");
+const missionTabDaily = document.getElementById("missionTabDaily");
+const missionTabEvents = document.getElementById("missionTabEvents");
+
+const missionSpinPanel = document.getElementById("missionSpinPanel");
+const missionDailyPanel = document.getElementById("missionDailyPanel");
+const missionEventsPanel = document.getElementById("missionEventsPanel");
+
+const missionsList = document.getElementById("missionsList");
   
   const offlinePopup = document.getElementById("offlinePopup");
 const offlineCoinsText = document.getElementById("offlineCoinsText");
@@ -1994,6 +2004,38 @@ function renderCriticalStrikeUI() {
   }
   }
 
+  /* ================= MISSIONS TABS ================= */
+
+function switchMissionTab(tabName) {
+  if (missionSpinPanel) missionSpinPanel.style.display = "none";
+  if (missionDailyPanel) missionDailyPanel.style.display = "none";
+  if (missionEventsPanel) missionEventsPanel.style.display = "none";
+
+  if (missionTabSpin) missionTabSpin.classList.remove("active");
+  if (missionTabDaily) missionTabDaily.classList.remove("active");
+  if (missionTabEvents) missionTabEvents.classList.remove("active");
+
+  if (tabName === "spin") {
+    if (missionSpinPanel) missionSpinPanel.style.display = "block";
+    if (missionTabSpin) missionTabSpin.classList.add("active");
+  }
+
+  if (tabName === "daily") {
+    if (missionDailyPanel) missionDailyPanel.style.display = "block";
+    if (missionTabDaily) missionTabDaily.classList.add("active");
+    loadMissions();
+  }
+
+  if (tabName === "events") {
+    if (missionEventsPanel) missionEventsPanel.style.display = "block";
+    if (missionTabEvents) missionTabEvents.classList.add("active");
+  }
+}
+
+if (missionTabSpin) missionTabSpin.onclick = () => switchMissionTab("spin");
+if (missionTabDaily) missionTabDaily.onclick = () => switchMissionTab("daily");
+if (missionTabEvents) missionTabEvents.onclick = () => switchMissionTab("events");
+  
   /* ================= DAILY SPIN UI ================= */
 
 function renderDailySpinUI() {
@@ -2016,6 +2058,102 @@ function renderDailySpinUI() {
       dailySpinBtn.disabled = false;
     }
   }
+}
+
+/* ================= DAILY MISSIONS UI ================= */
+
+async function loadMissions() {
+  try {
+    const res = await fetch("/missions-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) return;
+
+    renderMissions(data.missions || {});
+  } catch (e) {
+    console.log("Load missions error", e);
+  }
+}
+
+function getMissionIcon(key) {
+  if (key === "tap") return "👆";
+  if (key === "spin") return "🎰";
+  if (key === "ad") return "🎥";
+  return "🔥";
+}
+
+function renderMissions(missions) {
+  if (!missionsList) return;
+
+  missionsList.innerHTML = "";
+
+  Object.keys(missions).forEach(key => {
+    const mission = missions[key];
+    const progress = mission.progress || 0;
+    const goal = mission.goal || 1;
+    const percent = Math.min((progress / goal) * 100, 100);
+
+    const card = document.createElement("div");
+    card.className = "mission-card";
+
+    card.innerHTML = `
+      <div class="mission-card-top">
+        <div>
+          <div class="mission-card-title">${getMissionIcon(key)} ${mission.title || key}</div>
+          <div class="mission-card-sub">${progress}/${goal} completed</div>
+        </div>
+        <div class="mission-reward">🪙 ${formatNumber(mission.reward || 0)}</div>
+      </div>
+
+      <div class="mission-progress-wrap">
+        <div class="mission-progress-text">
+          <span>Progress</span>
+          <span>${Math.floor(percent)}%</span>
+        </div>
+        <div class="mission-progress-bar">
+          <div class="mission-progress-fill" style="width:${percent}%"></div>
+        </div>
+      </div>
+
+      <button class="mission-claim-btn" ${!mission.done || mission.claimed ? "disabled" : ""}>
+        ${mission.claimed ? "Claimed ✅" : mission.done ? "Claim Reward" : "In Progress"}
+      </button>
+    `;
+
+    const btn = card.querySelector(".mission-claim-btn");
+
+    btn.onclick = async () => {
+      try {
+        const res = await fetch("/claim-mission", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegramId, initData, type: key })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          alert("🎉 Mission reward +" + formatNumber(data.reward));
+          if (coinsEl) coinsEl.innerText = formatNumber(data.coins || 0);
+          if (accountCoins) accountCoins.innerText = formatNumber(data.coins || 0);
+          renderMissions(data.missions || {});
+          loadUser();
+        } else {
+          alert(data.message || "Cannot claim");
+        }
+      } catch (e) {
+        console.log("Claim mission error", e);
+        alert("Server error");
+      }
+    };
+
+    missionsList.appendChild(card);
+  });
 }
   
 /* ================= Watch ADS TIMER  ================= */
@@ -4573,6 +4711,7 @@ if (openBoostBtn) {
     hideAllSections();
     if (spinSection) spinSection.style.display = "block";
     navSpin.classList.add("active");
+    switchMissionTab("spin");
     renderDailySpinUI();
   };
   }
@@ -4800,6 +4939,7 @@ if (navTasks) {
       startRewardAdCooldownTimer();
 
       alert(`🎉 +${data.reward} coins`);
+      loadMissions();
       loadUser();
     } else {
       alert(data.message || "Ad reward failed");
@@ -4849,6 +4989,7 @@ if (dailySpinBtn) {
 
           appState.dailySpin = data.dailySpin || appState.dailySpin;
           renderDailySpinUI();
+          loadMissions();
           loadUser();
         } else {
           alert(data.message || "Spin failed");
