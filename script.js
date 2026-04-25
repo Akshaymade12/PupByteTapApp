@@ -93,6 +93,16 @@ const rewardAdLimitText = document.getElementById("rewardAdLimitText");
 const accountRefLink = document.getElementById("accountRefLink");
 const copyRefBtn = document.getElementById("copyRefBtn");
 
+  const airdropScoreText = document.getElementById("airdropScore");
+const airdropTierText = document.getElementById("airdropTier");
+const airdropProgress = document.getElementById("airdropProgress");
+
+const coinScoreText = document.getElementById("coinScoreText");
+const refScoreText = document.getElementById("refScoreText");
+const taskScoreText = document.getElementById("taskScoreText");
+const activityScoreText = document.getElementById("activityScoreText");
+const upgradeScoreText = document.getElementById("upgradeScoreText");
+  
   const offlinePopup = document.getElementById("offlinePopup");
 const offlineCoinsText = document.getElementById("offlineCoinsText");
 const closeOfflinePopup = document.getElementById("closeOfflinePopup");
@@ -468,6 +478,29 @@ if (offlinePopup && offlineCoinsText && (data.offlineCoins || 0) > 0) {
       if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
       if (accountReferrals) accountReferrals.innerText = data.referrals || 0;
 
+      if (data.airdrop) {
+  if (airdropScoreText) {
+    airdropScoreText.innerText = data.airdrop.score || 0;
+  }
+
+  if (airdropTierText) {
+    airdropTierText.innerText = data.airdrop.tier || "Not Eligible";
+  }
+
+  if (airdropProgress) {
+    const percent = Math.min(((data.airdrop.score || 0) / 350) * 100, 100);
+    airdropProgress.style.width = percent + "%";
+  }
+
+  const b = data.airdrop.breakdown || {};
+
+  if (coinScoreText) coinScoreText.innerText = `${b.coinsScore || 0} pts`;
+  if (refScoreText) refScoreText.innerText = `${b.referralScore || 0} pts`;
+  if (taskScoreText) taskScoreText.innerText = `${b.taskScore || 0} pts`;
+  if (activityScoreText) activityScoreText.innerText = `${b.activityScore || 0} pts`;
+  if (upgradeScoreText) upgradeScoreText.innerText = `${b.upgradeScore || 0} pts`;
+      }
+      
       console.log("Telegram ID:", telegramId);
       
       // ✅ Referral link set karo
