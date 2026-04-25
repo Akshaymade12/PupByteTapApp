@@ -2540,11 +2540,34 @@ function normalizeAutoTapBot(user) {
 function getAutoTapBotState(user) {
   normalizeAutoTapBot(user);
 
+  const turboBase = getTurboTapBonus(user.turboCharger?.level || 1);
+  const turboBonus = applyNeuralBoost(turboBase, user.neuralSync?.level || 1);
+
+  let autoTapPower = applyNeuralBoost(
+    getOverclockTapPower(
+      user.tapPower + turboBonus,
+      user.overclockEngine?.level || 1
+    ),
+    user.neuralSync?.level || 1
+  );
+
+  autoTapPower = applyQuantum(autoTapPower, user.quantumCore?.level || 1);
+
+  normalizeBotOptimization(user);
+
+  const botOptimizationPercent = getBotOptimizationBoost(user.botOptimization?.level || 0);
+  const finalTapPower = Math.floor(
+    autoTapPower + (autoTapPower * botOptimizationPercent / 100)
+  );
+
   return {
     active: !!user.autoTapBot?.active,
     priceCoins: user.autoTapBot?.priceCoins || 200000,
     durationHours: user.autoTapBot?.durationHours || 12,
-    endTime: user.autoTapBot?.endTime || null
+    endTime: user.autoTapBot?.endTime || null,
+    lastClaimAt: user.autoTapBot?.lastClaimAt || null,
+    coinsPerSecond: finalTapPower,
+    coinsPerHour: finalTapPower * 3600
   };
 }
 
@@ -3948,7 +3971,7 @@ app.post("/claim-free-energy-daily", async (req, res) => {
   }
 });
 
-/* ================= UPGRADE BTC PAIRS ================= */
+/* ================= AUTO TAP BOT UPGRADE ================= */
 
 app.post("/activate-auto-tap-bot", async (req, res) => {
   try {
@@ -3960,9 +3983,14 @@ app.post("/activate-auto-tap-bot", async (req, res) => {
     }
 
     normalizeAutoTapBot(user);
+    await applyAutoTapBotIncome(user);
 
     if (user.autoTapBot?.active) {
-      return res.json({ success: false, message: "Auto Tap Bot already active" });
+      return res.json({
+        success: false,
+        message: "Auto Tap Bot already active",
+        autoTapBot: getAutoTapBotState(user)
+      });
     }
 
     const cost = user.autoTapBot?.priceCoins || 200000;
@@ -3977,6 +4005,7 @@ app.post("/activate-auto-tap-bot", async (req, res) => {
     user.autoTapBot.durationHours = 12;
     user.autoTapBot.lastClaimAt = new Date();
     user.autoTapBot.endTime = new Date(Date.now() + 12 * 60 * 60 * 1000);
+    user.league = getLeague(user.coins);
 
     await user.save();
 
