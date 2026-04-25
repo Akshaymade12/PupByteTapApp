@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PupByte Tap Bot</title>
-  <link rel="stylesheet" href="style.css?v=67">
+  <link rel="stylesheet" href="style.css?v=68">
 </head>
 <body>
 
@@ -252,23 +252,46 @@
     </div>
 
     <div class="airdrop-card">
-      <h3>Airdrop Eligibility</h3>
-      <div class="eligibility-status" id="airdropStatus">Not Eligible</div>
+  <h3>🎁 PupByte Airdrop Score</h3>
+
+  <div class="eligibility-status" id="airdropTier">Not Eligible</div>
+
+  <div style="margin-top:12px;">
+    <div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px;">
+      <span>Score</span>
+      <span><b id="airdropScore">0</b> / 350</span>
     </div>
 
-    <div class="conditions-list">
-      <div class="condition-item">
-        <span id="condCoins">❌</span> Min 50,000 Coins
-      </div>
-      <div class="condition-item">
-        <span id="condWallet">❌</span> Wallet Connected
-      </div>
-      <div class="condition-item">
-        <span id="condRefs">❌</span> Min 5 Referrals
-      </div>
+    <div style="width:100%; height:12px; background:rgba(255,255,255,0.15); border-radius:20px; overflow:hidden;">
+      <div id="airdropProgress" style="height:100%; width:0%; background:linear-gradient(90deg,#7c3aed,#22c55e); border-radius:20px;"></div>
     </div>
   </div>
 
+  <p style="font-size:12px; opacity:0.8; margin-top:10px;">
+    Airdrop rewards will be based on final activity score after official token launch.
+  </p>
+</div>
+
+<div class="conditions-list">
+  <div class="condition-item">
+    <span>🪙</span> Coins Score: <b id="coinScoreText">0 pts</b>
+  </div>
+  <div class="condition-item">
+    <span>👥</span> Referral Score: <b id="refScoreText">0 pts</b>
+  </div>
+  <div class="condition-item">
+    <span>📋</span> Task Score: <b id="taskScoreText">0 pts</b>
+  </div>
+  <div class="condition-item">
+    <span>🔥</span> Activity Score: <b id="activityScoreText">0 pts</b>
+  </div>
+  <div class="condition-item">
+    <span>⚙️</span> Upgrade Score: <b id="upgradeScoreText">0 pts</b>
+  </div>
+</div>
+  </div>
+</div>
+  
   <!-- ================= SKILLS SECTION ================= -->
   <div id="skillsSection" style="display:none;">
 
@@ -560,7 +583,7 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="script.js?v=67"></script>
+<script src="script.js?v=68"></script>
 
 </body>
         </html>
