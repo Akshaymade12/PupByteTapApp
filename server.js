@@ -296,8 +296,11 @@ quantumCore: {
 
   botOptimization: {
   level: { type: Number, default: 0 },
-  boostPercent: { type: Number, default: 0 }
-  },
+  boostPercent: { type: Number, default: 0 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
+},
 
   dailyAmplifier: {
   level: { type: Number, default: 0 },
@@ -2816,17 +2819,43 @@ function updateMissionProgress(user, type, amount = 1) {
   if (!user.botOptimization) {
     user.botOptimization = {
       level: 0,
-      boostPercent: 0
+      boostPercent: 0,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
     };
   }
 }
 
 function getBotOptimizationBoost(level) {
-  return level * 10;
+  return level * 12;
 }
 
 function getBotOptimizationCost(level) {
   return 1800 * Math.pow(2, level);
+}
+
+function getBotOptimizationUpgradeTime(level) {
+  return 60 * (level + 1);
+}
+
+async function finalizeBotOptimizationUpgrade(user) {
+  normalizeBotOptimization(user);
+
+  if (
+    user.botOptimization.upgrading &&
+    user.botOptimization.upgradeEndTime &&
+    new Date(user.botOptimization.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    user.botOptimization.level += 1;
+    user.botOptimization.boostPercent = getBotOptimizationBoost(user.botOptimization.level);
+
+    user.botOptimization.upgrading = false;
+    user.botOptimization.upgradeStartTime = null;
+    user.botOptimization.upgradeEndTime = null;
+
+    await user.save();
+  }
 }
 
 function getBotOptimizationState(user) {
@@ -2837,7 +2866,9 @@ function getBotOptimizationState(user) {
   return {
     level,
     boostPercent: getBotOptimizationBoost(level),
-    nextCost: level >= 20 ? 0 : getBotOptimizationCost(level)
+    upgrading: !!user.botOptimization.upgrading,
+    upgradeEndTime: user.botOptimization.upgradeEndTime || null,
+    nextCost: getBotOptimizationCost(level)
   };
 }
 
@@ -2848,39 +2879,39 @@ app.post("/upgrade-bot-optimization", async (req, res) => {
     const { telegramId, initData } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
-    if (!user) {
-      return res.json({ success: false, message: "Invalid user" });
-    }
+    if (!user) return res.json({ success: false });
 
     normalizeBotOptimization(user);
+    await finalizeBotOptimizationUpgrade(user);
 
-    const level = user.botOptimization.level || 0;
+    const level = user.botOptimization.level;
 
-    if (level >= 20) {
-      return res.json({ success: false, message: "Max level reached" });
+    if (user.botOptimization.upgrading) {
+      return res.json({ success: false, message: "Already upgrading" });
     }
 
     const cost = getBotOptimizationCost(level);
+    const time = getBotOptimizationUpgradeTime(level);
 
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
     }
 
     user.coins -= cost;
-    user.botOptimization.level += 1;
-    user.botOptimization.boostPercent = getBotOptimizationBoost(user.botOptimization.level);
-    user.league = getLeague(user.coins);
+    user.botOptimization.upgrading = true;
+    user.botOptimization.upgradeStartTime = new Date();
+    user.botOptimization.upgradeEndTime = new Date(Date.now() + time * 1000);
 
     await user.save();
 
-    return res.json({
+    res.json({
       success: true,
       coins: user.coins,
       botOptimization: getBotOptimizationState(user)
     });
+
   } catch (e) {
-    console.log("/upgrade-bot-optimization error", e);
-    return res.json({ success: false, message: "Server error" });
+    res.json({ success: false });
   }
 });
 
@@ -2994,6 +3025,7 @@ app.post("/load", async (req, res) => {
     await finalizeQuantumUpgrade(user);
     await finalizeCriticalStrikeUpgrade(user);
     await finalizeOfflineYieldUpgrade(user);
+    await finalizeBotOptimizationUpgrade(user);
     normalizeBoostX2(user);
     normalizeFreeEnergyDaily(user);
     normalizeAutoTapBot(user);
