@@ -179,3 +179,187 @@ button{border:none;outline:none;color:#fff;font-weight:800;cursor:pointer;transi
   opacity: 0.5;
   margin: 0 4px;
 }
+
+/* ================= PROFESSIONAL LEADERBOARD ================= */
+
+.leaderboard-page {
+  padding-bottom: 95px;
+}
+
+.leaderboard-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 26px;
+  background: linear-gradient(145deg, rgba(124,58,237,0.26), rgba(34,197,94,0.12));
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.28);
+  margin-bottom: 14px;
+}
+
+.leaderboard-hero-label {
+  font-size: 12px;
+  opacity: 0.75;
+  font-weight: 800;
+}
+
+.leaderboard-hero-rank {
+  font-size: 34px;
+  font-weight: 950;
+  margin-top: 4px;
+}
+
+.leaderboard-hero-side {
+  text-align: right;
+}
+
+.leaderboard-hero-coins {
+  font-size: 20px;
+  font-weight: 950;
+  margin-top: 4px;
+  color: #facc15;
+}
+
+.leaderboard-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.leaderboard-tab {
+  padding: 13px 10px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.09);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.leaderboard-tab.active {
+  background: linear-gradient(90deg, #22d3ee, #d000ff);
+  box-shadow: 0 10px 24px rgba(124,58,237,0.35);
+}
+
+.leaderboard-reward-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.10);
+  margin-bottom: 14px;
+}
+
+.leaderboard-reward-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  background: rgba(255,255,255,0.10);
+  flex-shrink: 0;
+}
+
+.leaderboard-reward-card h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.leaderboard-reward-card p {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.75;
+  line-height: 1.35;
+}
+
+.leaderboard-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.leaderboard-title-row h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.leaderboard-title-row span {
+  font-size: 12px;
+  opacity: 0.75;
+  font-weight: 800;
+}
+
+.leaderboard-list {
+  display: grid;
+  gap: 10px;
+}
+
+.leaderboard-player-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.065);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.leaderboard-player-card.top-rank {
+  background: linear-gradient(145deg, rgba(250,204,21,0.12), rgba(255,255,255,0.06));
+  border-color: rgba(250,204,21,0.22);
+}
+
+.leaderboard-rank-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,0.10);
+  font-size: 16px;
+  font-weight: 950;
+  flex-shrink: 0;
+}
+
+.leaderboard-player-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.leaderboard-player-name {
+  font-size: 15px;
+  font-weight: 950;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leaderboard-player-meta {
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.72;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leaderboard-player-coins {
+  font-size: 13px;
+  font-weight: 950;
+  color: #facc15;
+  white-space: nowrap;
+}
+
+.leaderboard-empty {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.06);
+  text-align: center;
+  opacity: 0.8;
+}
