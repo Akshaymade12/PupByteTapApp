@@ -83,6 +83,11 @@ const rewardAdLimitText = document.getElementById("rewardAdLimitText");
   const boostSection = document.getElementById("boostSection");
   const tasksSection = document.getElementById("tasksSection");
   const leagueSection = document.getElementById("leagueSection");
+  const leaderboardTabGlobal = document.getElementById("leaderboardTabGlobal");
+const leaderboardTabLeague = document.getElementById("leaderboardTabLeague");
+const leaderboardListTitle = document.getElementById("leaderboardListTitle");
+const leaderboardCountText = document.getElementById("leaderboardCountText");
+  
   const accountSection = document.getElementById("accountSection");
   const skillsSection = document.getElementById("skillsSection");
   const cashierSection = document.getElementById("cashierSection");
@@ -1619,6 +1624,135 @@ function renderRewardAdUI() {
 
   return Math.floor(num).toString();
   }
+
+/* ================= LEADERBOARD HELPER API ================= */
+
+  function shortPlayerId(id) {
+  const text = String(id || "Player");
+  if (text.length <= 6) return text;
+  return text.slice(0, 3) + "..." + text.slice(-3);
+}
+
+function getRankIcon(rank) {
+  if (rank === 1) return "🥇";
+  if (rank === 2) return "🥈";
+  if (rank === 3) return "🥉";
+  return "#" + rank;
+}
+
+function renderLeaderboardPlayers(players) {
+  const box = document.getElementById("leagueTop");
+  if (!box) return;
+
+  box.innerHTML = "";
+
+  if (!players || players.length === 0) {
+    box.innerHTML = `
+      <div class="leaderboard-empty">
+        No players found yet.
+      </div>
+    `;
+    return;
+  }
+
+  players.forEach((p, i) => {
+    const rank = p.rank || i + 1;
+
+    box.innerHTML += `
+      <div class="leaderboard-player-card ${rank <= 3 ? "top-rank" : ""}">
+        <div class="leaderboard-rank-badge">${getRankIcon(rank)}</div>
+
+        <div class="leaderboard-player-main">
+          <div class="leaderboard-player-name">Player ${shortPlayerId(p.telegramId)}</div>
+          <div class="leaderboard-player-meta">
+            ${p.league || "Wood"} League • ⛏ ${formatNumber(p.profitPerHour || 0)}/H
+          </div>
+        </div>
+
+        <div class="leaderboard-player-coins">
+          🪙 ${formatNumber(p.coins || 0)}
+        </div>
+      </div>
+    `;
+  });
+}
+  
+/* ================= GLOBAL LEADERBOARD LOAD ================= */
+
+  async function loadGlobalLeaderboard() {
+  try {
+    if (leaderboardTabGlobal) leaderboardTabGlobal.classList.add("active");
+    if (leaderboardTabLeague) leaderboardTabLeague.classList.remove("active");
+    if (leaderboardListTitle) leaderboardListTitle.innerText = "Top Global Players";
+    if (leaderboardCountText) leaderboardCountText.innerText = "Top 50";
+
+    const res = await fetch("/leaderboard/global/" + telegramId);
+    const data = await res.json();
+
+    if (!data.success) return;
+
+    const leagueNameEl = document.getElementById("leagueName");
+    const myRankDisplay = document.getElementById("myRankDisplay");
+    const myCoinsDisplay = document.getElementById("myCoinsDisplay");
+
+    if (leagueNameEl) leagueNameEl.innerText = "🏆 Leaderboard";
+    if (myRankDisplay) myRankDisplay.innerText = "#" + (data.myRank || "--");
+    if (myCoinsDisplay) myCoinsDisplay.innerText = formatNumber(data.myCoins || 0);
+
+    renderLeaderboardPlayers(data.players || []);
+  } catch (e) {
+    console.log("Global leaderboard error", e);
+  }
+}
+
+async function loadLeagueLeaderboard() {
+  try {
+    if (leaderboardTabLeague) leaderboardTabLeague.classList.add("active");
+    if (leaderboardTabGlobal) leaderboardTabGlobal.classList.remove("active");
+    if (leaderboardListTitle) leaderboardListTitle.innerText = "Top League Players";
+    if (leaderboardCountText) leaderboardCountText.innerText = "Top 10";
+
+    const res = await fetch("/league/" + telegramId);
+    const data = await res.json();
+
+    const league = data.league || "Wood";
+
+    const leagueNameEl = document.getElementById("leagueName");
+    if (leagueNameEl) leagueNameEl.innerText = `🏆 ${league} League`;
+
+    const topRes = await fetch("/top-league/" + league);
+    const players = await topRes.json();
+
+    const rankRes = await fetch("/rank/" + telegramId);
+    const rankData = await rankRes.json();
+
+    const myRankDisplay = document.getElementById("myRankDisplay");
+    const myCoinsDisplay = document.getElementById("myCoinsDisplay");
+
+    if (myRankDisplay) myRankDisplay.innerText = "#" + (rankData.rank || "--");
+    if (myCoinsDisplay) myCoinsDisplay.innerText = formatNumber(rankData.coins || 0);
+
+    renderLeaderboardPlayers(
+      (players || []).map((p, index) => ({
+        rank: index + 1,
+        telegramId: p.telegramId,
+        coins: p.coins || 0,
+        league: p.league || league,
+        profitPerHour: p.profitPerHour || 0
+      }))
+    );
+  } catch (e) {
+    console.log("League leaderboard error", e);
+  }
+}
+
+if (leaderboardTabGlobal) {
+  leaderboardTabGlobal.onclick = () => loadGlobalLeaderboard();
+}
+
+if (leaderboardTabLeague) {
+  leaderboardTabLeague.onclick = () => loadLeagueLeaderboard();
+}
   
 /* ================= BOOST SECTION UI ================= */
 
@@ -5047,9 +5181,12 @@ if (navTasks) {
   const openLeagueBtn = document.getElementById("openLeague");
 
   if (openLeagueBtn) {
-    openLeagueBtn.onclick = async () => {
-      hideAllSections();
-      if (leagueSection) leagueSection.style.display = "block";
+  openLeagueBtn.onclick = async () => {
+    hideAllSections();
+    if (leagueSection) leagueSection.style.display = "block";
+    await loadGlobalLeaderboard();
+  };
+}
 
       try {
         const res = await fetch("/league/" + telegramId);
