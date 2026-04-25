@@ -65,6 +65,9 @@ const offlineYieldValueText = document.getElementById("offlineYieldValueText");
 const offlineYieldCostText = document.getElementById("offlineYieldCostText");
   
   const watchAdBtn = document.getElementById("watchAdBtn");
+  const dailySpinBtn = document.getElementById("dailySpinBtn");
+const dailySpinText = document.getElementById("dailySpinText");
+const spinWheel = document.getElementById("spinWheel");
 const rewardAdLimitText = document.getElementById("rewardAdLimitText");
 
   const freeTapDailyCard = document.getElementById("freeTapDailyCard");
@@ -83,6 +86,7 @@ const rewardAdLimitText = document.getElementById("rewardAdLimitText");
   const accountSection = document.getElementById("accountSection");
   const skillsSection = document.getElementById("skillsSection");
   const cashierSection = document.getElementById("cashierSection");
+  const spinSection = document.getElementById("spinSection");
   const mineSection = document.getElementById("mineSection");
   const missionPage = document.getElementById("missionPage");
 
@@ -116,6 +120,12 @@ const closeOfflinePopup = document.getElementById("closeOfflinePopup");
 let appState = {
   btcPairs: null,
   ethPairs: null,
+
+  dailySpin: {
+  dailyLimit: 1,
+  usedToday: 0,
+  remaining: 1
+},
 
   rewardedAds: {
   reward: 1000,
@@ -557,7 +567,7 @@ appState.powerSurge = data.powerSurge || null;
 appState.overclockEngine = data.overclockEngine || null;
 appState.neuralSync = data.neuralSync || null;
 appState.quantumCore = data.quantumCore || null;
-      
+appState.dailySpin = data.dailySpin || appState.dailySpin;
 appState.rewardedAds = data.rewardedAds || appState.rewardedAds;
 appState.boostX2 = data.boostX2 || appState.boostX2;
 appState.freeTapDaily = data.freeTapDaily || appState.freeTapDaily;
@@ -568,7 +578,8 @@ appState.botOptimization = data.botOptimization || appState.botOptimization;
 appState.dailyAmplifier = data.dailyAmplifier || appState.dailyAmplifier;
 
 appState.criticalStrike = data.criticalStrike || appState.criticalStrike;
-      
+
+renderDailySpinUI();
 renderRewardAdUI();
 startRewardAdCooldownTimer();
 renderBoostSectionUI();
@@ -1969,6 +1980,30 @@ function renderCriticalStrikeUI() {
     upgradeDailyAmplifierBtn.disabled = skill.level >= 20;
   }
   }
+
+  /* ================= DAILY SPIN UI ================= */
+
+function renderDailySpinUI() {
+  const spin = appState.dailySpin || {
+    dailyLimit: 1,
+    usedToday: 0,
+    remaining: 1
+  };
+
+  if (dailySpinText) {
+    dailySpinText.innerText = `${spin.remaining}/${spin.dailyLimit} spin available`;
+  }
+
+  if (dailySpinBtn) {
+    if (spin.remaining <= 0) {
+      dailySpinBtn.innerText = "Come Back Tomorrow";
+      dailySpinBtn.disabled = true;
+    } else {
+      dailySpinBtn.innerText = "Spin Now";
+      dailySpinBtn.disabled = false;
+    }
+  }
+}
   
 /* ================= Watch ADS TIMER  ================= */
   
@@ -4487,6 +4522,7 @@ if (openBoostBtn) {
     if (accountSection) accountSection.style.display = "none";
     if (skillsSection) skillsSection.style.display = "none";
     if (cashierSection) cashierSection.style.display = "none";
+    if (spinSection) spinSection.style.display = "none";
     if (leagueSection) leagueSection.style.display = "none";
     if (missionPage) missionPage.style.display = "none";
     if (boostSection) boostSection.style.display = "none";
@@ -4497,6 +4533,7 @@ if (openBoostBtn) {
   const navEarn = document.getElementById("navEarn");
   const navMine = document.getElementById("navMine");
   const navTasks = document.getElementById("navTasks");
+  const navSpin = document.getElementById("navSpin");
   const navAccount = document.getElementById("navAccount");
   const navSkills = document.getElementById("navSkills");
   const navCashier = document.getElementById("navCashier");
@@ -4518,6 +4555,15 @@ if (openBoostBtn) {
   };
 }
 
+  if (navSpin) {
+  navSpin.onclick = () => {
+    hideAllSections();
+    if (spinSection) spinSection.style.display = "block";
+    navSpin.classList.add("active");
+    renderDailySpinUI();
+  };
+  }
+  
 if (navTasks) {
   navTasks.onclick = () => {
     hideAllSections();
@@ -4753,6 +4799,62 @@ if (navTasks) {
     renderRewardAdUI();
   }
 };
+
+  /* ================= DAILY SPIN CLICK ================= */
+
+if (dailySpinBtn) {
+  dailySpinBtn.addEventListener("click", async () => {
+    try {
+      dailySpinBtn.disabled = true;
+      dailySpinBtn.innerText = "Spinning...";
+
+      if (spinWheel) {
+        spinWheel.style.transform = "rotate(1440deg)";
+      }
+
+      const res = await fetch("/daily-spin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId, initData })
+      });
+
+      const data = await res.json();
+
+      setTimeout(() => {
+        if (spinWheel) {
+          spinWheel.style.transform = "rotate(0deg)";
+        }
+
+        if (data.success) {
+          alert("🎉 You won: " + data.reward.label);
+
+          coinsEl.innerText = Math.floor(data.coins || 0);
+
+          if (accountCoins) {
+            accountCoins.innerText = Math.floor(data.coins || 0);
+          }
+
+          appState.dailySpin = data.dailySpin || appState.dailySpin;
+          renderDailySpinUI();
+          loadUser();
+        } else {
+          alert(data.message || "Spin failed");
+
+          if (data.dailySpin) {
+            appState.dailySpin = data.dailySpin;
+          }
+
+          renderDailySpinUI();
+        }
+      }, 2200);
+
+    } catch (e) {
+      console.log("Daily spin error", e);
+      alert("Server error");
+      renderDailySpinUI();
+    }
+  });
+}
   
   /* ================= VERIFY TASK ================= */
   window.verifyTask = async function () {
