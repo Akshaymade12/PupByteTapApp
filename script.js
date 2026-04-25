@@ -474,9 +474,9 @@ if (offlinePopup && offlineCoinsText && (data.offlineCoins || 0) > 0) {
   offlinePopup.style.display = "flex";
 }
 
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || appState.energyCore?.currentMax || 120}`;
-      profitEl.innerText = data.profitPerHour || 0;
+      profitEl.innerText = formatNumber(data.profitPerHour);
 
       const leagueText = document.getElementById("currentLeagueText");
       if (leagueText) leagueText.innerText = data.league || "Wood";
@@ -485,7 +485,7 @@ if (offlinePopup && offlineCoinsText && (data.offlineCoins || 0) > 0) {
 
       if (accountUserId) accountUserId.innerText = telegramId;
       if (accountUserName) accountUserName.innerText = user.first_name || "User";
-      if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
+      if (accountCoins) accountCoins.innerText = formatNumber(data.coins || 0);
       if (accountReferrals) accountReferrals.innerText = data.referrals || 0;
 
       if (data.airdrop) {
@@ -622,7 +622,7 @@ loadDailyCombo();
       const data = await res.json();
 
       if (data.success) {
-        coinsEl.innerText = Math.floor(data.coins || 0);
+        coinsEl.innerText = formatNumber(data.coins || 0);
         appState.boostX2 = data.boostX2 || appState.boostX2;
         renderBoostSectionUI();
         startBoostX2Timer();
@@ -714,14 +714,14 @@ if (upgradeRechargingSpeedBtn) {
         const data = await res.json();
 
         if (data.success) {
-  coinsEl.innerText = Math.floor(data.coins || 0);
+  coinsEl.innerText = formatNumber(data.coins || 0);
   energyEl.innerText = `${data.energy || 0}/${data.maxEnergy || appState.energyCore?.currentMax || 120}`;
   profitEl.innerText = data.profitPerHour || 0;
 
   const leagueText = document.getElementById("currentLeagueText");
   if (leagueText) leagueText.innerText = data.league || "Wood";
 
-  if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
+  if (accountCoins) accountCoins.innerText = formatNumber(data.coins || 0);
 
   if (data.boostX2) {
     appState.boostX2 = data.boostX2;
@@ -1577,7 +1577,20 @@ function renderRewardAdUI() {
   watchAdBtn.innerText = "Watch";
   watchAdBtn.disabled = false;
 }
+  
+  /* ================= FORMAT NUMBER ================= */
 
+  function formatNumber(num) {
+  if (num === null || num === undefined) return "0";
+
+  if (num >= 1e12) return (num / 1e12).toFixed(1).replace(/\.0$/, "") + "T";
+  if (num >= 1e9) return (num / 1e9).toFixed(1).replace(/\.0$/, "") + "B";
+  if (num >= 1e6) return (num / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
+  if (num >= 1e3) return (num / 1e3).toFixed(1).replace(/\.0$/, "") + "K";
+
+  return Math.floor(num).toString();
+  }
+  
 /* ================= BOOST SECTION UI ================= */
 
 function formatBoostTimeLeft(ms) {
@@ -2955,7 +2968,7 @@ window.claimRefReward = async function(rewardKey) {
     const data = await res.json();
 
     if (data.success) {
-  coinsEl.innerText = Math.floor(data.coins || 0);
+  coinsEl.innerText = formatNumber(data.coins || 0);
 appState.btcPairs = data.btcPairs || null;
 renderMarketSection();
 loadUser();
@@ -2981,7 +2994,7 @@ window.upgradeEthPairs = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.ethPairs = data.ethPairs || null;
       renderMarketSection();
       loadUser();
@@ -3006,7 +3019,7 @@ window.upgradeEthPairs = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.futuresTrading = data.futuresTrading || null;
       renderMarketSection();
       loadUser();
@@ -3031,7 +3044,7 @@ window.upgradeEthPairs = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.liquidityPool = data.liquidityPool || null;
       renderMarketSection();
       loadUser();
@@ -3056,7 +3069,7 @@ window.upgradeEthPairs = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.arbitrageBot = data.arbitrageBot || null;
       renderMarketSection();
       loadUser();
@@ -3081,7 +3094,7 @@ window.upgradeEthPairs = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.signalNetwork = data.signalNetwork || null;
       renderMarketSection();
       loadUser();
@@ -3215,7 +3228,7 @@ if (data.success) {
       const data = await res.json();
 
       if (data.success) {
-        coinsEl.innerText = Math.floor(data.coins || 0);
+        coinsEl.innerText = formatNumber(data.coins || 0);
         appState.autoTapBot = data.autoTapBot || appState.autoTapBot;
         renderAutoTapBotUI();
         startAutoTapBotTimer();
@@ -3244,7 +3257,7 @@ if (data.success) {
       const data = await res.json();
 
       if (data.success) {
-        coinsEl.innerText = Math.floor(data.coins || 0);
+        coinsEl.innerText = formatNumber(data.coins || 0);
         appState.dailyAmplifier = data.dailyAmplifier || appState.dailyAmplifier;
         renderDailyAmplifierUI();
         loadUser();
@@ -3272,7 +3285,7 @@ if (data.success) {
       const data = await res.json();
 
       if (data.success) {
-        coinsEl.innerText = Math.floor(data.coins || 0);
+        coinsEl.innerText = formatNumber(data.coins || 0);
         appState.criticalStrike = data.criticalStrike || appState.criticalStrike;
         renderCriticalStrikeUI();
         loadUser();
@@ -3299,7 +3312,7 @@ window.upgradeMultitap = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.turboCharger = data.turboCharger || appState.turboCharger;
       renderBoostSectionUI();
       startTurboChargerCountdown();
@@ -3325,7 +3338,7 @@ window.upgradeEnergyLimit = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.energyCore = data.energyCore || appState.energyCore;
       renderBoostSectionUI();
       startEnergyCoreCountdown();
@@ -3351,7 +3364,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.powerSurge = data.powerSurge || appState.powerSurge;
       renderBoostSectionUI();
       startPowerSurgeCountdown();
@@ -3377,7 +3390,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.myTeam = data.myTeam || null;
       renderTeamSection();
       loadUser();
@@ -3402,7 +3415,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.marketing = data.marketing || null;
       renderTeamSection();
       loadUser();
@@ -3427,7 +3440,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.communityManager = data.communityManager || null;
       renderTeamSection();
       loadUser();
@@ -3452,7 +3465,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.partnershipDeals = data.partnershipDeals || null;
       renderTeamSection();
       loadUser();
@@ -3477,7 +3490,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.ambassadorProgram = data.ambassadorProgram || null;
       renderTeamSection();
       loadUser();
@@ -3502,7 +3515,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.vipPartners = data.vipPartners || null;
       renderTeamSection();
       loadUser();
@@ -3527,7 +3540,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.taxOptimization = data.taxOptimization || null;
       renderLegalSection();
       loadUser();
@@ -3552,7 +3565,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.complianceLicense = data.complianceLicense || null;
       renderLegalSection();
       loadUser();
@@ -3577,7 +3590,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.auditProtection = data.auditProtection || null;
       renderLegalSection();
       loadUser();
@@ -3602,7 +3615,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.regulatoryLicense = data.regulatoryLicense || null;
       renderLegalSection();
       loadUser();
@@ -3627,7 +3640,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.legalAdvisory = data.legalAdvisory || null;
       renderLegalSection();
       loadUser();
@@ -3652,7 +3665,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.courtSettlement = data.courtSettlement || null;
       renderLegalSection();
       loadUser();
@@ -3677,7 +3690,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-  coinsEl.innerText = Math.floor(data.coins || 0);
+  coinsEl.innerText = formatNumber(data.coins || 0);
   appState.turboCharger = data.turboCharger || appState.turboCharger;
 
   renderSpecialSection();
@@ -3705,7 +3718,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-  coinsEl.innerText = Math.floor(data.coins || 0);
+  coinsEl.innerText = formatNumber(data.coins || 0);
   appState.energyCore = data.energyCore || appState.energyCore;
 
   renderSpecialSection();
@@ -3733,7 +3746,7 @@ window.upgradeRechargingSpeed = async function() {
     const data = await res.json();
 
     if (data.success) {
-  coinsEl.innerText = Math.floor(data.coins || 0);
+  coinsEl.innerText = formatNumber(data.coins || 0);
   appState.powerSurge = data.powerSurge || appState.powerSurge;
 
   renderSpecialSection();
@@ -3781,7 +3794,7 @@ if (upgradeRechargingSpeedBtn) {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.overclockEngine = data.overclockEngine || null;
       renderSpecialSection();
       loadUser();
@@ -3806,7 +3819,7 @@ if (upgradeRechargingSpeedBtn) {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.neuralSync = data.neuralSync || null;
       renderSpecialSection();
       loadUser();
@@ -3832,7 +3845,7 @@ if (upgradeRechargingSpeedBtn) {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
+      coinsEl.innerText = formatNumber(data.coins || 0);
       appState.quantumCore = data.quantumCore || null;
       renderSpecialSection();
       loadUser();
@@ -4828,10 +4841,10 @@ if (dailySpinBtn) {
         if (data.success) {
           alert("🎉 You won: " + data.reward.label);
 
-          coinsEl.innerText = Math.floor(data.coins || 0);
+          coinsEl.innerText = formatNumber(data.coins || 0);
 
           if (accountCoins) {
-            accountCoins.innerText = Math.floor(data.coins || 0);
+            accountCoins.innerText = formatNumber(data.coins || 0);
           }
 
           appState.dailySpin = data.dailySpin || appState.dailySpin;
