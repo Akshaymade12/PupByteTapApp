@@ -4752,12 +4752,16 @@ if (navTasks) {
   }
 
   if (navSkills) {
-    navSkills.onclick = () => {
-      hideAllSections();
-      if (skillsSection) skillsSection.style.display = "block";
-      navSkills.classList.add("active");
-    };
-  }
+  navSkills.onclick = () => {
+    hideAllSections();
+    if (skillsSection) skillsSection.style.display = "block";
+    navSkills.classList.add("active");
+
+    if (typeof switchSkillsTab === "function") {
+      switchSkillsTab("tap");
+    }
+  };
+}
 
   if (navCashier) {
     navCashier.onclick = () => {
