@@ -280,7 +280,10 @@ quantumCore: {
 
   offlineYield: {
   level: { type: Number, default: 0 },
-  boostPercent: { type: Number, default: 0 }
+  boostPercent: { type: Number, default: 0 },
+  upgrading: { type: Boolean, default: false },
+  upgradeStartTime: { type: Date, default: null },
+  upgradeEndTime: { type: Date, default: null }
 },
   
   autoTapBot: {
@@ -2545,17 +2548,49 @@ function normalizeOfflineYield(user) {
   if (!user.offlineYield) {
     user.offlineYield = {
       level: 0,
-      boostPercent: 0
+      boostPercent: 0,
+      upgrading: false,
+      upgradeStartTime: null,
+      upgradeEndTime: null
     };
   }
+
+  if (user.offlineYield.upgrading === undefined) user.offlineYield.upgrading = false;
+  if (user.offlineYield.upgradeStartTime === undefined) user.offlineYield.upgradeStartTime = null;
+  if (user.offlineYield.upgradeEndTime === undefined) user.offlineYield.upgradeEndTime = null;
 }
 
 function getOfflineYieldBoost(level) {
-  return level * 10; // lvl 1 = 10%, lvl 2 = 20%, ...
+  return level * 10;
 }
 
 function getOfflineYieldCost(level) {
   return 1500 * Math.pow(2, level);
+}
+
+function getOfflineYieldUpgradeTime(level) {
+  return 45 * (level + 1);
+}
+
+async function finalizeOfflineYieldUpgrade(user) {
+  normalizeOfflineYield(user);
+
+  if (
+    user.offlineYield.upgrading &&
+    user.offlineYield.upgradeEndTime &&
+    new Date(user.offlineYield.upgradeEndTime).getTime() <= Date.now()
+  ) {
+    if (user.offlineYield.level < 20) {
+      user.offlineYield.level += 1;
+      user.offlineYield.boostPercent = getOfflineYieldBoost(user.offlineYield.level);
+    }
+
+    user.offlineYield.upgrading = false;
+    user.offlineYield.upgradeStartTime = null;
+    user.offlineYield.upgradeEndTime = null;
+
+    await user.save();
+  }
 }
 
 function getOfflineYieldState(user) {
@@ -2566,6 +2601,9 @@ function getOfflineYieldState(user) {
   return {
     level,
     boostPercent: getOfflineYieldBoost(level),
+    upgrading: !!user.offlineYield.upgrading,
+    upgradeEndTime: user.offlineYield.upgradeEndTime || null,
+    upgradeTime: level >= 20 ? 0 : getOfflineYieldUpgradeTime(level),
     nextCost: level >= 20 ? 0 : getOfflineYieldCost(level)
   };
 }
@@ -2955,6 +2993,7 @@ app.post("/load", async (req, res) => {
     await finalizeNeuralSyncUpgrade(user);
     await finalizeQuantumUpgrade(user);
     await finalizeCriticalStrikeUpgrade(user);
+    await finalizeOfflineYieldUpgrade(user);
     normalizeBoostX2(user);
     normalizeFreeEnergyDaily(user);
     normalizeAutoTapBot(user);
@@ -5250,6 +5289,7 @@ app.post("/upgrade-offline-yield", async (req, res) => {
     }
 
     normalizeOfflineYield(user);
+    await finalizeOfflineYieldUpgrade(user);
 
     const level = user.offlineYield.level || 0;
 
@@ -5257,15 +5297,21 @@ app.post("/upgrade-offline-yield", async (req, res) => {
       return res.json({ success: false, message: "Max level reached" });
     }
 
+    if (user.offlineYield.upgrading) {
+      return res.json({ success: false, message: "Upgrade already in progress" });
+    }
+
     const cost = getOfflineYieldCost(level);
+    const upgradeTime = getOfflineYieldUpgradeTime(level);
 
     if (user.coins < cost) {
       return res.json({ success: false, message: "Not enough coins" });
     }
 
     user.coins -= cost;
-    user.offlineYield.level += 1;
-    user.offlineYield.boostPercent = getOfflineYieldBoost(user.offlineYield.level);
+    user.offlineYield.upgrading = true;
+    user.offlineYield.upgradeStartTime = new Date();
+    user.offlineYield.upgradeEndTime = new Date(Date.now() + upgradeTime * 1000);
     user.league = getLeague(user.coins);
 
     await user.save();
