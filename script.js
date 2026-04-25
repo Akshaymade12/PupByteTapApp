@@ -200,7 +200,9 @@ let appState = {
   botOptimization: {
   level: 0,
   boostPercent: 0,
-  nextCost: 1800
+  nextCost: 1800,
+  upgrading: false,
+  upgradeEndTime: null
 },
   
   futuresTrading: {
@@ -461,6 +463,7 @@ let btcPairsTimerInterval = null;
   let overclockEngineTimerInterval = null;
   let criticalStrikeTimerInterval = null;
   let offlineYieldTimerInterval = null;
+  let botOptimizationTimerInterval = null;
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
       if (e.target === dailyPopup) {
@@ -610,6 +613,7 @@ startCriticalStrikeTimer();
 startOfflineYieldTimer();
 renderOfflineYieldUI();
 renderBotOptimizationUI();
+startBotOptimizationTimer();
 renderDailyAmplifierUI();
       
 loadDailyCombo();
@@ -4664,7 +4668,9 @@ function renderOfflineYieldUI() {
   const skill = appState.botOptimization || {
     level: 0,
     boostPercent: 0,
-    nextCost: 1800
+    nextCost: 1800,
+    upgrading: false,
+    upgradeEndTime: null
   };
 
   if (botOptimizationLevelText) {
@@ -4675,16 +4681,73 @@ function renderOfflineYieldUI() {
     botOptimizationValueText.innerText = `+${skill.boostPercent || 0}%`;
   }
 
+  if (skill.upgrading && skill.upgradeEndTime) {
+    const leftMs = Math.max(0, new Date(skill.upgradeEndTime).getTime() - Date.now());
+    const totalSec = Math.max(0, Math.floor(leftMs / 1000));
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    const timerText = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+
+    if (botOptimizationCostText) botOptimizationCostText.innerText = timerText;
+
+    if (upgradeBotOptimizationBtn) {
+      upgradeBotOptimizationBtn.innerText = "Upgrading...";
+      upgradeBotOptimizationBtn.disabled = true;
+    }
+
+    return;
+  }
+
   if (botOptimizationCostText) {
     botOptimizationCostText.innerText =
       skill.level >= 20 ? "MAX" : `${skill.nextCost || 0}`;
   }
 
   if (upgradeBotOptimizationBtn) {
+    upgradeBotOptimizationBtn.innerText = skill.level >= 20 ? "MAX" : "Upgrade";
     upgradeBotOptimizationBtn.disabled = skill.level >= 20;
   }
+}
+  
+ /* ================= BOT OTIMIZATION TIMER ================= */
+
+  function startBotOptimizationTimer() {
+  if (botOptimizationTimerInterval) {
+    clearInterval(botOptimizationTimerInterval);
+    botOptimizationTimerInterval = null;
   }
 
+  if (!appState.botOptimization?.upgrading || !appState.botOptimization?.upgradeEndTime) {
+    renderBotOptimizationUI();
+    return;
+  }
+
+  renderBotOptimizationUI();
+
+  botOptimizationTimerInterval = setInterval(() => {
+    if (!appState.botOptimization?.upgrading || !appState.botOptimization?.upgradeEndTime) {
+      clearInterval(botOptimizationTimerInterval);
+      botOptimizationTimerInterval = null;
+      renderBotOptimizationUI();
+      return;
+    }
+
+    const leftMs = Math.max(
+      0,
+      new Date(appState.botOptimization.upgradeEndTime).getTime() - Date.now()
+    );
+
+    if (leftMs <= 0) {
+      clearInterval(botOptimizationTimerInterval);
+      botOptimizationTimerInterval = null;
+      loadUser();
+      return;
+    }
+
+    renderBotOptimizationUI();
+  }, 1000);
+  }
+  
   /* ================= BOT OTIMIZATION HANDLE ================= */
 
   if (upgradeBotOptimizationBtn) {
@@ -4713,12 +4776,12 @@ function renderOfflineYieldUI() {
   };
   }
   
-/* ================= OFFLINE YIELD UPGRADE HANDLE ================= */
+/* ================= BOT OPTIMIZATION UPGRADE HANDLE ================= */
 
-if (upgradeOfflineYieldBtn) {
-  upgradeOfflineYieldBtn.onclick = async () => {
+if (upgradeBotOptimizationBtn) {
+  upgradeBotOptimizationBtn.onclick = async () => {
     try {
-      const res = await fetch("/upgrade-offline-yield", {
+      const res = await fetch("/upgrade-bot-optimization", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ telegramId, initData })
@@ -4728,15 +4791,15 @@ if (upgradeOfflineYieldBtn) {
 
       if (data.success) {
         coinsEl.innerText = formatNumber(data.coins || 0);
-        appState.offlineYield = data.offlineYield || appState.offlineYield;
-        renderOfflineYieldUI();
-        startOfflineYieldTimer();
+        appState.botOptimization = data.botOptimization || appState.botOptimization;
+        renderBotOptimizationUI();
+        startBotOptimizationTimer();
         loadUser();
       } else {
         alert(data.message || "Upgrade failed");
       }
     } catch (e) {
-      console.log("upgrade offline yield error", e);
+      console.log("upgrade bot optimization error", e);
       alert("Server error");
     }
   };
