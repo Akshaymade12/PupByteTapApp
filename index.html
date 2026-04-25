@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PupByte Tap Bot</title>
-  <link rel="stylesheet" href="style.css?v=70">
+  <link rel="stylesheet" href="style.css?v=71">
 </head>
 <body>
 
@@ -423,30 +423,62 @@
 
   </div>
 
-  <!-- ================= SPIN SECTION ================= -->
+ <!-- ================= MISSIONS SECTION ================= -->
 <div id="spinSection" style="display:none;">
-  <div class="spin-page">
-    <h2 class="page-title">🎰 Daily Spin</h2>
+  <div class="missions-page">
 
-    <div class="spin-card">
-      <div class="spin-card-top">
-        <div class="spin-icon">🎁</div>
-        <div>
-          <div class="spin-title">Lucky Reward Wheel</div>
-          <div class="spin-subtitle" id="dailySpinText">1/1 spin available</div>
-        </div>
+    <h2 class="page-title">🔥 Missions</h2>
+
+    <div class="missions-tabs-wrap">
+      <div class="missions-tabs">
+        <button id="missionTabSpin" class="mission-tab active">🎰 Daily Spin</button>
+        <button id="missionTabDaily" class="mission-tab">🔥 Daily Missions</button>
+        <button id="missionTabEvents" class="mission-tab">🏆 Events</button>
       </div>
-
-      <div class="spin-wheel" id="spinWheel">
-        <div class="spin-wheel-inner">🎰</div>
-      </div>
-
-      <button class="spin-btn" id="dailySpinBtn">Spin Now</button>
-
-      <p class="spin-note">
-        Free daily spin resets every day. Rewards may include coins or jackpot.
-      </p>
     </div>
+
+    <!-- DAILY SPIN TAB -->
+    <div id="missionSpinPanel" class="mission-panel">
+      <div class="spin-card">
+        <div class="spin-card-top">
+          <div class="spin-icon">🎁</div>
+          <div>
+            <div class="spin-title">Lucky Reward Wheel</div>
+            <div class="spin-subtitle" id="dailySpinText">1/1 spin available</div>
+          </div>
+        </div>
+
+        <div class="spin-wheel" id="spinWheel">
+          <div class="spin-wheel-inner">🎰</div>
+        </div>
+
+        <button class="spin-btn" id="dailySpinBtn">Spin Now</button>
+
+        <p class="spin-note">
+          Free daily spin resets every day. Rewards may include coins or jackpot.
+        </p>
+      </div>
+    </div>
+
+    <!-- DAILY MISSIONS TAB -->
+    <div id="missionDailyPanel" class="mission-panel" style="display:none;">
+      <div class="daily-mission-header-card">
+        <h3>🔥 Daily Missions</h3>
+        <p>Complete missions daily and earn bonus coins.</p>
+      </div>
+
+      <div id="missionsList" class="missions-list"></div>
+    </div>
+
+    <!-- EVENTS TAB -->
+    <div id="missionEventsPanel" class="mission-panel" style="display:none;">
+      <div class="event-coming-card">
+        <div class="event-icon">🏆</div>
+        <h3>Events Coming Soon</h3>
+        <p>Weekly missions, leaderboard events and special rewards will appear here.</p>
+      </div>
+    </div>
+
   </div>
 </div>
   
@@ -582,7 +614,7 @@
     <div id="navEarn" class="nav-item active">💰 Earn</div>
     <div id="navMine" class="nav-item">⛏ Mine</div>
     <div id="navTasks" class="nav-item">📋 Tasks</div>
-    <div id="navSpin" class="nav-item">🎰 Spin</div>
+    <div id="navSpin" class="nav-item">🔥 Missions</div>
     <div id="navAccount" class="nav-item">😎 Account</div>
     <div id="navSkills" class="nav-item">🤖 Skills</div>
     <div id="navCashier" class="nav-item" style="display:none;">💰 Cashier</div>
@@ -611,7 +643,7 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="script.js?v=70"></script>
+<script src="script.js?v=71"></script>
 
 </body>
         </html>
