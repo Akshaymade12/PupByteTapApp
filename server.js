@@ -73,6 +73,8 @@ totalClaims: { type: Number, default: 0 },
 rewardAdsWatched: { type: Number, default: 0 },
 lastRewardAdAt: { type: Date, default: null },
 rewardAdDate: { type: String, default: "" },
+  airdropScore: { type: Number, default: 0 },
+airdropTier: { type: String, default: "Not Eligible" },
   
 btcPairs: {
   level: { type: Number, default: 1 },
@@ -2853,10 +2855,22 @@ app.post("/load", async (req, res) => {
 
     user.maxEnergy = getEnergyCoreMax(user.energyCore?.level || 1);
 user.energy = Math.min(user.maxEnergy, user.energy);
+
+    const airdropScore = calculateAirdropScore(user);
+const airdropTier = getAirdropTier(airdropScore);
+
+user.airdropScore = airdropScore;
+user.airdropTier = airdropTier;
+await user.save();
     
     return res.json({
       success: true,
       coins: user.coins,
+      airdrop: {
+  score: airdropScore,
+  tier: airdropTier,
+  breakdown: getAirdropBreakdown(user)
+},
       energy: user.energy,
       maxEnergy: getEnergyCoreMax(user.energyCore?.level || 1),
       criticalStrike: getCriticalStrikeState(user),
@@ -4980,6 +4994,74 @@ app.get("/task-status/:telegramId", async (req, res) => {
     res.json({ success: false });
   }
 });
+
+/* ================= AIRDROP SCORE ================= */
+
+function calculateAirdropScore(user) {
+  let score = 0;
+
+  // Coins Score
+  if (user.coins >= 1000000) score += 60;
+  else if (user.coins >= 500000) score += 40;
+  else if (user.coins >= 100000) score += 20;
+  else if (user.coins >= 50000) score += 10;
+
+  // Referral Score
+  if (user.referrals >= 10) score += 70;
+  else if (user.referrals >= 5) score += 30;
+  else score += (user.referrals || 0) * 5;
+
+  // Task Score
+  if ((user.completedTasks || []).length >= 3) score += 30;
+
+  // Activity Score
+  if ((user.streakDay || 0) >= 30) score += 100;
+  else if ((user.streakDay || 0) >= 15) score += 50;
+  else if ((user.streakDay || 0) >= 7) score += 20;
+
+  // Upgrade Score
+  score += Math.floor((user.upgradeLevel || 0) * 2);
+
+  return score;
+}
+
+function getAirdropTier(score) {
+  if (score >= 350) return "Diamond Waitlist";
+  if (score >= 200) return "Gold Waitlist";
+  if (score >= 100) return "Silver Waitlist";
+  if (score >= 50) return "Bronze Waitlist";
+  return "Not Eligible";
+}
+
+function getAirdropBreakdown(user) {
+  let coinsScore = 0;
+  if (user.coins >= 1000000) coinsScore = 60;
+  else if (user.coins >= 500000) coinsScore = 40;
+  else if (user.coins >= 100000) coinsScore = 20;
+  else if (user.coins >= 50000) coinsScore = 10;
+
+  let referralScore = 0;
+  if (user.referrals >= 10) referralScore = 70;
+  else if (user.referrals >= 5) referralScore = 30;
+  else referralScore = (user.referrals || 0) * 5;
+
+  const taskScore = (user.completedTasks || []).length >= 3 ? 30 : 0;
+
+  let activityScore = 0;
+  if ((user.streakDay || 0) >= 30) activityScore = 100;
+  else if ((user.streakDay || 0) >= 15) activityScore = 50;
+  else if ((user.streakDay || 0) >= 7) activityScore = 20;
+
+  const upgradeScore = Math.floor((user.upgradeLevel || 0) * 2);
+
+  return {
+    coinsScore,
+    referralScore,
+    taskScore,
+    activityScore,
+    upgradeScore
+  };
+}
 
 /* ================= SPECIAL TASK STATUS ================= */
 
