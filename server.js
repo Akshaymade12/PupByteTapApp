@@ -65,6 +65,8 @@ const userSchema = new mongoose.Schema({
   lastActive: { type: Date, default: Date.now },
   lastDailyClaim: { type: Date, default: null },
   lastSpin: { type: Date, default: null },
+  dailyMissions: { type: Object, default: {} },
+lastMissionDate: { type: String, default: "" },
   lastEnergyUpdate: { type: Number, default: Date.now },
 rewardClaimed: { type: Boolean, default: false },
 streakDay: { type: Number, default: 0 },
@@ -2707,6 +2709,66 @@ function pickSpinReward() {
   return SPIN_REWARDS[index];
    }
 
+/* ================= DAILY MISSIONS ================= */
+
+function getDefaultMissions() {
+  return {
+    tap: {
+      title: "Tap 500 Times",
+      goal: 500,
+      progress: 0,
+      done: false,
+      claimed: false,
+      reward: 5000
+    },
+    spin: {
+      title: "Use Daily Spin",
+      goal: 1,
+      progress: 0,
+      done: false,
+      claimed: false,
+      reward: 3000
+    },
+    ad: {
+      title: "Watch 5 Ads",
+      goal: 5,
+      progress: 0,
+      done: false,
+      claimed: false,
+      reward: 7000
+    }
+  };
+}
+
+function normalizeMissions(user) {
+  const today = getTodayKey();
+
+  if (user.lastMissionDate !== today) {
+    user.lastMissionDate = today;
+    user.dailyMissions = getDefaultMissions();
+  }
+
+  if (!user.dailyMissions || Object.keys(user.dailyMissions).length === 0) {
+    user.dailyMissions = getDefaultMissions();
+  }
+}
+
+function updateMissionProgress(user, type, amount = 1) {
+  normalizeMissions(user);
+
+  const mission = user.dailyMissions[type];
+  if (!mission || mission.done) return;
+
+  mission.progress = Math.min(mission.goal, (mission.progress || 0) + amount);
+
+  if (mission.progress >= mission.goal) {
+    mission.progress = mission.goal;
+    mission.done = true;
+  }
+
+  user.markModified("dailyMissions");
+}
+
 /* ================= BOT OPTIMIZATION HANDLE ================= */
 
   function normalizeBotOptimization(user) {
@@ -3550,7 +3612,8 @@ if (!isFreeTapActive) {
 }
     user.lastActive = new Date();
     user.league = getLeague(user.coins);
-
+updateMissionProgress(user, "tap", 1);
+    
     await user.save();
 
     return res.json({
@@ -4854,6 +4917,7 @@ app.post("/watch-rewarded-ad", async (req, res) => {
 
     user.coins += REWARDED_AD_COINS;
     user.rewardAdsWatched = (user.rewardAdsWatched || 0) + 1;
+    updateMissionProgress(user, "ad", 1);
     user.lastRewardAdAt = new Date();
     user.lastActive = new Date();
     user.league = getLeague(user.coins);
@@ -5371,6 +5435,7 @@ app.post("/daily-spin", async (req, res) => {
     const reward = pickSpinReward();
 
     user.dailySpinCount += 1;
+    updateMissionProgress(user, "spin", 1);
 
     if (reward.type === "coins") {
       user.coins += reward.amount;
@@ -5388,6 +5453,72 @@ app.post("/daily-spin", async (req, res) => {
 
   } catch (e) {
     console.log("/daily-spin error", e);
+    return res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= MISSIONS API ================= */
+
+app.post("/missions-status", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) return res.json({ success: false, message: "Invalid user" });
+
+    normalizeMissions(user);
+    await user.save();
+
+    return res.json({
+      success: true,
+      missions: user.dailyMissions
+    });
+
+  } catch (e) {
+    console.log("/missions-status error", e);
+    return res.json({ success: false, message: "Server error" });
+  }
+});
+
+app.post("/claim-mission", async (req, res) => {
+  try {
+    const { telegramId, initData, type } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) return res.json({ success: false, message: "Invalid user" });
+
+    normalizeMissions(user);
+
+    const mission = user.dailyMissions[type];
+
+    if (!mission) {
+      return res.json({ success: false, message: "Mission not found" });
+    }
+
+    if (!mission.done) {
+      return res.json({ success: false, message: "Mission not completed" });
+    }
+
+    if (mission.claimed) {
+      return res.json({ success: false, message: "Already claimed" });
+    }
+
+    mission.claimed = true;
+    user.coins += mission.reward;
+    user.league = getLeague(user.coins);
+
+    user.markModified("dailyMissions");
+    await user.save();
+
+    return res.json({
+      success: true,
+      reward: mission.reward,
+      coins: user.coins,
+      missions: user.dailyMissions
+    });
+
+  } catch (e) {
+    console.log("/claim-mission error", e);
     return res.json({ success: false, message: "Server error" });
   }
 });
