@@ -1112,6 +1112,155 @@ button:active {
   color: #fff;
 }
 
+/* ================= MISSIONS HUB ================= */
+
+.missions-page {
+  padding: 16px;
+  padding-bottom: 95px;
+}
+
+.missions-tabs-wrap {
+  margin-top: 14px;
+  overflow-x: auto;
+}
+
+.missions-tabs {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 8px;
+}
+
+.mission-tab {
+  flex: 1;
+  min-width: 110px;
+  padding: 12px 10px;
+  border: none;
+  border-radius: 16px;
+  color: #fff;
+  font-weight: 800;
+  background: rgba(255,255,255,0.10);
+}
+
+.mission-tab.active {
+  background: linear-gradient(90deg, #7c3aed, #22c55e);
+  box-shadow: 0 8px 20px rgba(124,58,237,0.35);
+}
+
+.mission-panel {
+  margin-top: 14px;
+}
+
+.daily-mission-header-card,
+.event-coming-card {
+  padding: 18px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.daily-mission-header-card h3,
+.event-coming-card h3 {
+  margin: 0 0 6px;
+}
+
+.daily-mission-header-card p,
+.event-coming-card p {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.missions-list {
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.mission-card {
+  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.mission-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.mission-card-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.mission-card-sub {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 4px;
+}
+
+.mission-reward {
+  font-size: 13px;
+  font-weight: 800;
+  color: #facc15;
+  white-space: nowrap;
+}
+
+.mission-progress-wrap {
+  margin-top: 12px;
+}
+
+.mission-progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+.mission-progress-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.13);
+  overflow: hidden;
+}
+
+.mission-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #7c3aed, #22c55e);
+}
+
+.mission-claim-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: none;
+  border-radius: 16px;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(90deg, #7c3aed, #22c55e);
+}
+
+.mission-claim-btn:disabled {
+  opacity: 0.55;
+}
+
+.event-coming-card {
+  text-align: center;
+}
+
+.event-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
 /* ================= RESPONSIVE ================= */
 @media (max-width: 640px) {
   .mine-cards-grid {
