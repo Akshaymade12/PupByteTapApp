@@ -5413,11 +5413,17 @@ app.post("/watch-rewarded-ad", async (req, res) => {
     await user.save();
 
     return res.json({
-      success: true,
-      reward: REWARD,
-      coins: user.coins,
-      adsWatchedToday: user.adsWatchedToday
-    });
+  success: true,
+  reward: REWARDED_AD_COINS,
+  coins: user.coins,
+  rewardedAds: {
+    reward: REWARDED_AD_COINS,
+    watchedToday: user.rewardAdsWatched || 0,
+    dailyLimit: REWARDED_AD_DAILY_LIMIT,
+    remaining: getRewardAdsRemaining(user),
+    cooldownLeftMs: getRewardAdCooldownLeft(user)
+  }
+});
 
   } catch (e) {
     console.log("Ad reward error", e);
