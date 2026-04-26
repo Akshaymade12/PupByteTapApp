@@ -491,15 +491,16 @@ let btcPairsTimerInterval = null;
   async function loadUser() {
     try {
       const res = await fetch("/load", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-  telegramId,
-  initData,
-  playerName: user.first_name || "Player",
-  username: user.username || ""
-})
-      const data = await res.json();
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    telegramId,
+    initData,
+    playerName: user.first_name || "Player",
+    username: user.username || ""
+  })
+});
+const data = await res.json();
 
 if (!data || data.success === false) {
   console.log("User load failed ❌", data);
