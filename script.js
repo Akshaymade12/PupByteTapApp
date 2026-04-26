@@ -654,7 +654,7 @@ renderBotOptimizationUI();
 startBotOptimizationTimer();
 renderDailyAmplifierUI();
       
-loadDailyCombo();
+// loadDailyCombo();
     } catch (e) {
       console.log("Load user error", e);
     }
@@ -4737,6 +4737,23 @@ const mineTabLegal = document.getElementById("mineTabLegal");
 const mineTabSpecial = document.getElementById("mineTabSpecial");
 const mineTabContent = document.getElementById("mineTabContent");
 
+let comboLoadedOnce = false;
+
+async function ensureDailyComboLoaded() {
+  if (comboLoadedOnce) {
+    if (typeof addComboButtonsToMineCards === "function") {
+      addComboButtonsToMineCards();
+    }
+    return;
+  }
+
+  comboLoadedOnce = true;
+
+  if (typeof loadDailyCombo === "function") {
+    await loadDailyCombo();
+  }
+}
+
 function switchMineTab(tabName) {
   if (!mineTabContent) return;
 
@@ -4749,26 +4766,26 @@ function switchMineTab(tabName) {
     renderMarketSection();
   }
 
-if (tabName === "team") {
-  if (mineTabTeam) mineTabTeam.classList.add("active");
-  renderTeamSection();
-}
+  if (tabName === "team") {
+    if (mineTabTeam) mineTabTeam.classList.add("active");
+    renderTeamSection();
+  }
 
   if (tabName === "legal") {
-  if (mineTabLegal) mineTabLegal.classList.add("active");
-  renderLegalSection();
-}
+    if (mineTabLegal) mineTabLegal.classList.add("active");
+    renderLegalSection();
+  }
 
   if (tabName === "special") {
-  if (mineTabSpecial) mineTabSpecial.classList.add("active");
-  renderSpecialSection();
-}
+    if (mineTabSpecial) mineTabSpecial.classList.add("active");
+    renderSpecialSection();
+  }
+
   setTimeout(() => {
-  addComboButtonsToMineCards();
-}, 150);
-  
-    }
-  
+    ensureDailyComboLoaded();
+  }, 150);
+}
+
 if (mineTabMarket) mineTabMarket.onclick = () => switchMineTab("market");
 if (mineTabTeam) mineTabTeam.onclick = () => switchMineTab("team");
 if (mineTabLegal) mineTabLegal.onclick = () => switchMineTab("legal");
