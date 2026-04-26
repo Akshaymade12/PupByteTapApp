@@ -450,3 +450,50 @@ button{border:none;outline:none;color:#fff;font-weight:800;cursor:pointer;transi
   font-weight: 950;
   color: #facc15;
 }
+
+/* ================= DAILY COMBO SELECT SYSTEM ================= */
+
+.combo-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.combo-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  text-align: center;
+  color: #fff;
+  border-color: rgba(34, 211, 238, 0.65) !important;
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.25);
+}
+
+.combo-card-icon {
+  font-size: 28px;
+}
+
+.combo-card-name {
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.combo-select-btn {
+  width: calc(100% - 24px);
+  margin: 10px 12px 12px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 16px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  background: linear-gradient(90deg, #22d3ee, #d000ff);
+  box-shadow: 0 8px 18px rgba(124,58,237,0.35);
+}
+
+.combo-select-btn:disabled {
+  opacity: 0.6;
+}
