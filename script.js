@@ -1639,6 +1639,24 @@ function renderRewardAdUI() {
   watchAdBtn.innerText = "Watch";
   watchAdBtn.disabled = false;
 }
+
+  /* ================= ADS COOLDOWN UI ================= */
+
+  function startAdCooldownUI() {
+  let time = 30;
+  watchAdBtn.disabled = true;
+
+  const i = setInterval(() => {
+    watchAdBtn.innerText = `Wait ${time}s`;
+    time--;
+
+    if (time < 0) {
+      clearInterval(i);
+      watchAdBtn.disabled = false;
+      watchAdBtn.innerText = "Watch Ad";
+    }
+  }, 1000);
+  }
   
   /* ================= FORMAT NUMBER ================= */
 
@@ -5582,7 +5600,8 @@ window.watchAdReward = async function () {
 
       renderRewardAdUI();
       startRewardAdCooldownTimer();
-
+startAdCooldownUI();
+      
       alert(`🎉 +${formatNumber(data.reward)} coins`);
       loadMissions();
       loadUser();
