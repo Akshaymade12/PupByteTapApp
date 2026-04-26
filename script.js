@@ -5547,16 +5547,24 @@ if (closeLeagueBtn) {
     setTimeout(() => plus.remove(), 800);
   }
   
-/* ================= ADS WATCHING ================= */
-  
-  window.watchAdReward = async function() {
+/* ================= REAL MONETAG ADS WATCHING ================= */
+
+window.watchAdReward = async function () {
   if (!watchAdBtn || watchAdBtn.disabled) return;
 
   watchAdBtn.disabled = true;
-  watchAdBtn.innerText = "Loading...";
+  watchAdBtn.innerText = "Loading Ad...";
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    if (typeof window.show_10928984 !== "function") {
+      alert("Ad not loaded yet. Please try again.");
+      renderRewardAdUI();
+      return;
+    }
+
+    await window.show_10928984();
+
+    watchAdBtn.innerText = "Claiming...";
 
     const res = await fetch("/watch-rewarded-ad", {
       method: "POST",
@@ -5567,24 +5575,26 @@ if (closeLeagueBtn) {
     const data = await res.json();
 
     if (data.success) {
-      coinsEl.innerText = Math.floor(data.coins || 0);
-      if (accountCoins) accountCoins.innerText = Math.floor(data.coins || 0);
+      if (coinsEl) coinsEl.innerText = formatNumber(data.coins || 0);
+      if (accountCoins) accountCoins.innerText = formatNumber(data.coins || 0);
 
       appState.rewardedAds = data.rewardedAds || appState.rewardedAds;
+
       renderRewardAdUI();
       startRewardAdCooldownTimer();
 
-      alert(`🎉 +${data.reward} coins`);
+      alert(`🎉 +${formatNumber(data.reward)} coins`);
       loadMissions();
       loadUser();
     } else {
       alert(data.message || "Ad reward failed");
+      if (data.rewardedAds) appState.rewardedAds = data.rewardedAds;
       renderRewardAdUI();
       startRewardAdCooldownTimer();
     }
   } catch (e) {
-    console.log("watch ad reward error", e);
-    alert("Server error");
+    console.log("Monetag ad error", e);
+    alert("Ad was not completed. Reward not added.");
     renderRewardAdUI();
   }
 };
