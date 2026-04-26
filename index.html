@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PupByte Tap Bot</title>
   <link rel="stylesheet" href="style.css?v=86">
+  <style>
+    .combo-claim-btn{
+      min-width:96px;
+      padding:8px 12px!important;
+      border-radius:14px!important;
+      border:1px solid rgba(255,255,255,.35)!important;
+      background:linear-gradient(135deg,#22d3ee,#8b5cf6,#f0abfc)!important;
+      color:#fff!important;
+      box-shadow:0 8px 24px rgba(139,92,246,.35)!important;
+      display:flex!important;
+      flex-direction:column!important;
+      align-items:center!important;
+      justify-content:center!important;
+      line-height:1.05!important;
+      text-shadow:0 1px 2px rgba(0,0,0,.35)!important;
+    }
+    .combo-claim-btn span{font-size:13px;font-weight:800;white-space:nowrap;}
+    .combo-claim-btn small{font-size:10px;font-weight:700;opacity:.95;margin-top:3px;white-space:nowrap;}
+    .combo-claim-btn:disabled{opacity:.9!important;filter:saturate(.85);}
+    .combo-selected.combo-locked{pointer-events:none;opacity:1;}
+  </style>
 </head>
 <body>
 
@@ -63,7 +84,7 @@
     <div class="daily-combo-wrap">
       <div class="daily-combo-top">
         <h3>Daily Combo</h3>
-        <button id="claimBtn" class="combo-claim-btn">+5,000,000</button>
+        <button id="claimBtn" class="combo-claim-btn"><span>Daily Combo</span><small>+5M coins</small></button>
       </div>
 
       <div id="combo" class="combo-box"></div>

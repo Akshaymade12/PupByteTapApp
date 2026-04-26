@@ -482,6 +482,8 @@ let btcPairsTimerInterval = null;
   let dailyAmplifierTimerInterval = null;
   let selectedComboCards = [];
 let dailyComboCards = [];
+let dailyComboLocked = false;
+let dailyComboStatus = "";
   
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
@@ -5098,24 +5100,44 @@ if (upgradeRechargingSpeedBtn) {
   
 async function loadDailyCombo() {
   try {
-    const res = await fetch("/daily-combo");
+    const res = await fetch("/daily-combo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId, initData })
+    });
+
     const data = await res.json();
 
     if (!data.success) return;
 
     dailyComboCards = data.cards || [];
-    selectedComboCards = [];
+    selectedComboCards = (data.selectedCards || []).map(c => c.id || c).filter(Boolean);
+    dailyComboLocked = !!data.locked;
+    dailyComboStatus = data.status || "";
 
     renderComboSlots();
     addComboButtonsToMineCards();
-
-    if (claimComboBtn) {
-      claimComboBtn.innerText = `+${formatNumber(data.reward || 5000000)}`;
-      claimComboBtn.disabled = false;
-    }
+    setComboButtonState(data.reward || 5000000);
   } catch (e) {
     console.log("Daily combo error", e);
   }
+}
+
+function setComboButtonState(reward = 5000000) {
+  if (!claimComboBtn) return;
+
+  if (dailyComboLocked) {
+    if (dailyComboStatus === "success") {
+      claimComboBtn.innerHTML = `<span>Claimed ✅</span><small>+${formatNumber(reward)} coins</small>`;
+    } else {
+      claimComboBtn.innerHTML = `<span>Try Tomorrow</span><small>Daily Combo</small>`;
+    }
+    claimComboBtn.disabled = true;
+    return;
+  }
+
+  claimComboBtn.innerHTML = `<span>Daily Combo</span><small>+${formatNumber(reward)} coins</small>`;
+  claimComboBtn.disabled = false;
 }
 
 /* ================= DAILY COMBO INFO ================= */
@@ -5145,9 +5167,11 @@ function renderComboSlots() {
     }
 
     const card = getComboCardInfo(cardId);
+    const lockedClass = dailyComboLocked ? " combo-locked" : "";
+    const clickAction = dailyComboLocked ? "" : `onclick="removeComboCard('${cardId}')"`;
 
     comboContainer.innerHTML += `
-      <div class="combo-card combo-selected" onclick="removeComboCard('${cardId}')">
+      <div class="combo-card combo-selected${lockedClass}" ${clickAction}>
         <div class="combo-card-icon">${card.icon}</div>
         <div class="combo-card-name">${card.name}</div>
       </div>
@@ -5156,6 +5180,7 @@ function renderComboSlots() {
 }
 
 window.selectComboCard = function(cardId) {
+  if (dailyComboLocked) return;
   if (!cardId) return;
 
   if (selectedComboCards.includes(cardId)) {
@@ -5174,6 +5199,7 @@ window.selectComboCard = function(cardId) {
 };
 
 window.removeComboCard = function(cardId) {
+  if (dailyComboLocked) return;
   selectedComboCards = selectedComboCards.filter(id => id !== cardId);
   renderComboSlots();
   addComboButtonsToMineCards();
@@ -5199,7 +5225,7 @@ function addComboButtonsToMineCards() {
       const btn = document.createElement("button");
       btn.className = "combo-select-btn";
       btn.innerText = selectedComboCards.includes(found.id) ? "Selected ✅" : "Add Combo";
-      btn.disabled = selectedComboCards.includes(found.id);
+      btn.disabled = dailyComboLocked || selectedComboCards.includes(found.id);
       btn.onclick = (e) => {
         e.stopPropagation();
         selectComboCard(found.id);
@@ -5213,13 +5239,15 @@ function addComboButtonsToMineCards() {
 if (claimComboBtn) {
   claimComboBtn.onclick = async () => {
     try {
+      if (dailyComboLocked) return;
+
       if (selectedComboCards.length !== 3) {
         alert("Daily Combo ke liye 3 cards select karo");
         return;
       }
 
       claimComboBtn.disabled = true;
-      claimComboBtn.innerText = "Checking...";
+      claimComboBtn.innerHTML = "Checking...";
 
       const res = await fetch("/check-daily-combo", {
         method: "POST",
@@ -5235,8 +5263,15 @@ if (claimComboBtn) {
 
       if (!data.success) {
         alert(data.message || "Combo check failed");
-        claimComboBtn.disabled = false;
-        claimComboBtn.innerText = "+5M";
+        if (data.locked && data.selectedCards) {
+          selectedComboCards = data.selectedCards.map(c => c.id || c).filter(Boolean);
+          dailyComboLocked = true;
+          dailyComboStatus = data.status || "";
+          renderComboSlots();
+        } else {
+          claimComboBtn.disabled = false;
+        }
+        setComboButtonState();
         return;
       }
 
@@ -5244,19 +5279,25 @@ if (claimComboBtn) {
         alert("🎉 Correct Daily Combo! +" + formatNumber(data.reward) + " coins");
         if (coinsEl) coinsEl.innerText = formatNumber(data.coins || 0);
         if (accountCoins) accountCoins.innerText = formatNumber(data.coins || 0);
-        claimComboBtn.innerText = "Claimed ✅";
-        claimComboBtn.disabled = true;
+        dailyComboLocked = true;
+        dailyComboStatus = "success";
+        selectedComboCards = (data.selectedCards || selectedComboCards).map(c => c.id || c).filter(Boolean);
+        renderComboSlots();
+        setComboButtonState(data.reward || 5000000);
         loadUser();
       } else {
         alert("❌ Wrong Combo. Try tomorrow");
-        claimComboBtn.innerText = "Try Tomorrow";
-        claimComboBtn.disabled = true;
+        dailyComboLocked = true;
+        dailyComboStatus = "failed";
+        selectedComboCards = (data.selectedCards || selectedComboCards).map(c => c.id || c).filter(Boolean);
+        renderComboSlots();
+        setComboButtonState();
       }
     } catch (e) {
       console.log("check daily combo error", e);
       alert("Server error");
       claimComboBtn.disabled = false;
-      claimComboBtn.innerText = "+5M";
+      setComboButtonState();
     }
   };
 }

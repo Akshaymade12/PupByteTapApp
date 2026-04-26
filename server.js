@@ -57,6 +57,10 @@ username: { type: String, default: "" },
   tapResetTime: { type: Number, default: Date.now },
   dailyComboClaimed: { type: String, default: "" },
   dailyComboAttempted: { type: String, default: "" },
+  dailyComboSelectedCards: { type: [String], default: [] },
+  dailyComboStatus: { type: String, default: "" }, // pending | success | failed
+  dailyComboAttemptAt: { type: Date, default: null },
+  dailyComboExpiresAt: { type: Date, default: null },
   upgradeLevel: { type: Number, default: 0 },
   lastTap: { type: Number, default: 0 },
   referredBy: { type: String, default: null },
@@ -2818,6 +2822,31 @@ function isSameCombo(selectedCards, correctCards) {
   return selected === correct;
 }
 
+function normalizeDailyComboProgress(user) {
+  if (
+    user.dailyComboExpiresAt &&
+    new Date(user.dailyComboExpiresAt).getTime() <= Date.now()
+  ) {
+    user.dailyComboSelectedCards = [];
+    user.dailyComboStatus = "";
+    user.dailyComboAttemptAt = null;
+    user.dailyComboExpiresAt = null;
+    user.dailyComboAttempted = "";
+    user.dailyComboClaimed = "";
+  }
+}
+
+function getDailyComboSelectedInfo(user) {
+  const ids = Array.isArray(user.dailyComboSelectedCards)
+    ? user.dailyComboSelectedCards
+    : [];
+
+  return ids.map(id => {
+    const card = DAILY_COMBO_CARDS.find(c => c.id === id);
+    return card || { id, name: id, icon: "?", section: "" };
+  });
+}
+
 app.get("/daily-combo", async (req, res) => {
   try {
     const combo = getTodayDailyCombo();
@@ -2826,6 +2855,9 @@ app.get("/daily-combo", async (req, res) => {
       success: true,
       reward: DAILY_COMBO_REWARD,
       slots: 3,
+      locked: false,
+      status: "",
+      selectedCards: [],
       combo: combo.map(() => ({
         hidden: true,
         icon: "?",
@@ -2835,6 +2867,45 @@ app.get("/daily-combo", async (req, res) => {
     });
   } catch (e) {
     console.log("/daily-combo error", e);
+    return res.json({ success: false, message: "Server error" });
+  }
+});
+
+app.post("/daily-combo", async (req, res) => {
+  try {
+    const { telegramId, initData } = req.body;
+    const user = await getValidUser(String(telegramId), initData);
+
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    normalizeDailyComboProgress(user);
+    await user.save();
+
+    const combo = getTodayDailyCombo();
+    const locked = !!(
+      user.dailyComboExpiresAt &&
+      new Date(user.dailyComboExpiresAt).getTime() > Date.now()
+    );
+
+    return res.json({
+      success: true,
+      reward: DAILY_COMBO_REWARD,
+      slots: 3,
+      locked,
+      status: user.dailyComboStatus || "",
+      expiresAt: user.dailyComboExpiresAt || null,
+      selectedCards: getDailyComboSelectedInfo(user),
+      combo: combo.map(() => ({
+        hidden: true,
+        icon: "?",
+        name: "Hidden Card"
+      })),
+      cards: DAILY_COMBO_CARDS
+    });
+  } catch (e) {
+    console.log("/daily-combo post error", e);
     return res.json({ success: false, message: "Server error" });
   }
 });
@@ -2849,18 +2920,19 @@ app.post("/check-daily-combo", async (req, res) => {
     }
 
     const today = getTodayKey();
+    normalizeDailyComboProgress(user);
 
-    if (user.dailyComboClaimed === today) {
+    if (
+      user.dailyComboExpiresAt &&
+      new Date(user.dailyComboExpiresAt).getTime() > Date.now()
+    ) {
       return res.json({
         success: false,
-        message: "Daily combo already claimed today"
-      });
-    }
-
-    if (user.dailyComboAttempted === today) {
-      return res.json({
-        success: false,
-        message: "Daily combo already attempted today"
+        message: "Daily combo already attempted. Come back after 24 hours.",
+        locked: true,
+        status: user.dailyComboStatus || "",
+        expiresAt: user.dailyComboExpiresAt,
+        selectedCards: getDailyComboSelectedInfo(user)
       });
     }
 
@@ -2894,6 +2966,10 @@ app.post("/check-daily-combo", async (req, res) => {
     const win = isSameCombo(uniqueCards, correctCombo);
 
     user.dailyComboAttempted = today;
+    user.dailyComboSelectedCards = uniqueCards;
+    user.dailyComboStatus = win ? "success" : "failed";
+    user.dailyComboAttemptAt = new Date();
+    user.dailyComboExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     if (win) {
       user.coins += DAILY_COMBO_REWARD;
@@ -2906,6 +2982,10 @@ app.post("/check-daily-combo", async (req, res) => {
     return res.json({
       success: true,
       win,
+      locked: true,
+      status: user.dailyComboStatus,
+      expiresAt: user.dailyComboExpiresAt,
+      selectedCards: getDailyComboSelectedInfo(user),
       reward: win ? DAILY_COMBO_REWARD : 0,
       coins: user.coins,
       correctCombo: win
@@ -5762,9 +5842,6 @@ app.post("/claim-ref-reward", async (req, res) => {
 });
 
 /* ================= DAILY COMBO ================= */
-app.get("/daily-combo", async (req, res) => {
-  res.json({ combo: ["A", "B", "C"] });
-});
 
 /* ================= GLOBAL LEADERBOARD API ================= */
 
