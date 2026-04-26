@@ -86,6 +86,12 @@ rewardAdDate: { type: String, default: "" },
 dailySpinCount: { type: Number, default: 0 },
   airdropScore: { type: Number, default: 0 },
 airdropTier: { type: String, default: "Not Eligible" },
+  adsWatchedToday: { type: Number, default: 0 },
+adsLastWatchedAt: { type: Date, default: null },
+adsCooldownUntil: { type: Date, default: null },
+adsTotalWatched: { type: Number, default: 0 },
+adsSuspiciousCount: { type: Number, default: 0 },
+adsLastReset: { type: Date, default: null },
   
 btcPairs: {
   level: { type: Number, default: 1 },
@@ -437,6 +443,28 @@ async function finalizeBtcPairsUpgrade(user) {
     user.btcPairs.upgradeEndTime = null;
 
     await user.save();
+  }
+}
+
+/* ================= RESET DAILY ADS ================= */
+
+function resetAdDaily(user) {
+  const now = new Date();
+
+  if (!user.adsLastReset) {
+    user.adsLastReset = now;
+    return;
+  }
+
+  const last = new Date(user.adsLastReset);
+
+  if (
+    now.getDate() !== last.getDate() ||
+    now.getMonth() !== last.getMonth() ||
+    now.getFullYear() !== last.getFullYear()
+  ) {
+    user.adsWatchedToday = 0;
+    user.adsLastReset = now;
   }
 }
 
@@ -5358,47 +5386,66 @@ app.post("/watch-rewarded-ad", async (req, res) => {
       return res.json({ success: false, message: "Invalid user" });
     }
 
-    normalizeRewardAdState(user);
+    resetAdDaily(user);
 
-    if ((user.rewardAdsWatched || 0) >= REWARDED_AD_DAILY_LIMIT) {
-      return res.json({
-        success: false,
-        message: "Daily ad limit reached"
-      });
+    const now = Date.now();
+
+    // 🔒 Cooldown check (30 sec)
+    if (user.adsLastWatchedAt && now - new Date(user.adsLastWatchedAt).getTime() < 30000) {
+      user.adsSuspiciousCount += 1;
+      await user.save();
+      return res.json({ success: false, message: "Too fast ⛔" });
     }
 
-    const cooldownLeftMs = getRewardAdCooldownLeft(user);
-    if (cooldownLeftMs > 0) {
-      return res.json({
-        success: false,
-        message: `Wait ${Math.ceil(cooldownLeftMs / 1000)} sec`
-      });
+    // 🔒 Daily limit (20 ads)
+    if (user.adsWatchedToday >= 20) {
+      return res.json({ success: false, message: "Daily limit reached ❌" });
     }
 
-    user.coins += REWARDED_AD_COINS;
-    user.rewardAdsWatched = (user.rewardAdsWatched || 0) + 1;
-    updateMissionProgress(user, "ad", 1);
-    user.lastRewardAdAt = new Date();
-    user.lastActive = new Date();
-    user.league = getLeague(user.coins);
+    // ✅ Reward do
+    const REWARD = 1000;
+
+    user.coins += REWARD;
+    user.adsWatchedToday += 1;
+    user.adsTotalWatched += 1;
+    user.adsLastWatchedAt = new Date();
 
     await user.save();
 
     return res.json({
       success: true,
-      reward: REWARDED_AD_COINS,
+      reward: REWARD,
       coins: user.coins,
-      rewardedAds: {
-        reward: REWARDED_AD_COINS,
-        watchedToday: user.rewardAdsWatched,
-        dailyLimit: REWARDED_AD_DAILY_LIMIT,
-        remaining: getRewardAdsRemaining(user),
-        cooldownLeftMs: getRewardAdCooldownLeft(user)
-      }
+      adsWatchedToday: user.adsWatchedToday
     });
+
   } catch (e) {
-    console.log("/watch-rewarded-ad error", e);
+    console.log("Ad reward error", e);
     return res.json({ success: false, message: "Server error" });
+  }
+});
+
+/* ================= ADMIN ADS STATS ================= */
+
+app.get("/admin/ad-stats", async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalAds = await User.aggregate([
+      { $group: { _id: null, total: { $sum: "$adsTotalWatched" } } }
+    ]);
+
+    const suspiciousUsers = await User.countDocuments({
+      adsSuspiciousCount: { $gt: 5 }
+    });
+
+    res.json({
+      users: totalUsers,
+      totalAdsWatched: totalAds[0]?.total || 0,
+      suspiciousUsers
+    });
+
+  } catch (e) {
+    res.json({ error: "Stats error" });
   }
 });
 
@@ -5840,8 +5887,6 @@ app.post("/claim-ref-reward", async (req, res) => {
     res.json({ success: false, message: "Server error" });
   }
 });
-
-/* ================= DAILY COMBO ================= */
 
 /* ================= GLOBAL LEADERBOARD API ================= */
 
