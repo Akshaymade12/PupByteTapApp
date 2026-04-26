@@ -97,6 +97,10 @@ const leaderboardCountText = document.getElementById("leaderboardCountText");
 
   const accountUserId = document.getElementById("accountUserId");
   const accountUserName = document.getElementById("accountUserName");
+  const profileName = document.getElementById("profileName");
+const profileAvatar = document.getElementById("profileAvatar");
+const profileLeagueBadge = document.getElementById("profileLeagueBadge");
+const accountProfit = document.getElementById("accountProfit");
   const accountCoins = document.getElementById("accountCoins");
   const accountReferrals = document.getElementById("accountReferrals");
 const accountRefLink = document.getElementById("accountRefLink");
@@ -489,9 +493,12 @@ let btcPairsTimerInterval = null;
       const res = await fetch("/load", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegramId, initData })
-      });
-
+        body: JSON.stringify({
+  telegramId,
+  initData,
+  playerName: user.first_name || "Player",
+  username: user.username || ""
+})
       const data = await res.json();
 
 if (!data || data.success === false) {
@@ -515,6 +522,20 @@ if (offlinePopup && offlineCoinsText && (data.offlineCoins || 0) > 0) {
 
       if (accountUserId) accountUserId.innerText = telegramId;
       if (accountUserName) accountUserName.innerText = user.first_name || "User";
+      if (profileName) profileName.innerText = data.playerName || user.first_name || "Player";
+
+if (profileAvatar) {
+  const firstLetter = (data.playerName || user.first_name || "P").charAt(0).toUpperCase();
+  profileAvatar.innerText = firstLetter;
+}
+
+if (profileLeagueBadge) {
+  profileLeagueBadge.innerText = data.league || "Wood";
+}
+
+if (accountProfit) {
+  accountProfit.innerText = formatNumber(data.profitPerHour || 0);
+}
       if (accountCoins) accountCoins.innerText = formatNumber(data.coins || 0);
       if (accountReferrals) accountReferrals.innerText = data.referrals || 0;
 
