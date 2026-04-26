@@ -25,13 +25,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const energyEl = document.getElementById("energy");
   const profitEl = document.getElementById("profit");
 
-  /* ================= BOOST UI ELEMENTS ================= */
-  const upgradeBoostX2Btn = document.getElementById("upgradeBoostX2Btn");
-  const upgradeMultitapBtn = document.getElementById("upgradeMultitapBtn");
-  const upgradeEnergyLimitBtn = document.getElementById("upgradeEnergyLimitBtn");
-  const upgradeRechargingSpeedBtn = document.getElementById("upgradeRechargingSpeedBtn");
+/* ================= BOOST UI ELEMENTS ================= */
 
-  const upgradeCriticalStrikeBtn = document.getElementById("upgradeCriticalStrikeBtn");
+const upgradeBoostX2Btn = document.getElementById("upgradeBoostX2Btn");
+const upgradeMultitapBtn = document.getElementById("upgradeMultitapBtn");
+const upgradeEnergyLimitBtn = document.getElementById("upgradeEnergyLimitBtn");
+const upgradeRechargingSpeedBtn = document.getElementById("upgradeRechargingSpeedBtn");
+
+const upgradeCriticalStrikeBtn = document.getElementById("upgradeCriticalStrikeBtn");
 const criticalStrikeLevelText = document.getElementById("criticalStrikeLevelText");
 const criticalStrikeChanceText = document.getElementById("criticalStrikeChanceText");
 const criticalStrikeMultiplierText = document.getElementById("criticalStrikeMultiplierText");
@@ -46,94 +47,93 @@ const upgradeDailyAmplifierBtn = document.getElementById("upgradeDailyAmplifierB
 const dailyAmplifierLevelText = document.getElementById("dailyAmplifierLevelText");
 const dailyAmplifierValueText = document.getElementById("dailyAmplifierValueText");
 const dailyAmplifierCostText = document.getElementById("dailyAmplifierCostText");
-  
-  const boostX2CostText = document.getElementById("boostX2CostText");
-  const multitapCostText = document.getElementById("multitapCostText");
-  const multitapLevelText = document.getElementById("multitapLevelText");
-  const energyLimitCostText = document.getElementById("energyLimitCostText");
-  const energyLimitLevelText = document.getElementById("energyLimitLevelText");
-  const rechargingSpeedCostText = document.getElementById("rechargingSpeedCostText");
-  const rechargingSpeedLevelText = document.getElementById("rechargingSpeedLevelText");
 
-  const upgradeAutoTapBotBtn = document.getElementById("upgradeAutoTapBotBtn");
+const boostX2CostText = document.getElementById("boostX2CostText");
+const multitapCostText = document.getElementById("multitapCostText");
+const multitapLevelText = document.getElementById("multitapLevelText");
+const energyLimitCostText = document.getElementById("energyLimitCostText");
+const energyLimitLevelText = document.getElementById("energyLimitLevelText");
+const rechargingSpeedCostText = document.getElementById("rechargingSpeedCostText");
+const rechargingSpeedLevelText = document.getElementById("rechargingSpeedLevelText");
+
+const upgradeAutoTapBotBtn = document.getElementById("upgradeAutoTapBotBtn");
 const autoTapBotCostText = document.getElementById("autoTapBotCostText");
 const autoTapBotStatusText = document.getElementById("autoTapBotStatusText");
 
-  const upgradeOfflineYieldBtn = document.getElementById("upgradeOfflineYieldBtn");
+const upgradeOfflineYieldBtn = document.getElementById("upgradeOfflineYieldBtn");
 const offlineYieldLevelText = document.getElementById("offlineYieldLevelText");
 const offlineYieldValueText = document.getElementById("offlineYieldValueText");
 const offlineYieldCostText = document.getElementById("offlineYieldCostText");
-  
-  const watchAdBtn = document.getElementById("watchAdBtn");
-  const dailySpinBtn = document.getElementById("dailySpinBtn");
+
+const watchAdBtn = document.getElementById("watchAdBtn");
+const dailySpinBtn = document.getElementById("dailySpinBtn");
 const dailySpinText = document.getElementById("dailySpinText");
 const spinWheel = document.getElementById("spinWheel");
 const rewardAdLimitText = document.getElementById("rewardAdLimitText");
 
-  const freeTapDailyCard = document.getElementById("freeTapDailyCard");
-  const freeTapDailyText = document.getElementById("freeTapDailyText");
-  const freeEnergyDailyCard = document.getElementById("freeEnergyDailyCard");
-  const freeEnergyDailyText = document.getElementById("freeEnergyDailyText");
-  
-  const tapBtn = document.getElementById("tapBtn");
-  const upgradeTapBtn = document.getElementById("upgradeTapBtn");
-  const upgradeProfitBtn = document.getElementById("upgradeProfitBtn");
+const freeTapDailyCard = document.getElementById("freeTapDailyCard");
+const freeTapDailyText = document.getElementById("freeTapDailyText");
+const freeEnergyDailyCard = document.getElementById("freeEnergyDailyCard");
+const freeEnergyDailyText = document.getElementById("freeEnergyDailyText");
 
-  const earnSection = document.getElementById("earnSection");
-  const boostSection = document.getElementById("boostSection");
-  const tasksSection = document.getElementById("tasksSection");
-  const leagueSection = document.getElementById("leagueSection");
-  const leaderboardTabGlobal = document.getElementById("leaderboardTabGlobal");
+const tapBtn = document.getElementById("tapBtn");
+const upgradeTapBtn = document.getElementById("upgradeTapBtn");
+const upgradeProfitBtn = document.getElementById("upgradeProfitBtn");
+
+const earnSection = document.getElementById("earnSection");
+const boostSection = document.getElementById("boostSection");
+const tasksSection = document.getElementById("tasksSection");
+const leagueSection = document.getElementById("leagueSection");
+
+const leaderboardTabGlobal = document.getElementById("leaderboardTabGlobal");
 const leaderboardTabLeague = document.getElementById("leaderboardTabLeague");
 const leaderboardListTitle = document.getElementById("leaderboardListTitle");
 const leaderboardCountText = document.getElementById("leaderboardCountText");
-  
-  const accountSection = document.getElementById("accountSection");
-  const skillsSection = document.getElementById("skillsSection");
-  const cashierSection = document.getElementById("cashierSection");
-  const spinSection = document.getElementById("spinSection");
-  const mineSection = document.getElementById("mineSection");
-  const missionPage = document.getElementById("missionPage");
 
-  const accountUserId = document.getElementById("accountUserId");
-  const accountUserName = document.getElementById("accountUserName");
-  const profileName = document.getElementById("profileName");
+const accountSection = document.getElementById("accountSection");
+const skillsSection = document.getElementById("skillsSection");
+const cashierSection = document.getElementById("cashierSection");
+const spinSection = document.getElementById("spinSection");
+const mineSection = document.getElementById("mineSection");
+const missionPage = document.getElementById("missionPage");
+
+const accountUserId = document.getElementById("accountUserId");
+const accountUserName = document.getElementById("accountUserName");
+const profileName = document.getElementById("profileName");
 const profileAvatar = document.getElementById("profileAvatar");
 const profileLeagueBadge = document.getElementById("profileLeagueBadge");
 const accountProfit = document.getElementById("accountProfit");
-  const accountCoins = document.getElementById("accountCoins");
-  const accountReferrals = document.getElementById("accountReferrals");
+const accountCoins = document.getElementById("accountCoins");
+const accountReferrals = document.getElementById("accountReferrals");
 const accountRefLink = document.getElementById("accountRefLink");
 const copyRefBtn = document.getElementById("copyRefBtn");
 
-  const airdropScoreText = document.getElementById("airdropScore");
+const airdropScoreText = document.getElementById("airdropScore");
 const airdropTierText = document.getElementById("airdropTier");
 const airdropProgress = document.getElementById("airdropProgress");
-
 const coinScoreText = document.getElementById("coinScoreText");
 const refScoreText = document.getElementById("refScoreText");
 const taskScoreText = document.getElementById("taskScoreText");
 const activityScoreText = document.getElementById("activityScoreText");
 const upgradeScoreText = document.getElementById("upgradeScoreText");
 
-  const missionTabSpin = document.getElementById("missionTabSpin");
+const missionTabSpin = document.getElementById("missionTabSpin");
 const missionTabDaily = document.getElementById("missionTabDaily");
 const missionTabEvents = document.getElementById("missionTabEvents");
-
 const missionSpinPanel = document.getElementById("missionSpinPanel");
 const missionDailyPanel = document.getElementById("missionDailyPanel");
 const missionEventsPanel = document.getElementById("missionEventsPanel");
-
 const missionsList = document.getElementById("missionsList");
-  
-  const offlinePopup = document.getElementById("offlinePopup");
+
+const offlinePopup = document.getElementById("offlinePopup");
 const offlineCoinsText = document.getElementById("offlineCoinsText");
 const closeOfflinePopup = document.getElementById("closeOfflinePopup");
-  
-  const dailyPopup = document.getElementById("dailyRewardPopup");
-  const dailyGrid = document.getElementById("dailyGrid");
-  const claimDailyBtn = document.getElementById("claimDailyBtn");
-  const comboContainer = document.getElementById("combo");
+
+const dailyPopup = document.getElementById("dailyRewardPopup");
+const dailyGrid = document.getElementById("dailyGrid");
+const claimDailyBtn = document.getElementById("claimDailyBtn");
+
+const comboContainer = document.getElementById("combo");
 const claimComboBtn = document.getElementById("claimBtn");
 
   const rewards = [500, 1000, 2500, 5000, 15000, 25000, 100000, 500000, 1000000, 5000000];
