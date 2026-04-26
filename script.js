@@ -4323,9 +4323,6 @@ if (upgradeRechargingSpeedBtn) {
     alert("Server error");
   }
 };
-  
-/* ================= DAILY COMBO ================= */
-const comboContainer = document.getElementById("combo");
 
 /* ================= COUNTDOWN TIMER ================= */
   
