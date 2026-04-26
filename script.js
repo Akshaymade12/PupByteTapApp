@@ -133,6 +133,8 @@ const closeOfflinePopup = document.getElementById("closeOfflinePopup");
   const dailyPopup = document.getElementById("dailyRewardPopup");
   const dailyGrid = document.getElementById("dailyGrid");
   const claimDailyBtn = document.getElementById("claimDailyBtn");
+  const comboContainer = document.getElementById("combo");
+const claimComboBtn = document.getElementById("claimBtn");
 
   const rewards = [500, 1000, 2500, 5000, 15000, 25000, 100000, 500000, 1000000, 5000000];
 
@@ -478,6 +480,8 @@ let btcPairsTimerInterval = null;
   let offlineYieldTimerInterval = null;
   let botOptimizationTimerInterval = null;
   let dailyAmplifierTimerInterval = null;
+  let selectedComboCards = [];
+let dailyComboCards = [];
   
   if (dailyPopup) {
     dailyPopup.addEventListener("click", (e) => {
@@ -4759,6 +4763,10 @@ if (tabName === "team") {
   if (mineTabSpecial) mineTabSpecial.classList.add("active");
   renderSpecialSection();
 }
+  setTimeout(() => {
+  addComboButtonsToMineCards();
+}, 150);
+  
     }
   
 if (mineTabMarket) mineTabMarket.onclick = () => switchMineTab("market");
@@ -5072,22 +5080,173 @@ if (upgradeRechargingSpeedBtn) {
   };
 }
 
+/* ================= LOAD DAILY COMBO ================= */
+  
 async function loadDailyCombo() {
   try {
     const res = await fetch("/daily-combo");
     const data = await res.json();
 
-    if (!comboContainer) return;
+    if (!data.success) return;
 
-    comboContainer.innerHTML = "";
-    (data.combo || []).forEach(() => {
-      comboContainer.innerHTML += `<div class="combo-card">?</div>`;
-    });
+    dailyComboCards = data.cards || [];
+    selectedComboCards = [];
+
+    renderComboSlots();
+    addComboButtonsToMineCards();
+
+    if (claimComboBtn) {
+      claimComboBtn.innerText = `+${formatNumber(data.reward || 5000000)}`;
+      claimComboBtn.disabled = false;
+    }
   } catch (e) {
     console.log("Daily combo error", e);
   }
 }
 
+/* ================= DAILY COMBO INFO ================= */
+
+  function getComboCardInfo(cardId) {
+  return dailyComboCards.find(c => c.id === cardId) || {
+    id: cardId,
+    name: cardId,
+    icon: "❓",
+    section: ""
+  };
+}
+
+function renderComboSlots() {
+  if (!comboContainer) return;
+
+  comboContainer.innerHTML = "";
+
+  for (let i = 0; i < 3; i++) {
+    const cardId = selectedComboCards[i];
+
+    if (!cardId) {
+      comboContainer.innerHTML += `
+        <div class="combo-card combo-empty">?</div>
+      `;
+      continue;
+    }
+
+    const card = getComboCardInfo(cardId);
+
+    comboContainer.innerHTML += `
+      <div class="combo-card combo-selected" onclick="removeComboCard('${cardId}')">
+        <div class="combo-card-icon">${card.icon}</div>
+        <div class="combo-card-name">${card.name}</div>
+      </div>
+    `;
+  }
+}
+
+window.selectComboCard = function(cardId) {
+  if (!cardId) return;
+
+  if (selectedComboCards.includes(cardId)) {
+    alert("Ye card already select hai");
+    return;
+  }
+
+  if (selectedComboCards.length >= 3) {
+    alert("Sirf 3 cards select kar sakte ho");
+    return;
+  }
+
+  selectedComboCards.push(cardId);
+  renderComboSlots();
+  addComboButtonsToMineCards();
+};
+
+window.removeComboCard = function(cardId) {
+  selectedComboCards = selectedComboCards.filter(id => id !== cardId);
+  renderComboSlots();
+  addComboButtonsToMineCards();
+};
+
+function addComboButtonsToMineCards() {
+  if (!mineTabContent) return;
+
+  setTimeout(() => {
+    const cards = mineTabContent.querySelectorAll(".mine-card-box, .mine-card, .skill-mine-card");
+
+    cards.forEach(card => {
+      const titleEl = card.querySelector(".mine-card-title");
+      if (!titleEl) return;
+
+      const title = titleEl.innerText.trim().toLowerCase();
+
+      const found = dailyComboCards.find(c => c.name.toLowerCase() === title);
+      if (!found) return;
+
+      if (card.querySelector(".combo-select-btn")) return;
+
+      const btn = document.createElement("button");
+      btn.className = "combo-select-btn";
+      btn.innerText = selectedComboCards.includes(found.id) ? "Selected ✅" : "Add Combo";
+      btn.disabled = selectedComboCards.includes(found.id);
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        selectComboCard(found.id);
+      };
+
+      card.appendChild(btn);
+    });
+  }, 100);
+}
+
+if (claimComboBtn) {
+  claimComboBtn.onclick = async () => {
+    try {
+      if (selectedComboCards.length !== 3) {
+        alert("Daily Combo ke liye 3 cards select karo");
+        return;
+      }
+
+      claimComboBtn.disabled = true;
+      claimComboBtn.innerText = "Checking...";
+
+      const res = await fetch("/check-daily-combo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          telegramId,
+          initData,
+          selectedCards: selectedComboCards
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        alert(data.message || "Combo check failed");
+        claimComboBtn.disabled = false;
+        claimComboBtn.innerText = "+5M";
+        return;
+      }
+
+      if (data.win) {
+        alert("🎉 Correct Daily Combo! +" + formatNumber(data.reward) + " coins");
+        if (coinsEl) coinsEl.innerText = formatNumber(data.coins || 0);
+        if (accountCoins) accountCoins.innerText = formatNumber(data.coins || 0);
+        claimComboBtn.innerText = "Claimed ✅";
+        claimComboBtn.disabled = true;
+        loadUser();
+      } else {
+        alert("❌ Wrong Combo. Try tomorrow");
+        claimComboBtn.innerText = "Try Tomorrow";
+        claimComboBtn.disabled = true;
+      }
+    } catch (e) {
+      console.log("check daily combo error", e);
+      alert("Server error");
+      claimComboBtn.disabled = false;
+      claimComboBtn.innerText = "+5M";
+    }
+  };
+}
+  
   /* ================= BOOST OPEN/CLOSE ================= */
   const openBoostBtn = document.getElementById("openBoost");
   const backBtn = document.getElementById("backBtn");
