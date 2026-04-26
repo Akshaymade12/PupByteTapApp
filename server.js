@@ -56,6 +56,7 @@ username: { type: String, default: "" },
   tapCount: { type: Number, default: 0 },
   tapResetTime: { type: Number, default: Date.now },
   dailyComboClaimed: { type: String, default: "" },
+  dailyComboAttempted: { type: String, default: "" },
   upgradeLevel: { type: Number, default: 0 },
   lastTap: { type: Number, default: 0 },
   referredBy: { type: String, default: null },
@@ -2741,6 +2742,186 @@ coinsEarned = Math.floor(
 
   return coinsEarned;
 }
+
+/* ================= DAILY CARD COMBO ================= */
+
+const DAILY_COMBO_REWARD = 5000000;
+
+const DAILY_COMBO_CARDS = [
+  { id: "btcPairs", name: "BTC Pairs", section: "Market", icon: "₿" },
+  { id: "ethPairs", name: "ETH Pairs", section: "Market", icon: "◆" },
+  { id: "futuresTrading", name: "Futures Trading", section: "Market", icon: "📈" },
+  { id: "liquidityPool", name: "Liquidity Pool", section: "Market", icon: "💧" },
+  { id: "arbitrageBot", name: "Arbitrage Bot", section: "Market", icon: "🤖" },
+  { id: "signalNetwork", name: "Signal Network", section: "Market", icon: "📡" },
+
+  { id: "myTeam", name: "My Team", section: "Team", icon: "👥" },
+  { id: "marketing", name: "Marketing", section: "Team", icon: "📣" },
+  { id: "communityManager", name: "Community Manager", section: "Team", icon: "💬" },
+  { id: "partnershipDeals", name: "Partnership Deals", section: "Team", icon: "🤝" },
+  { id: "ambassadorProgram", name: "Ambassador Program", section: "Team", icon: "🌍" },
+  { id: "vipPartners", name: "VIP Partners", section: "Team", icon: "👑" },
+
+  { id: "taxOptimization", name: "Tax Optimization", section: "Legal", icon: "🏦" },
+  { id: "complianceLicense", name: "Compliance License", section: "Legal", icon: "📜" },
+  { id: "auditProtection", name: "Audit Protection", section: "Legal", icon: "🛡️" },
+  { id: "regulatoryLicense", name: "Regulatory License", section: "Legal", icon: "⚖️" },
+  { id: "legalAdvisory", name: "Legal Advisory", section: "Legal", icon: "🧑‍⚖️" },
+  { id: "courtSettlement", name: "Court Settlement", section: "Legal", icon: "🏛️" },
+
+  { id: "turboCharger", name: "Turbo Charger", section: "Special", icon: "🚀" },
+  { id: "energyCore", name: "Energy Core", section: "Special", icon: "🔋" },
+  { id: "powerSurge", name: "Power Surge", section: "Special", icon: "⚡" },
+  { id: "overclockEngine", name: "Overclock Engine", section: "Special", icon: "🧠" },
+  { id: "neuralSync", name: "Neural Sync", section: "Special", icon: "🔮" },
+  { id: "quantumCore", name: "Quantum Core", section: "Special", icon: "💠" }
+];
+
+function getDailyComboSeed(dateKey) {
+  return String(dateKey || getTodayKey())
+    .split("")
+    .reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+}
+
+function getTodayDailyCombo() {
+  const today = getTodayKey();
+  const seed = getDailyComboSeed(today);
+
+  const combo = [];
+  const usedIndexes = new Set();
+
+  for (let i = 0; i < 3; i++) {
+    let index = (seed + i * 7 + i * i * 11) % DAILY_COMBO_CARDS.length;
+
+    while (usedIndexes.has(index)) {
+      index = (index + 1) % DAILY_COMBO_CARDS.length;
+    }
+
+    usedIndexes.add(index);
+    combo.push(DAILY_COMBO_CARDS[index]);
+  }
+
+  return combo;
+}
+
+function normalizeDailyComboUser(user) {
+  const today = getTodayKey();
+
+  if (user.dailyComboClaimed !== today && user.dailyComboAttempted !== today) {
+    return;
+  }
+}
+
+function isSameCombo(selectedCards, correctCards) {
+  const selected = [...selectedCards].sort().join(",");
+  const correct = correctCards.map(c => c.id).sort().join(",");
+  return selected === correct;
+}
+
+app.get("/daily-combo", async (req, res) => {
+  try {
+    const combo = getTodayDailyCombo();
+
+    return res.json({
+      success: true,
+      reward: DAILY_COMBO_REWARD,
+      slots: 3,
+      combo: combo.map(() => ({
+        hidden: true,
+        icon: "?",
+        name: "Hidden Card"
+      })),
+      cards: DAILY_COMBO_CARDS
+    });
+  } catch (e) {
+    console.log("/daily-combo error", e);
+    return res.json({ success: false, message: "Server error" });
+  }
+});
+
+app.post("/check-daily-combo", async (req, res) => {
+  try {
+    const { telegramId, initData, selectedCards } = req.body;
+
+    const user = await getValidUser(String(telegramId), initData);
+    if (!user) {
+      return res.json({ success: false, message: "Invalid user" });
+    }
+
+    const today = getTodayKey();
+
+    if (user.dailyComboClaimed === today) {
+      return res.json({
+        success: false,
+        message: "Daily combo already claimed today"
+      });
+    }
+
+    if (user.dailyComboAttempted === today) {
+      return res.json({
+        success: false,
+        message: "Daily combo already attempted today"
+      });
+    }
+
+    if (!Array.isArray(selectedCards) || selectedCards.length !== 3) {
+      return res.json({
+        success: false,
+        message: "Please select exactly 3 cards"
+      });
+    }
+
+    const uniqueCards = [...new Set(selectedCards.map(String))];
+
+    if (uniqueCards.length !== 3) {
+      return res.json({
+        success: false,
+        message: "Duplicate cards not allowed"
+      });
+    }
+
+    const validIds = DAILY_COMBO_CARDS.map(c => c.id);
+    const allValid = uniqueCards.every(id => validIds.includes(id));
+
+    if (!allValid) {
+      return res.json({
+        success: false,
+        message: "Invalid combo cards"
+      });
+    }
+
+    const correctCombo = getTodayDailyCombo();
+    const win = isSameCombo(uniqueCards, correctCombo);
+
+    user.dailyComboAttempted = today;
+
+    if (win) {
+      user.coins += DAILY_COMBO_REWARD;
+      user.dailyComboClaimed = today;
+      user.league = getLeague(user.coins);
+    }
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      win,
+      reward: win ? DAILY_COMBO_REWARD : 0,
+      coins: user.coins,
+      correctCombo: win
+        ? correctCombo.map(c => ({
+            id: c.id,
+            name: c.name,
+            icon: c.icon,
+            section: c.section
+          }))
+        : []
+    });
+  } catch (e) {
+    console.log("/check-daily-combo error", e);
+    return res.json({ success: false, message: "Server error" });
+  }
+});
 
 /* ================= DAILY SPIN ================= */
 
