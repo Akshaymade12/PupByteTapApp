@@ -5386,47 +5386,66 @@ app.post("/watch-rewarded-ad", async (req, res) => {
       return res.json({ success: false, message: "Invalid user" });
     }
 
-    resetAdDaily(user);
+    normalizeRewardAdState(user);
 
-    const now = Date.now();
-
-    // 🔒 Cooldown check (30 sec)
-    if (user.adsLastWatchedAt && now - new Date(user.adsLastWatchedAt).getTime() < 30000) {
-      user.adsSuspiciousCount += 1;
-      await user.save();
-      return res.json({ success: false, message: "Too fast ⛔" });
+    const cooldownLeftMs = getRewardAdCooldownLeft(user);
+    if (cooldownLeftMs > 0) {
+      return res.json({
+        success: false,
+        message: `Wait ${Math.ceil(cooldownLeftMs / 1000)} sec`,
+        rewardedAds: {
+          reward: REWARDED_AD_COINS,
+          watchedToday: user.rewardAdsWatched || 0,
+          dailyLimit: REWARDED_AD_DAILY_LIMIT,
+          remaining: getRewardAdsRemaining(user),
+          cooldownLeftMs
+        }
+      });
     }
 
-    // 🔒 Daily limit (20 ads)
-    if (user.adsWatchedToday >= 20) {
-      return res.json({ success: false, message: "Daily limit reached ❌" });
+    if ((user.rewardAdsWatched || 0) >= REWARDED_AD_DAILY_LIMIT) {
+      return res.json({
+        success: false,
+        message: "Daily ad limit reached",
+        rewardedAds: {
+          reward: REWARDED_AD_COINS,
+          watchedToday: user.rewardAdsWatched || 0,
+          dailyLimit: REWARDED_AD_DAILY_LIMIT,
+          remaining: 0,
+          cooldownLeftMs: 0
+        }
+      });
     }
 
-    // ✅ Reward do
-    const REWARD = 1000;
+    user.coins += REWARDED_AD_COINS;
+    user.rewardAdsWatched = (user.rewardAdsWatched || 0) + 1;
+    user.lastRewardAdAt = new Date();
 
-    user.coins += REWARD;
-    user.adsWatchedToday += 1;
-    user.adsTotalWatched += 1;
+    user.adsWatchedToday = user.rewardAdsWatched;
+    user.adsTotalWatched = (user.adsTotalWatched || 0) + 1;
     user.adsLastWatchedAt = new Date();
+
+    updateMissionProgress(user, "ad", 1);
+
+    user.lastActive = new Date();
+    user.league = getLeague(user.coins);
 
     await user.save();
 
     return res.json({
-  success: true,
-  reward: REWARDED_AD_COINS,
-  coins: user.coins,
-  rewardedAds: {
-    reward: REWARDED_AD_COINS,
-    watchedToday: user.rewardAdsWatched || 0,
-    dailyLimit: REWARDED_AD_DAILY_LIMIT,
-    remaining: getRewardAdsRemaining(user),
-    cooldownLeftMs: getRewardAdCooldownLeft(user)
-  }
-});
-
+      success: true,
+      reward: REWARDED_AD_COINS,
+      coins: user.coins,
+      rewardedAds: {
+        reward: REWARDED_AD_COINS,
+        watchedToday: user.rewardAdsWatched || 0,
+        dailyLimit: REWARDED_AD_DAILY_LIMIT,
+        remaining: getRewardAdsRemaining(user),
+        cooldownLeftMs: getRewardAdCooldownLeft(user)
+      }
+    });
   } catch (e) {
-    console.log("Ad reward error", e);
+    console.log("/watch-rewarded-ad error", e);
     return res.json({ success: false, message: "Server error" });
   }
 });
