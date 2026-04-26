@@ -5600,7 +5600,6 @@ window.watchAdReward = async function () {
 
       renderRewardAdUI();
       startRewardAdCooldownTimer();
-startAdCooldownUI();
       
       alert(`🎉 +${formatNumber(data.reward)} coins`);
       loadMissions();
