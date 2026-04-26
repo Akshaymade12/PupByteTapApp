@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PupByte Tap Bot</title>
-  <link rel="stylesheet" href="style.css?v=83">
+  <link rel="stylesheet" href="style.css?v=84">
 </head>
 <body>
 
@@ -228,44 +228,63 @@
 
   <!-- ================= ACCOUNT SECTION ================= -->
   <div id="accountSection" style="display:none;">
-    <h2 class="page-title">😎 Account</h2>
+    <h2 class="page-title">😎 Player Profile</h2>
 
-    <div class="account-card">
-      <div class="account-item">
-        <span>Player ID:</span>
-        <span id="accountUserId">--</span>
-      </div>
-      <div class="account-item">
-        <span>Name:</span>
-        <span id="accountUserName">--</span>
-      </div>
-      <div class="account-item">
-        <span>Total Coins:</span>
-        <span id="accountCoins">0</span>
-      </div>
-      <div class="account-item">
-        <span>Daily Claims:</span>
-        <span id="totalClaims">0</span>
-      </div>
-      <div class="account-item">
-        <span>Referrals:</span>
-        <span id="accountReferrals">0</span>
-      </div>
-      <div class="account-item" style="display:block;">
-        <span style="display:block; margin-bottom:8px;">Referral Link:</span>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <input
-            type="text"
-            id="accountRefLink"
-            readonly
-            style="flex:1; padding:10px; border-radius:10px; border:none; outline:none;"
-            value=""
-          />
-          <button id="copyRefBtn" class="upgrade-btn" style="padding:10px 14px;">
-            Copy
-          </button>
-        </div>
-      </div>
+<div class="profile-hero-card">
+  <div class="profile-avatar" id="profileAvatar">🐶</div>
+
+  <div class="profile-main">
+    <div class="profile-name" id="profileName">Player</div>
+    <div class="profile-id">ID: <span id="accountUserId">--</span></div>
+  </div>
+
+  <div class="profile-league-badge" id="profileLeagueBadge">Wood</div>
+</div>
+
+<div class="profile-stats-grid">
+  <div class="profile-stat-card">
+    <div class="profile-stat-label">Total Coins</div>
+    <div class="profile-stat-value" id="accountCoins">0</div>
+  </div>
+
+  <div class="profile-stat-card">
+    <div class="profile-stat-label">Profit / Hour</div>
+    <div class="profile-stat-value"><span id="accountProfit">0</span> P/H</div>
+  </div>
+
+  <div class="profile-stat-card">
+    <div class="profile-stat-label">Referrals</div>
+    <div class="profile-stat-value" id="accountReferrals">0</div>
+  </div>
+
+  <div class="profile-stat-card">
+    <div class="profile-stat-label">Daily Claims</div>
+    <div class="profile-stat-value" id="totalClaims">0</div>
+  </div>
+</div>
+
+<div class="account-card">
+  <div class="account-item">
+    <span>Wallet:</span>
+    <span id="walletStatus">Not Connected</span>
+  </div>
+
+  <div class="account-item" style="display:block;">
+    <span style="display:block; margin-bottom:8px;">Referral Link:</span>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input
+        type="text"
+        id="accountRefLink"
+        readonly
+        style="flex:1; padding:10px; border-radius:10px; border:none; outline:none;"
+        value=""
+      />
+      <button id="copyRefBtn" class="upgrade-btn" style="padding:10px 14px;">
+        Copy
+      </button>
+    </div>
+  </div>
+</div>
       <div class="account-item">
         <span>Wallet:</span>
         <span id="walletStatus">Not Connected</span>
@@ -664,7 +683,7 @@
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="script.js?v=83"></script>
+<script src="script.js?v=84"></script>
 
 </body>
         </html>
