@@ -42,6 +42,8 @@ app.use(rateLimit({
 /* ================= SCHEMA ================= */
 const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true, unique: true },
+  playerName: { type: String, default: "Player" },
+username: { type: String, default: "" },
   coins: { type: Number, default: 0 },
   suspiciousCount: { type: Number, default: 0 },
   isBlocked: { type: Boolean, default: false },
@@ -3060,10 +3062,13 @@ app.post("/upgrade-daily-amplifier", async (req, res) => {
 /* ================= LOAD ================= */
 app.post("/load", async (req, res) => {
   try {
-    const { telegramId, initData } = req.body;
+    const { telegramId, initData, playerName, username } = req.body;
 
     const user = await getValidUser(String(telegramId), initData);
     if (!user) return res.json({ success: false, message: "Invalid user" });
+
+    if (playerName) user.playerName = String(playerName).slice(0, 40);
+if (username) user.username = String(username).slice(0, 40);
 
     const offlineCoins = await applyOfflineMining(user);
     const autoTapBotCoins = await applyAutoTapBotIncome(user);
@@ -3112,6 +3117,8 @@ await user.save();
     
     return res.json({
       success: true,
+      playerName: user.playerName || "Player",
+username: user.username || "",
       coins: user.coins,
       airdrop: {
   score: airdropScore,
